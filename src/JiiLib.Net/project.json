@@ -1,0 +1,15 @@
+﻿{
+  "version": "0.0.1-*",
+  "description": "JiiLib.Net Class Library",
+    "authors": [ "Joe4evr" ],
+  "tags": [ "" ],
+  "projectUrl": "",
+    "licenseUrl": "",
+    "dependencies": {
+        "Google.Apis.Script.v1": "1.9.2.10"
+    },
+
+  "frameworks": {
+    "net451": { }
+  }
+}
