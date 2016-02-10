@@ -14,6 +14,10 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "JiiLib", "src\JiiLib\JiiLib
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "JiiLib.Net", "src\JiiLib.Net\JiiLib.Net.xproj", "{71B6DA4E-A5FC-4250-852A-28CB42E94437}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "JiiLib.Media", "src\JiiLib.Media\JiiLib.Media.xproj", "{6FB30C20-6D1F-4395-9BB7-9E0F2826D4E9}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "tester", "src\tester\tester.xproj", "{70AEA944-841E-4803-8B45-CF0F51BE2FA1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,6 +32,14 @@ Global
 		{71B6DA4E-A5FC-4250-852A-28CB42E94437}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71B6DA4E-A5FC-4250-852A-28CB42E94437}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71B6DA4E-A5FC-4250-852A-28CB42E94437}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FB30C20-6D1F-4395-9BB7-9E0F2826D4E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FB30C20-6D1F-4395-9BB7-9E0F2826D4E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FB30C20-6D1F-4395-9BB7-9E0F2826D4E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FB30C20-6D1F-4395-9BB7-9E0F2826D4E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70AEA944-841E-4803-8B45-CF0F51BE2FA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70AEA944-841E-4803-8B45-CF0F51BE2FA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70AEA944-841E-4803-8B45-CF0F51BE2FA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70AEA944-841E-4803-8B45-CF0F51BE2FA1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -35,5 +47,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{45746AAA-C725-48D5-8957-161D5E68CFC7} = {ED86E6F6-871B-450C-B191-FF35A2619754}
 		{71B6DA4E-A5FC-4250-852A-28CB42E94437} = {ED86E6F6-871B-450C-B191-FF35A2619754}
+		{6FB30C20-6D1F-4395-9BB7-9E0F2826D4E9} = {ED86E6F6-871B-450C-B191-FF35A2619754}
+		{70AEA944-841E-4803-8B45-CF0F51BE2FA1} = {ED86E6F6-871B-450C-B191-FF35A2619754}
 	EndGlobalSection
 EndGlobal

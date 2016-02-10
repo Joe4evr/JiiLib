@@ -20,12 +20,12 @@ namespace JiiLib.Net
     /// <remarks>Information on how to make a Google Script can be found here: https://developers.google.com/apps-script/guides/rest/quickstart/target-script </remarks>
     public class GoogleScriptApiService : IJsonApiService
     {
-        private readonly string _secretsFile;
         private readonly string _credStorePath;
         private readonly string _projectKey;
         private readonly string _appName;
         private readonly string _funcName;
         private readonly string[] _scopes;
+        private readonly UserCredential _credential;
 
         /// <summary>
         /// List of parameters to pass into the Google Script function (optional).
@@ -62,13 +62,22 @@ namespace JiiLib.Net
             if (applicationName == null) throw new ArgumentNullException(nameof(applicationName));
             if (functionName == null) throw new ArgumentNullException(nameof(functionName));
             if (neededScopes == null) throw new ArgumentNullException(nameof(neededScopes));
-
-            _secretsFile = secretsFile;
+            
             _credStorePath = credStorePath;
             _projectKey = projectKey;
             _appName = applicationName;
             _funcName = functionName;
             _scopes = neededScopes;
+
+            using (Stream sr = new FileStream(secretsFile, FileMode.Open, FileAccess.Read))
+            {
+                _credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.Load(sr).Secrets,
+                    _scopes,
+                    "user",
+                    CancellationToken.None,
+                    new FileDataStore(_credStorePath, fullPath: true)).GetAwaiter().GetResult();
+            }
         }
 
         /// <summary>
@@ -77,18 +86,6 @@ namespace JiiLib.Net
         /// <returns>The Operation representing the API call</returns>
         private async Task<Operation> ExecuteOperaionAsync()
         {
-            UserCredential _credential;
-
-            using (Stream sr = new FileStream(_secretsFile, FileMode.Open, FileAccess.Read))
-            {
-                _credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.Load(sr).Secrets,
-                    _scopes,
-                    "user",
-                    CancellationToken.None,
-                    new FileDataStore(_credStorePath, fullPath: true)).ConfigureAwait(false);
-            }
-
             var service = new ScriptService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = _credential,
