@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 
 namespace JiiLib
@@ -30,5 +31,11 @@ namespace JiiLib
                 list[n] = value;
             }
         }
+
+        public static bool ContainsIgnoreCase(this IEnumerable<string> haystack, string needle)
+            => haystack.Any(s => s.ToLowerInvariant() == needle.ToLowerInvariant());
+
+        public static bool ContainsIgnoreCase(this string haystack, string needle)
+            => haystack.ToLowerInvariant().Contains(needle.ToLowerInvariant());
     }
 }
