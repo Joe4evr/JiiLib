@@ -43,7 +43,7 @@ namespace JiiLib.Net
         /// <param name="neededScopes">The set of Scopes required for your application.</param>
         /// <exception cref="ArgumentNullException">Any parameter was null.</exception>
         /// <exception cref="FileNotFoundException">Parameter <see cref="secretsFile" /> was not found or not a file.</exception>
-        /// <exception cref="DirectoryNotFoundException">Parameter  <see cref="credStorePath" /> was not found or not a directory.</exception>
+        /// <exception cref="DirectoryNotFoundException">Parameter <see cref="credStorePath" /> was not found or not a directory.</exception>
         public GoogleScriptApiService(
             string secretsFile,
             string credStorePath,

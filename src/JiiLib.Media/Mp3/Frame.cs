@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace JiiLib.Media.Mp3
 {
@@ -8,19 +9,23 @@ namespace JiiLib.Media.Mp3
     {
         public string FrameHeader { get; }
         public string FrameContent { get; }
+        public byte[] Flags { get; }
         public string HeaderDefinition => frameDict.Single(kv => kv.Key == FrameHeader).Value;
 
-        public Id3Frame(string header, string content)
+        public Id3Frame(string header, string content, byte[] flags)
         {
             if (header == null) throw new ArgumentNullException(nameof(header));
             if (content == null) throw new ArgumentNullException(nameof(content));
+            if (flags == null) throw new ArgumentNullException(nameof(flags));
+            if (flags.Length != 2) throw new ArgumentOutOfRangeException(nameof(flags), "Argument has to be of length 2.");
             if (!frameDict.Keys.Contains(header)) throw new ArgumentException("Not a valid frame header.", nameof(header));
 
             FrameHeader = header;
             FrameContent = content;
+            Flags = flags;
         }
 
-        private static Dictionary<string, string> frameDict = new Dictionary<string, string>
+        internal static Dictionary<string, string> frameDict = new Dictionary<string, string>
         {
             { Constants.AENC, "Audio encryption" },
             { Constants.APIC, "Attached picture" },

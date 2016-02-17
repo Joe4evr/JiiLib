@@ -37,5 +37,28 @@ namespace JiiLib
 
         public static bool ContainsIgnoreCase(this string haystack, string needle)
             => haystack.ToLowerInvariant().Contains(needle.ToLowerInvariant());
+
+        public static bool StartsWith<T>(this T[] array, T[] values) where T : struct
+        {
+            bool result = true;
+            for (int i = 0; i < values.Length; i++)
+            {
+                result = (!array[i].Equals(values[i])) ? false : result;
+            }
+
+            return result;
+        }
+        
+        public static char[] ToCharArray(this byte[] array)
+        {
+            return array.Cast<char>().ToArray();
+        }
+
+        /*
+        public static (string d, string h, string m) SingularOrPlural(this TimeSpan ts)
+            => (ts.Days == 1 ? "day" : "days",
+                ts.Hours == 1 ? "hour" : "hours",
+                ts.Minutes == 1 ? "minute" : "minutes");
+        */
     }
 }
