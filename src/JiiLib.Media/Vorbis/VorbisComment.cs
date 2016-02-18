@@ -10,9 +10,9 @@ namespace JiiLib.Media.Vorbis
 {
     public abstract class VorbisComment<TFile> : Tag<TFile> where TFile : VorbisFile
     {
-        #region private fields
+        #region protected/private fields
+        protected static readonly Encoding enc = Encoding.UTF8;
         protected IList<string> _artists;
-        //private IList<string> _albumArtists;
         #endregion
 
         public VorbisComment()
@@ -169,6 +169,8 @@ namespace JiiLib.Media.Vorbis
                 case "tracknumber":
                     this.TrackNumber = Int32.Parse(value);
                     break;
+                case "TRACKTOTAL":
+                case "tracktotal":
                 case "TOTALTRACKS":
                 case "totaltracks":
                     this.TotalTracks = Int32.Parse(value);
@@ -189,8 +191,6 @@ namespace JiiLib.Media.Vorbis
                     break;
             }
         }
-
-        protected static readonly Encoding enc = new UTF8Encoding();
     }
 
     public abstract class VorbisFile : MediaFile
