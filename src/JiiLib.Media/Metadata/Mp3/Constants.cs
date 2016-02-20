@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace JiiLib.Media.Mp3
+namespace JiiLib.Media.Metadata.Mp3
 {
     internal static class Constants
     {

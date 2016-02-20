@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using JiiLib.Media;
 
-namespace JiiLib.Media.Vorbis
+namespace JiiLib.Media.Metadata.Vorbis
 {
     public abstract class VorbisComment<TFile> : Tag<TFile> where TFile : VorbisFile
     {

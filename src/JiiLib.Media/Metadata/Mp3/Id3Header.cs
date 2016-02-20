@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace JiiLib.Media.Mp3
+namespace JiiLib.Media.Metadata.Mp3
 {
     public class Id3v2Header
     {
@@ -12,7 +12,7 @@ namespace JiiLib.Media.Mp3
         public Id3v2HeaderFlags Flags { get; }
         public byte[] Size { get; }
         public int IntSize
-            => ((Size[0] << 24) / 2) + ((Size[1] << 16) / 2) + ((Size[2] << 8) / 2) + Size[3];
+            => (Size[0] << 21) + (Size[1] << 14) + (Size[2] << 7) + Size[3];
         
         public Id3v2Header(byte major, byte minor, Id3v2HeaderFlags flags, byte[] size)
         {

@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using JiiLib.Media.Vorbis;
+using JiiLib.Media.Metadata.Vorbis;
 
-namespace JiiLib.Media.Flac
+namespace JiiLib.Media.Metadata.Flac
 {
     public class FlacTag : VorbisComment<FlacFile>
     {

@@ -48,11 +48,6 @@ namespace JiiLib
 
             return result;
         }
-        
-        public static char[] ToCharArray(this byte[] array)
-        {
-            return array.Cast<char>().ToArray();
-        }
 
         /*
         public static (string d, string h, string m) SingularOrPlural(this TimeSpan ts)

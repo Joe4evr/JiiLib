@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using JiiLib;
 
-namespace JiiLib.Media.Mp3
+namespace JiiLib.Media.Metadata.Mp3
 {
     /// <summary>
     /// 
@@ -316,21 +316,22 @@ namespace JiiLib.Media.Mp3
         {
             if (file == null) throw new ArgumentNullException(nameof(file));
 
-            int totalSize;
+            //int totalSize;
             var utf8 = Encoding.UTF8;
-            foreach (var item in Frames)
+            foreach (var frame in Frames)
             {
-                var chars = item.FrameHeader.ToCharArray();
+                var chars = frame.FrameHeader.ToCharArray();
                 var bytes = new byte[4];
                 int i, j;
                 bool b;
                 utf8.GetEncoder().Convert(chars, 0, 4, bytes, 0, 4, true, out i, out j, out b);
-                var b4 = (byte)(item.FrameContent.Length % 128);
-                var b3 = (byte)((item.FrameContent.Length % 256 >= 128) ? ((item.FrameContent.Length >> 8) % 128) + 1 : (item.FrameContent.Length >> 8) % 128);
-                var b2 = (byte)(((item.FrameContent.Length >> 8) % 256 >= 128) ? ((item.FrameContent.Length >> 16) % 128) + 1 : (item.FrameContent.Length >> 16) % 128);
-                var b1 = (byte)(((item.FrameContent.Length >> 16) % 256 >= 128) ? ((item.FrameContent.Length >> 24) % 128) + 1 : (item.FrameContent.Length >> 24) % 128);
+                //var tmp = BitConverter.GetBytes(frame.FrameContent.Length);
+                var b4 = (byte)(frame.FrameContent.Length & 127);
+                var b3 = (byte)((frame.FrameContent.Length >> 7) & 127);
+                var b2 = (byte)((frame.FrameContent.Length >> 14) & 127);
+                var b1 = (byte)((frame.FrameContent.Length >> 21) & 127);
                 var sz = new byte[4] { b1, b2, b3, b4 };
-                
+
             }
 
 
@@ -393,7 +394,7 @@ namespace JiiLib.Media.Mp3
                 {
                     ms.Read(frameHead, 0, 10);
                     string desc = new String(new char[] { (char)frameHead[0], (char)frameHead[1], (char)frameHead[2], (char)frameHead[3], });
-                    int size = ((frameHead[4] << 24) / 2) + ((frameHead[5] << 16) / 2) + ((frameHead[6] << 8) / 2) + frameHead[7];
+                    int size = (frameHead[4] << 21) + (frameHead[5] << 14) + (frameHead[6] << 7) + frameHead[7];
                     byte[] flags = new byte[2] { frameHead[8], frameHead[9] };
 
                     byte[] temp = new byte[size];

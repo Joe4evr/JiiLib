@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace JiiLib.Media.Mp3
+namespace JiiLib.Media.Metadata.Mp3
 {
     public class Id3Frame
     {

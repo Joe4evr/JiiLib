@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using JiiLib.Media.Vorbis;
+using JiiLib.Media.Metadata.Vorbis;
 
-namespace JiiLib.Media.Ogg
+namespace JiiLib.Media.Metadata.Ogg
 {
     public class OggTag : VorbisComment<OggFile>
     {
