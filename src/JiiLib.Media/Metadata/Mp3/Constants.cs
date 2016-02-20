@@ -90,5 +90,17 @@ namespace JiiLib.Media.Metadata.Mp3
         internal const string WPAY = "WPAY";
         internal const string WPUB = "WPUB";
         internal const string WXXX = "WXXX";
+
+        // v2.3 tags
+        internal const string EQUA = "EQUA";
+        internal const string IPLS = "IPLS";
+        internal const string RVAD = "RVAD";
+        internal const string TDAT = "TDAT";
+        internal const string TIME = "TIME";
+        internal const string TORY = "TORY";
+        internal const string TRDA = "TRDA";
+        internal const string TSIZ = "TSIZ";
+        internal const string TYER = "TYER";
+
     }
 }

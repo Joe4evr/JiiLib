@@ -10,35 +10,43 @@ using JiiLib;
 namespace JiiLib.Media.Metadata.Mp3
 {
     /// <summary>
-    /// Represents an ID3v2 tag, compliant with version 4.0.
+    /// Represents an ID3 tag, compliant with version 2.3 / 2.4.
     /// </summary>
     public class Id3v2 : Tag<Mp3File>
     {
         public Id3v2Header Header { get; }
         public IList<Id3Frame> Frames { get; }
 
+        private readonly bool _backCompat;
 
         #region Ctors
-        public Id3v2(Mp3File file)
+        /// <summary>
+        /// Instantiates a new <see cref="Id3v2"/> object to represent an MP3 file's ID3 tags.
+        /// </summary>
+        /// <param name="file">The file to read.</param>
+        /// <param name="backCompat">Specify whether or not to set this instance to ID3v2.3 standards. Defaults to false.</param>
+        public Id3v2(Mp3File file, bool backCompat = false)
         {
+            _backCompat = backCompat;
             Header = ReadHeader(file);
             Frames = (Header != null) ? ReadFrames(file, Header) : null;
         }
 
-        private Id3v2()
+        private Id3v2(bool backCompat = false)
         {
+            _backCompat = backCompat;
             Frames = new List<Id3Frame>();
         }
 
         /// <summary>
-        /// Create an <see cref="Id3v2"/> tag from an existing tag.
+        /// Create an <see cref="Id3v2"/> tag from an existing tag and copies the most common properties from it to this instance.
         /// </summary>
-        /// <typeparam name="TFile"></typeparam>
-        /// <param name="tag"></param>
-        /// <returns></returns>
-        public static Id3v2 FromTag<TFile>(Tag<TFile> tag) where TFile : MediaFile
+        /// <param name="tag">An existing <see cref="Tag{TFile}"/>.</param>
+        /// <param name="backCompat">Specify whether or not to set this instance to ID3v2.3 standards. Defaults to false.</param>
+        /// <returns>An <see cref="Id3v2"/> tag with several properties set.</returns>
+        public static Id3v2 FromTag<TFile>(Tag<TFile> tag, bool backCompat = false) where TFile : MediaFile
         {
-            return new Id3v2()
+            return new Id3v2(backCompat)
             {
                 Title = tag.Title,
                 Artist = tag.Artist,
@@ -57,7 +65,7 @@ namespace JiiLib.Media.Metadata.Mp3
 
         #region Overridden Members
         /// <summary>
-        /// Value of the Title field
+        /// Value of the Title tag
         /// </summary>
         public override string Title
         {
@@ -78,7 +86,7 @@ namespace JiiLib.Media.Metadata.Mp3
         }
 
         /// <summary>
-        /// Value of the Artist field
+        /// Value of the Artist tag
         /// </summary>
         public override string Artist
         {
@@ -99,7 +107,7 @@ namespace JiiLib.Media.Metadata.Mp3
         }
 
         /// <summary>
-        /// Value of the Year field
+        /// Value of the Year tag
         /// </summary>
         public override int? Year
         {
@@ -107,18 +115,18 @@ namespace JiiLib.Media.Metadata.Mp3
             {
                 int i;
                 return Int32.TryParse(Frames.FirstOrDefault(f => f.FrameHeader == Constants.TDRC)?.AsString()
-                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TDAT")?.AsString()
-                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TIME")?.AsString() //check for obsolete fields
-                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TRDA")?.AsString()
-                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TYER")?.AsString(), out i) ? i : (int?)null;
+                    ?? Frames.FirstOrDefault(f => f.FrameHeader == Constants.TDAT)?.AsString()
+                    ?? Frames.FirstOrDefault(f => f.FrameHeader == Constants.TIME)?.AsString() //check for v2.3 fields
+                    ?? Frames.FirstOrDefault(f => f.FrameHeader == Constants.TRDA)?.AsString()
+                    ?? Frames.FirstOrDefault(f => f.FrameHeader == Constants.TYER)?.AsString(), out i) ? i : (int?)null;
             }
             protected set
             {
                 var tmp = Frames.FirstOrDefault(f => f.FrameHeader == Constants.TDRC)
-                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TDAT")
-                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TIME") //check for obsolete fields
-                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TRDA")
-                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TYER");
+                    ?? Frames.FirstOrDefault(f => f.FrameHeader == Constants.TDAT)
+                    ?? Frames.FirstOrDefault(f => f.FrameHeader == Constants.TIME) //check for v2.3 fields
+                    ?? Frames.FirstOrDefault(f => f.FrameHeader == Constants.TRDA)
+                    ?? Frames.FirstOrDefault(f => f.FrameHeader == Constants.TYER);
                 if (tmp != null)
                 {
                     Frames.Remove(tmp);
@@ -126,13 +134,13 @@ namespace JiiLib.Media.Metadata.Mp3
                 if (value.HasValue)
                 {
                     var v = new byte[] { 0x01, 0xFF, 0xFE }.Concat(Encoding.Unicode.GetBytes(value.ToString())).Concat(new byte[] { 0x00, 0x00 }).ToArray();
-                    Frames.Add(new Id3Frame(Constants.TDRC, v, tmp?.Flags ?? new byte[2]));
+                    Frames.Add(new Id3Frame((_backCompat ? Constants.TYER : Constants.TDRC), v, tmp?.Flags ?? new byte[2]));
                 }
             }
         }
 
         /// <summary>
-        /// Value of the Genre field
+        /// Value of the Genre tag
         /// </summary>
         public override string Genre
         {
@@ -148,7 +156,7 @@ namespace JiiLib.Media.Metadata.Mp3
         }
 
         /// <summary>
-        /// Value of the Album field
+        /// Value of the Album tag
         /// </summary>
         public override string Album
         {
@@ -169,7 +177,7 @@ namespace JiiLib.Media.Metadata.Mp3
         }
 
         /// <summary>
-        /// Value of the AlbumArtist field
+        /// Value of the AlbumArtist tag
         /// </summary>
         public override string AlbumArtist
         {
@@ -190,7 +198,7 @@ namespace JiiLib.Media.Metadata.Mp3
         }
 
         /// <summary>
-        /// Value of the TrackNumber field
+        /// Value of the TrackNumber tag
         /// </summary>
         public override int? TrackNumber
         {
@@ -218,7 +226,7 @@ namespace JiiLib.Media.Metadata.Mp3
         }
 
         /// <summary>
-        /// Value of the TotalTracks field
+        /// Value of the TotalTracks tag
         /// </summary>
         public override int? TotalTracks
         {
@@ -246,7 +254,7 @@ namespace JiiLib.Media.Metadata.Mp3
         }
 
         /// <summary>
-        /// Value of the DiscNumber field
+        /// Value of the DiscNumber tag
         /// </summary>
         public override int? DiscNumber
         {
@@ -274,7 +282,7 @@ namespace JiiLib.Media.Metadata.Mp3
         }
 
         /// <summary>
-        /// Value of the TotalDiscs field
+        /// Value of the TotalDiscs tag
         /// </summary>
         public override int? TotalDiscs
         {
@@ -302,7 +310,7 @@ namespace JiiLib.Media.Metadata.Mp3
         }
 
         /// <summary>
-        /// Value of the Comment field
+        /// Value of the Comment tag
         /// </summary>
         public override string Comment
         {
@@ -321,7 +329,12 @@ namespace JiiLib.Media.Metadata.Mp3
                 }
             }
         }
-
+        
+        /// <summary>
+        /// Write the ID3v2 tag to an <see cref="Mp3File"/>.
+        /// </summary>
+        /// <param name="file">The MP3 file to write to.</param>
+        /// <remarks>If the "backCompat" flag when creating this instance was set to "true", will write an ID3v2.3 tag.</remarks>
         public override void WriteTo(Mp3File file)
         {
             if (file == null) throw new ArgumentNullException(nameof(file));
@@ -345,13 +358,17 @@ namespace JiiLib.Media.Metadata.Mp3
                 rawTags.Add(fullTag);
                 totalSize += fullTag.Length;
             }
-            
+
             var h4 = (byte)(totalSize & 127);
             var h3 = (byte)((totalSize >> 7) & 127);
             var h2 = (byte)((totalSize >> 14) & 127);
             var h1 = (byte)((totalSize >> 21) & 127);
             var header = Header ?? ReadHeader(file);
-            header = new Id3v2Header(4, 0, ( header == null ? Id3v2HeaderFlags.None : header.Flags), new byte[4] { h1, h2, h3, h4 });
+            header = new Id3v2Header(
+                (byte)(_backCompat ? 3 : 4),
+                0,
+                (header == null ? Id3v2HeaderFlags.None : header.Flags),
+                new byte[4] { h1, h2, h3, h4 });
 
             var temp = File.ReadAllBytes(file.Path);
             using (FileStream fs = new FileStream(file.Path, FileMode.Truncate, FileAccess.Write))

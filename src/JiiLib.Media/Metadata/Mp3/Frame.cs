@@ -18,12 +18,13 @@ namespace JiiLib.Media.Metadata.Mp3
             if (content == null) throw new ArgumentNullException(nameof(content));
             if (flags == null) throw new ArgumentNullException(nameof(flags));
             if (flags.Length != 2) throw new ArgumentOutOfRangeException(nameof(flags), "Argument has to be of length 2.");
-            if (!frameDict.Keys.Contains(header)) throw new ArgumentException("Not a valid frame header.", nameof(header));
+            if (!frameDict.Keys.Contains(header) && !v23frames.Keys.Contains(header))
+                throw new ArgumentException("Not a valid frame header.", nameof(header));
 
             FrameHeader = header;
             RawContent = content;
             Flags = flags;
-            HeaderDefinition = frameDict.Single(kv => kv.Key == FrameHeader).Value;
+            HeaderDefinition = frameDict.SingleOrDefault(kv => kv.Key == FrameHeader).Value ?? v23frames.SingleOrDefault(kv => kv.Key == FrameHeader).Value;
         }
         
         /// <summary>
@@ -154,6 +155,19 @@ namespace JiiLib.Media.Metadata.Mp3
             { Constants.WPAY, "Payment" },
             { Constants.WPUB, "Publishers official webpage" },
             { Constants.WXXX, "User defined URL link frame" }
+        };
+
+        internal static Dictionary<string, string> v23frames = new Dictionary<string, string>
+        {
+            { Constants.EQUA, "Equalization" },
+            { Constants.IPLS, "Involved people list" },
+            { Constants.RVAD, "Relative volume adjustment" },
+            { Constants.TDAT, "Date" },
+            { Constants.TIME, "Time" },
+            { Constants.TORY, "Original release year" },
+            { Constants.TRDA, "Recording dates" },
+            { Constants.TSIZ, "Size" },
+            { Constants.TYER, "Year" }
         };
     }
 }
