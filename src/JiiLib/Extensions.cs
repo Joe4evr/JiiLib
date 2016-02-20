@@ -12,10 +12,10 @@ namespace JiiLib
         public static void Shuffle<T>(this IList<T> list)
         {
             var provider =
-#if NET46
-                new RNGCryptoServiceProvider();
-#else
+#if DOTNET5_4
                 RandomNumberGenerator.Create();
+#else
+                new RNGCryptoServiceProvider();
 #endif
             
             int n = list.Count;

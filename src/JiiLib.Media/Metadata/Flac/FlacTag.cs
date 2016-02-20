@@ -61,8 +61,7 @@ namespace JiiLib.Media.Metadata.Flac
                 {
                     throw new InvalidDataException("File was not in a correct format.");
                 }
-
-                var artists = new List<string>();
+                
                 bool lastBlock = false;
                 while (!lastBlock)
                 {
@@ -105,7 +104,6 @@ namespace JiiLib.Media.Metadata.Flac
                         }
                     }
                 }
-                _artists = artists;
             }
         }
     }

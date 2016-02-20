@@ -147,7 +147,7 @@ namespace JiiLib.Media.Metadata.Vorbis
                     break;
                 case "ARTIST":
                 case "artist":
-                    _artists.Add(value);
+                    this.Artist = value;
                     break;
                 case "DATE":
                 case "date":

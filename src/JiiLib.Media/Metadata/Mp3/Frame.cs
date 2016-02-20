@@ -8,11 +8,11 @@ namespace JiiLib.Media.Metadata.Mp3
     public class Id3Frame
     {
         public string FrameHeader { get; }
-        public string FrameContent { get; }
+        internal byte[] RawContent { get; }
         public byte[] Flags { get; }
-        public string HeaderDefinition => frameDict.Single(kv => kv.Key == FrameHeader).Value;
+        public string HeaderDefinition { get; }
 
-        public Id3Frame(string header, string content, byte[] flags)
+        internal Id3Frame(string header, byte[] content, byte[] flags)
         {
             if (header == null) throw new ArgumentNullException(nameof(header));
             if (content == null) throw new ArgumentNullException(nameof(content));
@@ -21,8 +21,52 @@ namespace JiiLib.Media.Metadata.Mp3
             if (!frameDict.Keys.Contains(header)) throw new ArgumentException("Not a valid frame header.", nameof(header));
 
             FrameHeader = header;
-            FrameContent = content;
+            RawContent = content;
             Flags = flags;
+            HeaderDefinition = frameDict.Single(kv => kv.Key == FrameHeader).Value;
+        }
+        
+        /// <summary>
+        /// If the content of this tag is a Text field, returns the content as a <see cref="string"/>, otherwise returns null.
+        /// </summary>
+        /// <returns>This tag's field if it's text, otherwise null.</returns>
+        internal string AsString()
+        {
+            if (!FrameHeader.StartsWith("T")) return null;
+
+            string content;
+            Encoding enc;
+            switch (RawContent[0])
+            {
+                case 0:
+                    try
+                    {
+                        enc = Encoding.GetEncoding("iso-8859-1");
+                    }
+                    catch (Exception)
+                    {
+                        enc = new Latin1Encoding(); //fallback in case Latin-1 isn't available
+                    }
+                    content = enc.GetString(RawContent, 1, RawContent.Length - 2);
+                    break;
+                case 1:
+                    enc = Encoding.Unicode;
+                    if (RawContent[1] != 0xFF && RawContent[2] != 0xFE) return null;
+                    content = enc.GetString(RawContent, 3, RawContent.Length - 5);
+                    break;
+                case 2:
+                    enc = new UnicodeEncoding(bigEndian: true, byteOrderMark: false);
+                    //if (FrameContent[1] != 0xFE && FrameContent[2] != 0xFF) return null;
+                    content = enc.GetString(RawContent, 1, RawContent.Length - 3);
+                    break;
+                case 3:
+                    enc = Encoding.UTF8;
+                    content = enc.GetString(RawContent, 1, RawContent.Length - 2);
+                    break;
+                default:
+                    throw new InvalidOperationException();
+            }
+            return content;
         }
 
         internal static Dictionary<string, string> frameDict = new Dictionary<string, string>

@@ -33,8 +33,9 @@ namespace JiiLib.Media.Metadata
         public MediaFile(string path)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));
+            if (!System.IO.File.Exists(path)) throw new ArgumentException("File does not exist or was an invalid path.", nameof(path));
 
-            Path = path;
+            Path = System.IO.Path.GetFullPath(path);
         }
     }
 }

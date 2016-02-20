@@ -10,7 +10,7 @@ using JiiLib;
 namespace JiiLib.Media.Metadata.Mp3
 {
     /// <summary>
-    /// 
+    /// Represents an ID3v2 tag, compliant with version 4.0.
     /// </summary>
     public class Id3v2 : Tag<Mp3File>
     {
@@ -61,7 +61,7 @@ namespace JiiLib.Media.Metadata.Mp3
         /// </summary>
         public override string Title
         {
-            get { return Frames.FirstOrDefault(f => f.FrameHeader == Constants.TIT2)?.FrameContent; }
+            get { return Frames.FirstOrDefault(f => f.FrameHeader == Constants.TIT2)?.AsString(); }
             protected set
             {
                 var tmp = Frames.FirstOrDefault(f => f.FrameHeader == Constants.TIT2);
@@ -71,7 +71,8 @@ namespace JiiLib.Media.Metadata.Mp3
                 }
                 if (value != null)
                 {
-                    Frames.Add(new Id3Frame(Constants.TIT2, value, tmp?.Flags ?? new byte[2]));
+                    var v = new byte[] { 0x01, 0xFF, 0xFE }.Concat(Encoding.Unicode.GetBytes(value)).Concat(new byte[] { 0x00, 0x00 }).ToArray();
+                    Frames.Add(new Id3Frame(Constants.TIT2, v, tmp?.Flags ?? new byte[2]));
                 }
             }
         }
@@ -81,7 +82,7 @@ namespace JiiLib.Media.Metadata.Mp3
         /// </summary>
         public override string Artist
         {
-            get { return Frames.FirstOrDefault(f => f.FrameHeader == Constants.TPE1)?.FrameContent; }
+            get { return Frames.FirstOrDefault(f => f.FrameHeader == Constants.TPE1)?.AsString(); }
             protected set
             {
                 var tmp = Frames.FirstOrDefault(f => f.FrameHeader == Constants.TPE1);
@@ -91,7 +92,8 @@ namespace JiiLib.Media.Metadata.Mp3
                 }
                 if (value != null)
                 {
-                    Frames.Add(new Id3Frame(Constants.TPE1, value, tmp?.Flags ?? new byte[2]));
+                    var v = new byte[] { 0x01, 0xFF, 0xFE }.Concat(Encoding.Unicode.GetBytes(value)).Concat(new byte[] { 0x00, 0x00 }).ToArray();
+                    Frames.Add(new Id3Frame(Constants.TPE1, v, tmp?.Flags ?? new byte[2]));
                 }
             }
         }
@@ -104,11 +106,11 @@ namespace JiiLib.Media.Metadata.Mp3
             get
             {
                 int i;
-                return Int32.TryParse(Frames.FirstOrDefault(f => f.FrameHeader == Constants.TDRC)?.FrameContent
-                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TDAT")?.FrameContent
-                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TIME")?.FrameContent //check for obsolete fields
-                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TRDA")?.FrameContent
-                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TYER")?.FrameContent, out i) ? i : (int?)null;
+                return Int32.TryParse(Frames.FirstOrDefault(f => f.FrameHeader == Constants.TDRC)?.AsString()
+                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TDAT")?.AsString()
+                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TIME")?.AsString() //check for obsolete fields
+                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TRDA")?.AsString()
+                    ?? Frames.FirstOrDefault(f => f.FrameHeader == "TYER")?.AsString(), out i) ? i : (int?)null;
             }
             protected set
             {
@@ -123,7 +125,8 @@ namespace JiiLib.Media.Metadata.Mp3
                 }
                 if (value.HasValue)
                 {
-                    Frames.Add(new Id3Frame(Constants.TDRC, value.ToString(), tmp?.Flags ?? new byte[2]));
+                    var v = new byte[] { 0x01, 0xFF, 0xFE }.Concat(Encoding.Unicode.GetBytes(value.ToString())).Concat(new byte[] { 0x00, 0x00 }).ToArray();
+                    Frames.Add(new Id3Frame(Constants.TDRC, v, tmp?.Flags ?? new byte[2]));
                 }
             }
         }
@@ -149,7 +152,7 @@ namespace JiiLib.Media.Metadata.Mp3
         /// </summary>
         public override string Album
         {
-            get { return Frames.FirstOrDefault(f => f.FrameHeader == Constants.TALB)?.FrameContent; }
+            get { return Frames.FirstOrDefault(f => f.FrameHeader == Constants.TALB)?.AsString(); }
             protected set
             {
                 var tmp = Frames.FirstOrDefault(f => f.FrameHeader == Constants.TALB);
@@ -159,7 +162,8 @@ namespace JiiLib.Media.Metadata.Mp3
                 }
                 if (value != null)
                 {
-                    Frames.Add(new Id3Frame(Constants.TALB, value, tmp?.Flags ?? new byte[2]));
+                    var v = new byte[] { 0x01, 0xFF, 0xFE }.Concat(Encoding.Unicode.GetBytes(value)).Concat(new byte[] { 0x00, 0x00 }).ToArray();
+                    Frames.Add(new Id3Frame(Constants.TALB, v, tmp?.Flags ?? new byte[2]));
                 }
             }
         }
@@ -169,7 +173,7 @@ namespace JiiLib.Media.Metadata.Mp3
         /// </summary>
         public override string AlbumArtist
         {
-            get { return Frames.FirstOrDefault(f => f.FrameHeader == Constants.TPE2)?.FrameContent; }
+            get { return Frames.FirstOrDefault(f => f.FrameHeader == Constants.TPE2)?.AsString(); }
             protected set
             {
                 var tmp = Frames.FirstOrDefault(f => f.FrameHeader == Constants.TPE2);
@@ -179,7 +183,8 @@ namespace JiiLib.Media.Metadata.Mp3
                 }
                 if (value != null)
                 {
-                    Frames.Add(new Id3Frame(Constants.TPE2, value, tmp?.Flags ?? new byte[2]));
+                    var v = new byte[] { 0x01, 0xFF, 0xFE }.Concat(Encoding.Unicode.GetBytes(value)).Concat(new byte[] { 0x00, 0x00 }).ToArray();
+                    Frames.Add(new Id3Frame(Constants.TPE2, v, tmp?.Flags ?? new byte[2]));
                 }
             }
         }
@@ -193,7 +198,7 @@ namespace JiiLib.Media.Metadata.Mp3
             {
                 int i;
                 return Int32.TryParse(Frames.FirstOrDefault(f => f.FrameHeader == Constants.TRCK)?
-                    .FrameContent?.Split('/')?[0], out i) ? i : (int?)null;
+                    .AsString()?.Split('/')?[0], out i) ? i : (int?)null;
             }
             protected set
             {
@@ -201,12 +206,13 @@ namespace JiiLib.Media.Metadata.Mp3
                 string res = null;
                 if (tmp != null)
                 {
-                    res = tmp.FrameContent.Split('/')[1];
+                    res = tmp.AsString().Split('/')[1];
                     Frames.Remove(tmp);
                 }
                 if (value.HasValue)
                 {
-                    Frames.Add(new Id3Frame(Constants.TRCK, $"{value}/{res ?? "0"}", tmp?.Flags ?? new byte[2]));
+                    var v = new byte[] { 0x01, 0xFF, 0xFE }.Concat(Encoding.Unicode.GetBytes($"{value}/{res}")).Concat(new byte[] { 0x00, 0x00 }).ToArray();
+                    Frames.Add(new Id3Frame(Constants.TRCK, v, tmp?.Flags ?? new byte[2]));
                 }
             }
         }
@@ -219,8 +225,8 @@ namespace JiiLib.Media.Metadata.Mp3
             get
             {
                 int i;
-                return Int32.TryParse(Frames.FirstOrDefault(f => f.FrameHeader == Constants.TRCK)?
-                    .FrameContent?.Split('/')?[1], out i) ? i : (int?)null;
+                return Int32.TryParse((Frames.FirstOrDefault(f => f.FrameHeader == Constants.TRCK)?
+                    .AsString()?.Split('/')?[1]), out i) ? i : (int?)null;
             }
             protected set
             {
@@ -228,12 +234,13 @@ namespace JiiLib.Media.Metadata.Mp3
                 string res = null;
                 if (tmp != null)
                 {
-                    res = tmp.FrameContent.Split('/')[0];
+                    res = tmp.AsString().Split('/')[0];
                     Frames.Remove(tmp);
                 }
                 if (value.HasValue)
                 {
-                    Frames.Add(new Id3Frame(Constants.TRCK, $"{res ?? "0"}/{value}", tmp?.Flags ?? new byte[2]));
+                    var v = new byte[] { 0x01, 0xFF, 0xFE }.Concat(Encoding.Unicode.GetBytes($"{res}/{value}")).Concat(new byte[] { 0x00, 0x00 }).ToArray();
+                    Frames.Add(new Id3Frame(Constants.TRCK, v, tmp?.Flags ?? new byte[2]));
                 }
             }
         }
@@ -247,7 +254,7 @@ namespace JiiLib.Media.Metadata.Mp3
             {
                 int i;
                 return Int32.TryParse(Frames.FirstOrDefault(f => f.FrameHeader == Constants.TPOS)?
-                    .FrameContent?.Split('/')?[0], out i) ? i : (int?)null;
+                    .AsString()?.Split('/')?[0], out i) ? i : (int?)null;
             }
             protected set
             {
@@ -255,12 +262,13 @@ namespace JiiLib.Media.Metadata.Mp3
                 string res = null;
                 if (tmp != null)
                 {
-                    res = tmp.FrameContent.Split('/')[1];
+                    res = tmp.AsString().Split('/')[1];
                     Frames.Remove(tmp);
                 }
                 if (value.HasValue)
                 {
-                    Frames.Add(new Id3Frame(Constants.TPOS, $"{value}/{res ?? "0"}", tmp?.Flags ?? new byte[2]));
+                    var v = new byte[] { 0x01, 0xFF, 0xFE }.Concat(Encoding.Unicode.GetBytes($"{value}/{res}")).Concat(new byte[] { 0x00, 0x00 }).ToArray();
+                    Frames.Add(new Id3Frame(Constants.TPOS, v, tmp?.Flags ?? new byte[2]));
                 }
             }
         }
@@ -274,7 +282,7 @@ namespace JiiLib.Media.Metadata.Mp3
             {
                 int i;
                 return Int32.TryParse(Frames.FirstOrDefault(f => f.FrameHeader == Constants.TPOS)?
-                    .FrameContent?.Split('/')?[1], out i) ? i : (int?)null;
+                    .AsString()?.Split('/')?[1], out i) ? i : (int?)null;
             }
             protected set
             {
@@ -282,12 +290,13 @@ namespace JiiLib.Media.Metadata.Mp3
                 string res = null;
                 if (tmp != null)
                 {
-                    res = tmp.FrameContent.Split('/')[0];
+                    res = tmp.AsString().Split('/')[0];
                     Frames.Remove(tmp);
                 }
                 if (value.HasValue)
                 {
-                    Frames.Add(new Id3Frame(Constants.TPOS, $"{res ?? "0"}/{value}", tmp?.Flags ?? new byte[2]));
+                    var v = new byte[] { 0x01, 0xFF, 0xFE }.Concat(Encoding.Unicode.GetBytes($"{res}/{value}")).Concat(new byte[] { 0x00, 0x00 }).ToArray();
+                    Frames.Add(new Id3Frame(Constants.TPOS, v, tmp?.Flags ?? new byte[2]));
                 }
             }
         }
@@ -297,7 +306,7 @@ namespace JiiLib.Media.Metadata.Mp3
         /// </summary>
         public override string Comment
         {
-            get { return Frames.FirstOrDefault(f => f.FrameHeader == Constants.COMM)?.FrameContent; }
+            get { return Frames.FirstOrDefault(f => f.FrameHeader == Constants.COMM)?.AsString(); }
             protected set
             {
                 var tmp = Frames.FirstOrDefault(f => f.FrameHeader == Constants.COMM);
@@ -307,7 +316,8 @@ namespace JiiLib.Media.Metadata.Mp3
                 }
                 if (value != null)
                 {
-                    Frames.Add(new Id3Frame(Constants.COMM, value, tmp?.Flags ?? new byte[2]));
+                    var v = new byte[] { 0x01, 0xFF, 0xFE }.Concat(Encoding.Unicode.GetBytes(value)).Concat(new byte[] { 0x00, 0x00 }).ToArray();
+                    Frames.Add(new Id3Frame(Constants.COMM, v, tmp?.Flags ?? new byte[2]));
                 }
             }
         }
@@ -316,34 +326,44 @@ namespace JiiLib.Media.Metadata.Mp3
         {
             if (file == null) throw new ArgumentNullException(nameof(file));
 
-            //int totalSize;
+            int totalSize = 0;
             var utf8 = Encoding.UTF8;
+            var rawTags = new List<byte[]>();
             foreach (var frame in Frames)
             {
                 var chars = frame.FrameHeader.ToCharArray();
-                var bytes = new byte[4];
+                var head = new byte[4];
                 int i, j;
                 bool b;
-                utf8.GetEncoder().Convert(chars, 0, 4, bytes, 0, 4, true, out i, out j, out b);
-                //var tmp = BitConverter.GetBytes(frame.FrameContent.Length);
-                var b4 = (byte)(frame.FrameContent.Length & 127);
-                var b3 = (byte)((frame.FrameContent.Length >> 7) & 127);
-                var b2 = (byte)((frame.FrameContent.Length >> 14) & 127);
-                var b1 = (byte)((frame.FrameContent.Length >> 21) & 127);
+                utf8.GetEncoder().Convert(chars, 0, 4, head, 0, 4, true, out i, out j, out b);
+                var b4 = (byte)(frame.RawContent.Length & 127);
+                var b3 = (byte)((frame.RawContent.Length >> 7) & 127);
+                var b2 = (byte)((frame.RawContent.Length >> 14) & 127);
+                var b1 = (byte)((frame.RawContent.Length >> 21) & 127);
                 var sz = new byte[4] { b1, b2, b3, b4 };
-
+                var fullTag = head.Concat(sz).Concat(frame.Flags).Concat(frame.RawContent).ToArray();
+                rawTags.Add(fullTag);
+                totalSize += fullTag.Length;
             }
-
-
-
+            
+            var h4 = (byte)(totalSize & 127);
+            var h3 = (byte)((totalSize >> 7) & 127);
+            var h2 = (byte)((totalSize >> 14) & 127);
+            var h1 = (byte)((totalSize >> 21) & 127);
             var header = Header ?? ReadHeader(file);
-            if (header == null)
+            header = new Id3v2Header(4, 0, ( header == null ? Id3v2HeaderFlags.None : header.Flags), new byte[4] { h1, h2, h3, h4 });
+
+            var temp = File.ReadAllBytes(file.Path);
+            using (FileStream fs = new FileStream(file.Path, FileMode.Truncate, FileAccess.Write))
             {
-                header = new Id3v2Header(4, 0, Id3v2HeaderFlags.None, new byte[4]);
+                var rawHead = header.ToRawHeader();
+                fs.Write(rawHead, 0, rawHead.Length);
+                foreach (var item in rawTags)
+                {
+                    fs.Write(item, 0, item.Length);
+                }
+                fs.Write(temp, 0, temp.Length);
             }
-
-
-            //throw new NotImplementedException();
         }
         #endregion
 
@@ -397,40 +417,12 @@ namespace JiiLib.Media.Metadata.Mp3
                     int size = (frameHead[4] << 21) + (frameHead[5] << 14) + (frameHead[6] << 7) + frameHead[7];
                     byte[] flags = new byte[2] { frameHead[8], frameHead[9] };
 
-                    byte[] temp = new byte[size];
-                    ms.Read(temp, 0, size);
-                    string content;
+                    byte[] content = new byte[size];
+                    ms.Read(content, 0, size);
                     if (Id3Frame.frameDict.Keys.Contains(desc))
                     {
-                        if (desc.StartsWith("T"))
-                        {
-                            Encoding enc;
-                            switch (temp[0])
-                            {
-                                case 0:
-                                    enc = Encoding.ASCII;
-                                    content = new String(enc.GetChars(temp.Skip(1).ToArray()).Skip(1).TakeWhile(c => c != 0x00).ToArray());
-                                    break;
-                                case 1:
-                                    enc = new UnicodeEncoding(bigEndian: false, byteOrderMark: true);
-                                    if (temp[1] != 0xFF && temp[2] != 0xFE) continue;
-                                    content = new String(enc.GetChars(temp.Skip(1).ToArray()).Skip(1).TakeWhile(c => c != 0x0000).ToArray());
-                                    break;
-                                case 2:
-                                    enc = new UnicodeEncoding(bigEndian: true, byteOrderMark: false);
-                                    if (temp[1] != 0xFE && temp[2] != 0xFF) continue;
-                                    content = new String(enc.GetChars(temp.Skip(1).ToArray()).Skip(1).TakeWhile(c => c != 0x0000).ToArray());
-                                    break;
-                                case 3:
-                                    enc = Encoding.UTF8;
-                                    content = new String(enc.GetChars(temp.Skip(1).ToArray()).Skip(1).TakeWhile(c => c != 0x00).ToArray());
-                                    break;
-                                default:
-                                    throw new InvalidOperationException();
-                            }
-                            // Console.WriteLine($"Found frame: {desc} - {content}");
-                            frames.Add(new Id3Frame(desc, content, flags));
-                        }
+                        // Console.WriteLine($"Found frame: {desc} - {content}");
+                        frames.Add(new Id3Frame(desc, content, flags));
                     }
                 }
             }
