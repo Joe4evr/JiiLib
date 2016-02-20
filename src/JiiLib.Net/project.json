@@ -1,16 +1,32 @@
 {
-  "version": "0.1.1-*",
-  "description": "JiiLib.Net Class Library",
+    "version": "0.1.1-*",
+    "description": "JiiLib.Net Class Library - Useful network-related APIs.",
     "authors": [ "Joe4evr" ],
-  "tags": [ "" ],
-  "projectUrl": "",
+    "tags": [ "" ],
+    "projectUrl": "https://github.com/Joe4evr/JiiLib",
     "licenseUrl": "",
     "dependencies": {
-        "Google.Apis.Script.v1": "1.9.2.10",
-        "Imgur.API": "3.6.0"
+        
     },
 
-  "frameworks": {
-    "net46": { }
-  }
+    "frameworks": {
+        "net46": {
+            "dependencies": {
+                "Google.Apis.Script.v1": "1.9.2.10"
+            }
+        },
+        "dotnet5.4": {
+            "dependencies": {
+                "Microsoft.CSharp": "4.0.1-rc2-23623",
+                "System.Collections": "4.0.11-rc2-23623",
+                "System.IO.FileSystem": "4.0.1-rc2-23623",
+                "System.IO.FileSystem.Primitives": "4.0.1-rc2-23623",
+                "System.Linq": "4.0.1-rc2-23623",
+                "System.Runtime": "4.0.21-rc2-23623",
+                "System.Text.Encoding": "4.0.11-rc2-23623",
+                "System.Text.Encoding.Extensions": "4.0.11-rc2-23623",
+                "System.Threading": "4.0.11-rc2-23623"
+            }
+        }
+    }
 }

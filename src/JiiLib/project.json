@@ -1,10 +1,10 @@
 ﻿{
-  "version": "0.1.1-*",
-  "description": "JiiLib Class Library",
+    "version": "0.1.1-*",
+    "description": "JiiLib Class Library - Just a collection of small but useful things.",
     "authors": [ "Joe4evr" ],
-  "tags": [ "" ],
-  "projectUrl": "",
-  "licenseUrl": "",
+    "tags": [ "" ],
+    "projectUrl": "https://github.com/Joe4evr/JiiLib",
+    "licenseUrl": "",
     "frameworks": {
         "net46": { },
         "dotnet5.4": {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !DOTNET5_4
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -150,3 +151,4 @@ namespace JiiLib.Net
         }
     }
 }
+#endif
