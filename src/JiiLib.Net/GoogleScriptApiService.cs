@@ -100,7 +100,10 @@ namespace JiiLib.Net
             return await runReq.ExecuteAsync().ConfigureAwait(false);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Gets the requested data from the API formatted as JSON.
+        /// </summary>
+        /// <returns>A JSON-formatted string representing the requested data.</returns>
         public async Task<string> GetDataFromServiceAsJsonAsync()
         {
             try
