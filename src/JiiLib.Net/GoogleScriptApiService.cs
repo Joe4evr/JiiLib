@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
@@ -10,8 +9,6 @@ using Google.Apis.Util.Store;
 using Google.Apis.Script.v1;
 using Google.Apis.Script.v1.Data;
 using Google.Apis.Services;
-using Newtonsoft.Json.Linq;
-using System.Diagnostics;
 
 namespace JiiLib.Net
 {
@@ -21,7 +18,6 @@ namespace JiiLib.Net
     /// <remarks>Information on how to make a Google Script can be found here: https://developers.google.com/apps-script/guides/rest/quickstart/target-script </remarks>
     public class GoogleScriptApiService : IJsonApiService
     {
-        private readonly string _credStorePath;
         private readonly string _projectKey;
         private readonly string _appName;
         private readonly string _funcName;
@@ -64,7 +60,6 @@ namespace JiiLib.Net
             if (functionName == null) throw new ArgumentNullException(nameof(functionName));
             if (neededScopes == null) throw new ArgumentNullException(nameof(neededScopes));
             
-            _credStorePath = credStorePath;
             _projectKey = projectKey;
             _appName = applicationName;
             _funcName = functionName;
@@ -77,7 +72,7 @@ namespace JiiLib.Net
                     _scopes,
                     "user",
                     CancellationToken.None,
-                    new FileDataStore(_credStorePath, fullPath: true)).GetAwaiter().GetResult();
+                    new FileDataStore(credStorePath, fullPath: true)).GetAwaiter().GetResult();
             }
         }
 
