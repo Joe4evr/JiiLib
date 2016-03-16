@@ -44,7 +44,8 @@ namespace JiiLib.Media.Metadata.Mp3
         internal Id3v2Header(byte major, byte minor, Id3v2HeaderFlags flags, byte[] size)
         {
             if (size.Length != 4) throw new ArgumentOutOfRangeException(nameof(size), "Argument has to be of length 4.");
-
+            if ((flags & Id3v2HeaderFlags.Unsynchronisation) == Id3v2HeaderFlags.Unsynchronisation) throw new NotSupportedException("Unsynchronized tags are not supported by this library (yet) (maybe).");
+            
             MajorVersion = major;
             MinorVersion = minor;
             Flags = flags;
@@ -60,7 +61,7 @@ namespace JiiLib.Media.Metadata.Mp3
     }
 
     [Flags]
-    public enum Id3v2HeaderFlags
+    public enum Id3v2HeaderFlags : byte
     {
         Unsynchronisation = 0x80,
         Extended          = 0x40,

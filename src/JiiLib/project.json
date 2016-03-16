@@ -1,21 +1,24 @@
 ﻿{
-    "version": "0.1.1-*",
-    "description": "JiiLib Class Library - Just a collection of small but useful things.",
-    "authors": [ "Joe4evr" ],
-    "tags": [ "" ],
-    "projectUrl": "https://github.com/Joe4evr/JiiLib",
-    "licenseUrl": "",
-    "frameworks": {
-        "net46": { },
-        "dotnet5.4": {
-            "dependencies": {
-                "Microsoft.CSharp": "4.0.1-rc2-23623",
-                "System.Collections": "4.0.11-rc2-23623",
-                "System.Console": "4.0.0-rc2-23623",
-                "System.Linq": "4.0.1-rc2-23623",
-                "System.Runtime": "4.0.21-rc2-23623",
-                "System.Security.Cryptography.Algorithms": "4.0.0-rc2-23616"
-            }
-        }
-    }
+	"version": "0.1.2-*",
+	"description": "JiiLib Class Library - Just a collection of small but useful things.",
+	"authors": [ "Joe4evr" ],
+	"tags": [ "" ],
+	"projectUrl": "https://github.com/Joe4evr/JiiLib",
+	"licenseUrl": "http://opensource.org/licenses/MIT",
+	"dependencies": {
+	},
+
+	"frameworks": {
+		"net46": { },
+		"dotnet5.4": {
+			"dependencies": {
+				"Microsoft.CSharp": "4.0.1-rc2-23623",
+				"System.Collections": "4.0.11-rc2-23623",
+				"System.Console": "4.0.0-rc2-23623",
+				"System.Linq": "4.0.1-rc2-23623",
+				"System.Runtime": "4.0.21-rc2-23623",
+				"System.Security.Cryptography.Algorithms": "4.0.0-rc2-23616"
+			}
+		}
+	}
 }
