@@ -67,10 +67,13 @@ namespace JiiLib
         /// <param name="array">Array to check.</param>
         /// <param name="values">Array to check against.</param>
         /// <returns>True if the array starts with the same values in the same order as the provided array, otherwise false.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">The length of the <paramref name="values"/> array was larger than length of the input array.</exception>
         public static bool StartsWith<T>(this T[] array, T[] values) where T : struct
         {
+            if (values.Length > array.Length) throw new ArgumentOutOfRangeException(nameof(values), "Values array may not be larger than input array.");
+
             bool result = true;
-            for (int i = 0; i < values.Length; i++)
+            for (int i = 0; i < values.Length && result; i++)
             {
                 result = (!array[i].Equals(values[i])) ? false : result;
             }
