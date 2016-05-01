@@ -30,10 +30,15 @@ namespace JiiLib
             int n = buffer.Count;
             while (n > 1)
             {
-                byte[] box = new byte[1];
-                do provider.GetBytes(box);
-                while (!(box[0] < n * (Byte.MaxValue / n)));
-                int k = (box[0] % n);
+                byte[] box = new byte[(n / Byte.MaxValue) + 1];
+                int boxSum;
+                do
+                {
+                    provider.GetBytes(box);
+                    boxSum = box.Sum(b => b);
+                }
+                while (!(boxSum < n * ((Byte.MaxValue * box.Length) / n)));
+                int k = (boxSum % n);
                 n--;
                 T value = buffer[k];
                 buffer[k] = buffer[n];
@@ -84,7 +89,7 @@ namespace JiiLib
         /// <summary>
         /// Repeat a sequence of items by a specified amount.
         /// </summary>
-        /// <param name="sequence">A <see cref="IEnumerable{T}"/> to berepeated.</param>
+        /// <param name="sequence">An <see cref="IEnumerable{T}"/> to be repeated.</param>
         /// <param name="amount">The amount of times to repeat the sequence.</param>
         /// <returns>A sequence of items repeated x times.</returns>
         public static IEnumerable<TResult> RepeatSeq<TResult>(this IEnumerable<TResult> sequence, int amount)
