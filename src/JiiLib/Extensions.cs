@@ -17,7 +17,7 @@ namespace JiiLib
         /// Perform a Fisher-Yates shuffle on a collection implementing <see cref="IEnumerable{T}"/>.
         /// </summary>
         /// <param name="source">The list to shuffle.</param>
-        /// <remarks>Taken from http://stackoverflow.com/questions/273313/. </remarks>
+        /// <remarks>Adapted from http://stackoverflow.com/questions/273313/. </remarks>
         public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source)
         {
             var provider =
