@@ -1,19 +1,28 @@
 {
-	"version": "0.1.2-*",
-	"description": "JiiLib.Net Class Library - Useful network-related APIs.",
-	"authors": [ "Joe4evr" ],
-	"tags": [ "" ],
-	"projectUrl": "https://github.com/Joe4evr/JiiLib",
-	"licenseUrl": "http://opensource.org/licenses/MIT",
-	"dependencies": {
+    "version": "0.1.2-*",
+    "description": "JiiLib.Net Class Library - Useful network-related APIs.",
+    "authors": [ "Joe4evr" ],
+    
+    "packOptions": {
+        "tags": [ "" ],
+        "projectUrl": "https://github.com/Joe4evr/JiiLib",
+        "licenseUrl": "http://opensource.org/licenses/MIT"
+    },
+    
+    "dependencies": {
 
-	},
+    },
 
-	"frameworks": {
-		"net46": {
-			"dependencies": {
-				"Google.Apis.Script.v1": "1.9.2.10"
-			}
-		}
-	}
+    "frameworks": {
+        "net46": {
+            "dependencies": {
+                "Google.Apis.Script.v1": "1.9.2.10"
+            }
+        },
+        "netstandard1.0": {
+            "dependencies": {
+                "NETStandard.Library": "1.5.0-rc2-24027"
+            }
+        }
+    }
 }

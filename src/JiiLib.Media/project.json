@@ -2,27 +2,22 @@
 	"version": "0.1.0-*",
 	"description": "JiiLib.Media Class Library - Simple ways to handle media data.",
 	"authors": [ "Joe4evr" ],
-	"tags": [ "" ],
-	"projectUrl": "https://github.com/Joe4evr/JiiLib",
-	"licenseUrl": "http://opensource.org/licenses/MIT",
+
+	"packOptions": {
+		"tags": [ "" ],
+		"projectUrl": "https://github.com/Joe4evr/JiiLib",
+		"licenseUrl": "http://opensource.org/licenses/MIT"
+	},
 
 	"dependencies": {
-		"JiiLib": ""
+		"JiiLib": "0.2.2"
 	},
 
 	"frameworks": {
 		"net46": { },
-		"netstandard1.5": {
+		"netstandard1.0": {
 			"dependencies": {
-				"Microsoft.CSharp": "4.0.1-rc2-23623",
-				"System.Collections": "4.0.11-rc2-23623",
-				"System.IO.FileSystem": "4.0.1-rc2-23623",
-				"System.IO.FileSystem.Primitives": "4.0.1-rc2-23623",
-				"System.Linq": "4.0.1-rc2-23623",
-				"System.Runtime": "4.0.21-rc2-23623",
-				"System.Text.Encoding": "4.0.11-rc2-23623",
-				"System.Text.Encoding.Extensions": "4.0.11-rc2-23623",
-				"System.Threading": "4.0.11-rc2-23623"
+				"NETStandard.Library": "1.5.0-rc2-24027"
 			}
 		}
 	}
