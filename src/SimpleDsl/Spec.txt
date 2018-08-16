@@ -1,4 +1,4 @@
-operation
+query
   : where_operation? orderby_operation? skip_operation? take_operation? select_operation?
   ;
 
