@@ -1,0 +1,108 @@
+operation
+  : where_operation? orderby_operation? skip_operation? take_operation? select_operation?
+  ;
+
+=========
+
+where_operation
+  : 'where' '[' where_operands ']'
+  ;
+
+where_operands
+  : where_operand
+  | where_operand ',' where_operands
+  ;
+
+where_operand
+  : object_property_name binary_operator string
+  | object_property_name binary_operator int
+  | object_property_name binary_operator object_property_name
+  ;
+
+binary_operator
+  : '<-'
+  | '!<-'
+  | '<'
+  | '<='
+  | '>'
+  | '>='
+  | '=='
+  | '!='
+  ;
+
+=========
+
+orderby_operation
+  : 'orderby' '[' orderby_operands ']'
+  ;
+
+orderby_operands
+  : orderby_operand
+  | orderby_operand ',' orderby_operands
+  ;
+
+orderby_operand
+  : variable_identifier? 'd:'? orderby_invocation
+  ;
+
+orderby_invocation
+  : object_property_name
+  | known_function
+  ;
+
+variable_identifier
+  : string '|'
+  ;
+
+known_function
+  : 'sum' '(' ints ')'
+  ;
+
+ints
+  : int
+  | object_property_name
+  | int ' ' ints
+  | object_property_name ' ' ints
+  ;
+
+=========
+
+skip_operation
+  : 'skip' int
+  ;
+
+take_operation
+  : 'take' int
+  ;
+
+=========
+
+select_operation
+  : 'select' '[' select_operands ']'
+  ;
+
+select_operands
+  : select_operand
+  | select_operand ',' select_operands
+  ;
+
+select_operand
+  : format_chars? select_invocation
+  ;
+
+select_invocation
+  : object_property_name
+  | declared_variable
+  ;
+
+format_chars
+  : format_char
+  | format_char format_chars
+  ;
+
+format_char
+  : 'b' //Bold 
+  | 'i' //Italic
+  ;
+
+=========
