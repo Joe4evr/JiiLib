@@ -467,7 +467,7 @@ namespace JiiLib.SimpleDsl
             {
                 var identifier = ParseVarDecl(ref slice);
                 bool isDesc = ParseIsDescending(ref slice);
-                var invocation = ParseInvocationOrFunction(ref slice);
+                var invocation = ParseInvocationOrFunction(slice);
 
                 if (identifier != null)
                 {
@@ -502,7 +502,7 @@ namespace JiiLib.SimpleDsl
             for (var slice = selectSpan.SliceUntil(',', out var next); slice.Length > 0; slice = next.SliceUntil(',', out next))
             {
                 var fmt = ParseFormatModifiers(ref slice);
-                var (expr, type, name) = ParseInvocationOrVariable(ref slice, vars);
+                var (expr, type, name) = ParseInvocationOrVariable(slice, vars);
 
                 exprs.Add(Expression.Convert(
                     Expression.Call(
@@ -573,7 +573,7 @@ namespace JiiLib.SimpleDsl
             }
             return fmt;
         }
-        private static Expression ParseInvocationOrFunction(ref ReadOnlySpan<char> slice)
+        private static Expression ParseInvocationOrFunction(ReadOnlySpan<char> slice)
         {
             if (slice.StartsWith(Sum.AsSpan()))
             {
@@ -589,7 +589,7 @@ namespace JiiLib.SimpleDsl
             throw new InvalidOperationException($"No such property or known function '{p}'.");
         }
         private static (Expression, Type, string) ParseInvocationOrVariable(
-            ref ReadOnlySpan<char> slice,
+            ReadOnlySpan<char> slice,
             IReadOnlyDictionary<string, Expression> vars)
         {
             var p = slice.Materialize();
