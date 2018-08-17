@@ -40,6 +40,7 @@ namespace JiiLib.SimpleDsl
         private static readonly MethodInfo _intEquals = _intType.GetMethod("Equals", _intTypeArr);
         private static readonly MethodInfo _intCompare = _intType.GetMethod("CompareTo", _intTypeArr);
         private static readonly MethodInfo _linqSum = _linqType.GetMethod("Sum", new Type[] { typeof(IEnumerable<int>) });
+        private static readonly MethodInfo _cfgStringFmt = typeof(IInterpreterConfig<T>).GetMethod("FormatString", new Type[] { _strType, typeof(FormatModifiers) });
 
         private static readonly ParameterExpression _targetParamExpr = Expression.Parameter(_targetType, "target");
         private static readonly ParameterExpression _targetsParamExpr = Expression.Parameter(_ienumTargetType, "targets");
@@ -104,8 +105,7 @@ namespace JiiLib.SimpleDsl
         }
 
         private readonly IInterpreterConfig<T> _config;
-        private readonly Expression _cfgExpr;
-        private readonly MethodInfo _stringFmt;
+        private readonly ConstantExpression _cfgExpr;
 
         /// <summary>
         ///     Creates a new interpreter.
@@ -117,7 +117,6 @@ namespace JiiLib.SimpleDsl
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _cfgExpr = Expression.Constant(_config);
-            _stringFmt = typeof(IInterpreterConfig<T>).GetMethod("FormatString", new Type[] { _strType, typeof(FormatModifiers) });
         }
 
         /// <summary>
@@ -522,7 +521,7 @@ namespace JiiLib.SimpleDsl
 
                         Expression.Call(
                             _cfgExpr,
-                            _stringFmt,
+                            _cfgStringFmt,
                             (type == _strType)
                                 ? expr
                                 : Expression.Call(expr, _toString),
@@ -618,7 +617,7 @@ namespace JiiLib.SimpleDsl
         private static Expression CreateSumExpression(ReadOnlySpan<char> itemSpan)
         {
             var props = new List<Expression>();
-            for (var item = itemSpan.SliceUntil(' ', out var next); item.Length > 0; item = next.SliceUntil(',', out next))
+            for (var item = itemSpan.SliceUntil(' ', out var next); item.Length > 0; item = next.SliceUntil(' ', out next))
             {
                 var it = item.Materialize();
                 if (_targetProps.TryGetValue(it, out var property))
