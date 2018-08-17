@@ -15,78 +15,34 @@ namespace JiiLib.SimpleDsl
     /// </typeparam>
     public sealed class QueryInterpreter<T>
     {
-        private static readonly Type _objType = typeof(object);
-        private static readonly Type _strType = typeof(string);
-        private static readonly Type _boolType = typeof(bool);
-        private static readonly Type _intType = typeof(int);
-        private static readonly Type _iconvType = typeof(IConvertible);
-        private static readonly Type _linqType = typeof(Enumerable);
-        private static readonly Type _ienumType = typeof(IEnumerable<>);
         private static readonly Type _targetType = typeof(T);
         private static readonly Type _ienumTargetType = typeof(IEnumerable<T>);
         private static readonly Type _iOrdEnumTargetType = typeof(IOrderedEnumerable<T>);
         private static readonly Type _funcTargetToIntType = typeof(Func<T, int>);
 
         private static readonly IReadOnlyDictionary<string, PropertyInfo> _targetProps = _targetType.GetProperties().ToImmutableDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
-        private static readonly Type[] _strTypeArr = new Type[] { _strType };
-        private static readonly Type[] _strCompTypeArr = new Type[] { _strType, typeof(StringComparison) };
-        private static readonly Type[] _intTypeArr = new Type[] { _intType };
-
-        private static readonly MethodInfo _toString = _objType.GetMethod("ToString");
-        private static readonly MethodInfo _strJoin = _strType.GetMethod("Join", new Type[] { _strType, typeof(object[]) });
-        private static readonly MethodInfo _strContains = _strType.GetMethod("Contains", _strTypeArr);
-        private static readonly MethodInfo _strConcat = _strType.GetMethod("Concat", new Type[] { _strType, _strType, _strType });
-        private static readonly MethodInfo _strEquals = _strType.GetMethod("Equals", _strCompTypeArr);
-        private static readonly MethodInfo _intEquals = _intType.GetMethod("Equals", _intTypeArr);
-        private static readonly MethodInfo _intCompare = _intType.GetMethod("CompareTo", _intTypeArr);
-        private static readonly MethodInfo _linqSum = _linqType.GetMethod("Sum", new Type[] { typeof(IEnumerable<int>) });
-        private static readonly MethodInfo _cfgStringFmt = typeof(IInterpreterConfig<T>).GetMethod("FormatString", new Type[] { _strType, typeof(FormatModifiers) });
+        private static readonly MethodInfo _cfgStringFmt = typeof(IInterpreterConfig<T>).GetMethod("FormatString", new Type[] { InfoCache.StrType, typeof(FormatModifiers) });
 
         private static readonly ParameterExpression _targetParamExpr = Expression.Parameter(_targetType, "target");
         private static readonly ParameterExpression _targetsParamExpr = Expression.Parameter(_ienumTargetType, "targets");
-        private static readonly ConstantExpression _commaExpr = Expression.Constant(", ");
-        private static readonly ConstantExpression _colonExpr = Expression.Constant(": ");
-        private static readonly ConstantExpression _strCompExpr = Expression.Constant(StringComparison.OrdinalIgnoreCase);
-        private static readonly ConstantExpression _intNegOneExpr = Expression.Constant(-1);
-        private static readonly ConstantExpression _intZeroExpr = Expression.Constant(0);
-        private static readonly ConstantExpression _intOneExpr = Expression.Constant(1);
-
-        private static readonly string Where = "where";
-        private static readonly string OrderBy = "orderby";
-        private static readonly string Skip = "skip";
-        private static readonly string Take = "take";
-        private static readonly string Select = "select";
-
-        private static readonly string[] _clauses = new[] { Where, OrderBy, Skip, Take, Select };
-
-        private static readonly string Sum = "sum";
-
-        private static readonly string Contains = "<-";
-        private static readonly string NotContains = "!<-";
-        private static readonly string LessThan = "<";
-        private static readonly string LessThanOrEqual = "<=";
-        private static readonly string GreaterThan = ">";
-        private static readonly string GreaterThanOrEqual = ">=";
-        private static readonly string IsEqual = "==";
-        private static readonly string IsNotEqual = "!=";
 
         private static Operator ParseOperator(ReadOnlySpan<char> opSpan)
         {
-            if (opSpan.SequenceEqual(Contains.AsSpan()))
+            if (opSpan.SequenceEqual(InfoCache.Contains.AsSpan()))
                 return Operator.Contains;
-            if (opSpan.SequenceEqual(NotContains.AsSpan()))
+            if (opSpan.SequenceEqual(InfoCache.NotContains.AsSpan()))
                 return Operator.NotContains;
-            else if (opSpan.SequenceEqual(LessThan.AsSpan()))
+            else if (opSpan.SequenceEqual(InfoCache.LessThan.AsSpan()))
                 return Operator.LessThan;
-            else if (opSpan.SequenceEqual(LessThanOrEqual.AsSpan()))
+            else if (opSpan.SequenceEqual(InfoCache.LessThanOrEqual.AsSpan()))
                 return Operator.LessThanOrEqual;
-            else if (opSpan.SequenceEqual(GreaterThan.AsSpan()))
+            else if (opSpan.SequenceEqual(InfoCache.GreaterThan.AsSpan()))
                 return Operator.GreaterThan;
-            else if (opSpan.SequenceEqual(GreaterThanOrEqual.AsSpan()))
+            else if (opSpan.SequenceEqual(InfoCache.GreaterThanOrEqual.AsSpan()))
                 return Operator.GreaterThanOrEqual;
-            else if (opSpan.SequenceEqual(IsEqual.AsSpan()))
+            else if (opSpan.SequenceEqual(InfoCache.IsEqual.AsSpan()))
                 return Operator.IsEqual;
-            else if (opSpan.SequenceEqual(IsNotEqual.AsSpan()))
+            else if (opSpan.SequenceEqual(InfoCache.IsNotEqual.AsSpan()))
                 return Operator.NotEqual;
             else
                 throw new InvalidOperationException("Unrecognized operator");
@@ -138,7 +94,7 @@ namespace JiiLib.SimpleDsl
         {
             if (String.IsNullOrWhiteSpace(input))
                 throw new ArgumentNullException(nameof(input));
-            if (!_clauses.Any(s => input.Contains(s)))
+            if (!InfoCache.Clauses.Any(s => input.Contains(s)))
                 throw new InvalidOperationException("At least one clause should be specified.");
 
             Func<T, bool> predicate = null;
@@ -151,7 +107,7 @@ namespace JiiLib.SimpleDsl
             var inlineVars = new Dictionary<string, Expression>(StringComparer.OrdinalIgnoreCase);
 
             var opWord = span.SliceUntil(' ', out var remainder);
-            if (opWord.SequenceEqual(Where.AsSpan()))
+            if (opWord.SequenceEqual(InfoCache.Where.AsSpan()))
             {
                 var matchIdx = remainder.FindMatchingBrace();
                 var whereClause = remainder.Slice(1, matchIdx - 1);
@@ -161,7 +117,7 @@ namespace JiiLib.SimpleDsl
                 opWord = remainder.SliceUntil(' ', out remainder);
             }
 
-            if (opWord.SequenceEqual(OrderBy.AsSpan()))
+            if (opWord.SequenceEqual(InfoCache.OrderBy.AsSpan()))
             {
                 var matchIdx = remainder.FindMatchingBrace();
                 var orderByClause = remainder.Slice(1, matchIdx - 1);
@@ -171,7 +127,7 @@ namespace JiiLib.SimpleDsl
                 opWord = remainder.SliceUntil(' ', out remainder);
             }
 
-            if (opWord.SequenceEqual(Skip.AsSpan()))
+            if (opWord.SequenceEqual(InfoCache.Skip.AsSpan()))
             {
                 var skipStr = remainder.SliceUntil(' ', out remainder).Materialize();
                 if (!Int32.TryParse(skipStr, out var s))
@@ -182,7 +138,7 @@ namespace JiiLib.SimpleDsl
                 opWord = remainder.SliceUntil(' ', out remainder);
             }
 
-            if (opWord.SequenceEqual(Take.AsSpan()))
+            if (opWord.SequenceEqual(InfoCache.Take.AsSpan()))
             {
                 var takeStr = remainder.SliceUntil(' ', out remainder).Materialize();
                 if (!Int32.TryParse(takeStr, out var t))
@@ -193,7 +149,7 @@ namespace JiiLib.SimpleDsl
                 opWord = remainder.SliceUntil(' ', out remainder);
             }
 
-            if (opWord.SequenceEqual(Select.AsSpan()))
+            if (opWord.SequenceEqual(InfoCache.Select.AsSpan()))
             {
                 var matchIdx = remainder.FindMatchingBrace();
                 var selectClause = remainder.Slice(1, matchIdx - 1);
@@ -206,8 +162,8 @@ namespace JiiLib.SimpleDsl
 
         private Func<T, bool> ParseFilters(ReadOnlySpan<char> filterSpan)
         {
-            var resExpr = Expression.Variable(_boolType, "result");
-            var filterBlockExpr = Expression.Block(_boolType,
+            var resExpr = Expression.Variable(InfoCache.BoolType, "result");
+            var filterBlockExpr = Expression.Block(InfoCache.BoolType,
                 new[] { resExpr },
                 Expression.Assign(resExpr, Expression.Constant(true)));
 
@@ -235,7 +191,7 @@ namespace JiiLib.SimpleDsl
                     throw new InvalidOperationException($"No such property '{p}'");
                 var pType = prop.PropertyType;
 
-                var (isCollection, eType) = (pType.IsGenericType && pType.GetGenericTypeDefinition() == _ienumType)
+                var (isCollection, eType) = (pType.IsGenericType && pType.GetGenericTypeDefinition() == InfoCache.IEnumType)
                     ? (true, pType.GetGenericArguments()[0])
                     : (false, pType);
 
@@ -244,7 +200,7 @@ namespace JiiLib.SimpleDsl
                 var intermVarExpr = Expression.Variable(pType, $"interm{blockExpr.Variables.Count}");
                 var op = ParseOperator(opSpan);
 
-                if (pType == _intType)
+                if (pType == InfoCache.IntType)
                 {
                     switch (op)
                     {
@@ -256,12 +212,12 @@ namespace JiiLib.SimpleDsl
                                     {
                                         Expression.Assign(
                                             intermVarExpr,
-                                            Expression.Call(propExpr, _intCompare, valExpr)),
+                                            Expression.Call(propExpr, InfoCache.IntCompare, valExpr)),
                                         Expression.Assign(
                                             resExpr,
                                             Expression.AndAlso(
                                                 resExpr,
-                                                GenerateExpression(true, intermVarExpr, _intEquals, _intNegOneExpr)))
+                                                GenerateExpression(true, intermVarExpr, InfoCache.IntEquals, InfoCache.IntNegOneExpr)))
                                     }));
                         case Operator.LessThanOrEqual:
                             return blockExpr.Update(
@@ -271,14 +227,14 @@ namespace JiiLib.SimpleDsl
                                     {
                                         Expression.Assign(
                                             intermVarExpr,
-                                            Expression.Call(propExpr, _intCompare, valExpr)),
+                                            Expression.Call(propExpr, InfoCache.IntCompare, valExpr)),
                                         Expression.Assign(
                                             resExpr,
                                             Expression.AndAlso(
                                                 resExpr,
                                                 Expression.OrElse(
-                                                    GenerateExpression(true, intermVarExpr, _intEquals, _intNegOneExpr),
-                                                    GenerateExpression(true, intermVarExpr, _intEquals, _intZeroExpr))))
+                                                    GenerateExpression(true, intermVarExpr, InfoCache.IntEquals, InfoCache.IntNegOneExpr),
+                                                    GenerateExpression(true, intermVarExpr, InfoCache.IntEquals, InfoCache.IntZeroExpr))))
                                     }));
                         case Operator.GreaterThan:
                             return blockExpr.Update(
@@ -288,12 +244,12 @@ namespace JiiLib.SimpleDsl
                                     {
                                         Expression.Assign(
                                             intermVarExpr,
-                                            Expression.Call(propExpr, _intCompare, valExpr)),
+                                            Expression.Call(propExpr, InfoCache.IntCompare, valExpr)),
                                         Expression.Assign(
                                             resExpr,
                                             Expression.AndAlso(
                                                 resExpr,
-                                                GenerateExpression(true, intermVarExpr, _intEquals, _intOneExpr)))
+                                                GenerateExpression(true, intermVarExpr, InfoCache.IntEquals, InfoCache.IntOneExpr)))
                                     }));
                         case Operator.GreaterThanOrEqual:
                             return blockExpr.Update(
@@ -303,14 +259,14 @@ namespace JiiLib.SimpleDsl
                                     {
                                         Expression.Assign(
                                             intermVarExpr,
-                                            Expression.Call(propExpr, _intCompare, valExpr)),
+                                            Expression.Call(propExpr, InfoCache.IntCompare, valExpr)),
                                         Expression.Assign(
                                             resExpr,
                                             Expression.AndAlso(
                                                 resExpr,
                                                 Expression.OrElse(
-                                                    GenerateExpression(true, intermVarExpr, _intEquals, _intOneExpr),
-                                                    GenerateExpression(true, intermVarExpr, _intEquals, _intZeroExpr))))
+                                                    GenerateExpression(true, intermVarExpr, InfoCache.IntEquals, InfoCache.IntOneExpr),
+                                                    GenerateExpression(true, intermVarExpr, InfoCache.IntEquals, InfoCache.IntZeroExpr))))
                                     }));
                         case Operator.IsEqual:
                             return blockExpr.Update(
@@ -322,7 +278,7 @@ namespace JiiLib.SimpleDsl
                                         resExpr,
                                         Expression.AndAlso(
                                             resExpr,
-                                            GenerateExpression(true, propExpr, _intEquals, valExpr)))
+                                            GenerateExpression(true, propExpr, InfoCache.IntEquals, valExpr)))
                                     }));
                         case Operator.NotEqual:
                             return blockExpr.Update(
@@ -334,13 +290,13 @@ namespace JiiLib.SimpleDsl
                                         resExpr,
                                         Expression.AndAlso(
                                             resExpr,
-                                            GenerateExpression(false, propExpr, _intEquals, valExpr)))
+                                            GenerateExpression(false, propExpr, InfoCache.IntEquals, valExpr)))
                                     }));
                         default:
                             throw new InvalidOperationException($"Operation '{op}' not supported on integers.");
                     }
                 }
-                else if (pType == _strType)
+                else if (pType == InfoCache.StrType)
                 {
                     switch (op)
                     {
@@ -354,7 +310,7 @@ namespace JiiLib.SimpleDsl
                                             resExpr,
                                             Expression.AndAlso(
                                                 resExpr,
-                                                GenerateExpression(true, propExpr, _strContains, valExpr, _strCompExpr)))
+                                                GenerateExpression(true, propExpr, InfoCache.StrContains, valExpr, InfoCache.StrCompExpr)))
                                     }));
                         case Operator.NotContains:
                             return blockExpr.Update(
@@ -366,7 +322,7 @@ namespace JiiLib.SimpleDsl
                                             resExpr,
                                             Expression.AndAlso(
                                                 resExpr,
-                                                GenerateExpression(false, propExpr, _strContains, valExpr, _strCompExpr)))
+                                                GenerateExpression(false, propExpr, InfoCache.StrContains, valExpr, InfoCache.StrCompExpr)))
                                     }));
                         case Operator.IsEqual:
                             return blockExpr.Update(
@@ -378,7 +334,7 @@ namespace JiiLib.SimpleDsl
                                         resExpr,
                                         Expression.AndAlso(
                                             resExpr,
-                                            GenerateExpression(true, propExpr, _strEquals, valExpr, _strCompExpr)))
+                                            GenerateExpression(true, propExpr, InfoCache.StrEquals, valExpr, InfoCache.StrCompExpr)))
                                     }));
                         case Operator.NotEqual:
                             return blockExpr.Update(
@@ -390,7 +346,7 @@ namespace JiiLib.SimpleDsl
                                         resExpr,
                                         Expression.AndAlso(
                                             resExpr,
-                                            GenerateExpression(false, propExpr, _strEquals, valExpr, _strCompExpr)))
+                                            GenerateExpression(false, propExpr, InfoCache.StrEquals, valExpr, InfoCache.StrCompExpr)))
                                     }));
                         default:
                             throw new InvalidOperationException($"Operation '{op}' not supported on strings.");
@@ -398,6 +354,11 @@ namespace JiiLib.SimpleDsl
                 }
                 else if (isCollection)
                 {
+                    var method = (eType == InfoCache.StrType)
+                        ? InfoCache.IEnumStrContains
+                        : (eType == InfoCache.IntType)
+                            ? InfoCache.IEnumIntContains
+                            : _config.GetContainsMethod(eType);
                     switch (op)
                     {
                         case Operator.Contains:
@@ -410,7 +371,7 @@ namespace JiiLib.SimpleDsl
                                             resExpr,
                                             Expression.AndAlso(
                                                 resExpr,
-                                                GenerateExpression(true, null, _config.GetContainsMethod(eType), propExpr, valExpr)))
+                                                GenerateExpression(true, null, method, propExpr, valExpr)))
                                     }));
                         case Operator.NotContains:
                             return blockExpr.Update(
@@ -422,7 +383,7 @@ namespace JiiLib.SimpleDsl
                                             resExpr,
                                             Expression.AndAlso(
                                                 resExpr,
-                                                GenerateExpression(false, null, _config.GetContainsMethod(eType), propExpr, valExpr)))
+                                                GenerateExpression(false, null, method, propExpr, valExpr)))
                                     }));
                         default:
                             throw new InvalidOperationException($"Operation '{op}' not supported on a collections.");
@@ -443,13 +404,13 @@ namespace JiiLib.SimpleDsl
                         }
                     }
 
-                    if (_iconvType.IsAssignableFrom(eType))
+                    if (InfoCache.IConvType.IsAssignableFrom(eType))
                     {
                         return Expression.Constant(Convert.ChangeType(valueString, eType), eType);
                     }
                     else
                     {
-                        return Expression.Constant(valueString, _strType);
+                        return Expression.Constant(valueString, InfoCache.StrType);
                     }
                 }
                 Expression GenerateExpression(
@@ -515,24 +476,24 @@ namespace JiiLib.SimpleDsl
 
                 exprs.Add(Expression.Convert(
                     Expression.Call(
-                        _strConcat,
+                        InfoCache.StrConcat,
                         Expression.Constant(name),
-                        _colonExpr,
+                        InfoCache.ColonExpr,
 
                         Expression.Call(
                             _cfgExpr,
                             _cfgStringFmt,
-                            (type == _strType)
+                            (type == InfoCache.StrType)
                                 ? expr
-                                : Expression.Call(expr, _toString),
+                                : Expression.Call(expr, InfoCache.ObjToString),
                             Expression.Constant(fmt))),
-                    _objType));
+                    InfoCache.ObjType));
             }
 
-            var fmtExpr = Expression.NewArrayInit(_objType, exprs);
+            var fmtExpr = Expression.NewArrayInit(InfoCache.ObjType, exprs);
 
             var lambda = Expression.Lambda<Func<T, string>>(
-                Expression.Call(_strJoin, _commaExpr, fmtExpr),
+                Expression.Call(InfoCache.StrJoin, InfoCache.CommaExpr, fmtExpr),
                 _targetParamExpr);
 
             return lambda.Compile();
@@ -584,9 +545,9 @@ namespace JiiLib.SimpleDsl
         }
         private static Expression ParseInvocationOrFunction(ReadOnlySpan<char> slice)
         {
-            if (slice.StartsWith(Sum.AsSpan()))
+            if (slice.StartsWith(InfoCache.Sum.AsSpan()))
             {
-                return CreateSumExpression(slice.Slice(Sum.Length).TrimBraces());
+                return CreateSumExpression(slice.Slice(InfoCache.Sum.Length).TrimBraces());
             }
 
             var p = slice.Materialize();
@@ -604,7 +565,7 @@ namespace JiiLib.SimpleDsl
             var p = slice.Materialize();
             if (vars.TryGetValue(p, out var expr))
             {
-                return (expr, _objType, p);
+                return (expr, InfoCache.ObjType, p);
             }
 
             if (_targetProps.TryGetValue(p, out var property))
@@ -622,14 +583,14 @@ namespace JiiLib.SimpleDsl
                 var it = item.Materialize();
                 if (_targetProps.TryGetValue(it, out var property))
                 {
-                    if (property.PropertyType != _intType)
+                    if (property.PropertyType != InfoCache.IntType)
                         throw new InvalidOperationException($"Property '{it}' must be a number to be used in 'sum()'.");
 
                     props.Add(Expression.Property(_targetParamExpr, property));
                 }
                 else if (Int32.TryParse(it, out var i))
                 {
-                    props.Add(Expression.Constant(i, _intType));
+                    props.Add(Expression.Constant(i, InfoCache.IntType));
                 }
                 else
                 {
@@ -637,7 +598,7 @@ namespace JiiLib.SimpleDsl
                 }
             }
 
-            return Expression.Call(_linqSum, Expression.NewArrayInit(_intType, props));
+            return Expression.Call(InfoCache.LinqSum, Expression.NewArrayInit(InfoCache.IntType, props));
         }
     }
 }
