@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace JiiLib.SimpleDsl
@@ -18,13 +19,13 @@ namespace JiiLib.SimpleDsl
         /// <param name="value">
         ///     The input string.
         /// </param>
-        /// <param name="format">
-        ///     The desired format.
+        /// <param name="formats">
+        ///     The desired formats.
         /// </param>
         /// <returns>
         ///     A string that will be displayed in the specified format on the target environment.
         /// </returns>
-        string FormatString(string value, FormatModifiers format);
+        string FormatString(string value, FormatModifiers formats);
 
         /// <summary>
         ///     Gets a method that will perform a 'Contains' operation on a given type.

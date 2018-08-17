@@ -8,7 +8,7 @@ namespace JiiLib.SimpleDsl
     internal static class SpanExtensions
     {
         [DebuggerStepThrough]
-        public static ReadOnlySpan<char> SliceUntil(this ReadOnlySpan<char> span, char delimeter, out ReadOnlySpan<char> remainder)
+        internal static ReadOnlySpan<char> SliceUntil(this ReadOnlySpan<char> span, char delimeter, out ReadOnlySpan<char> remainder)
         {
             var ret = span;
             for (int i = 0; i < span.Length; i++)
@@ -25,15 +25,15 @@ namespace JiiLib.SimpleDsl
         }
 
         [DebuggerStepThrough]
-        public static string Materialize(this ReadOnlySpan<char> span)
+        internal static string Materialize(this ReadOnlySpan<char> span)
             => new string(span.ToArray());
 
         [DebuggerStepThrough]
-        public static ReadOnlySpan<char> TrimBraces(this ReadOnlySpan<char> span)
+        internal static ReadOnlySpan<char> TrimBraces(this ReadOnlySpan<char> span)
             => span.TrimStart(_startChars.AsSpan()).TrimEnd(_endChars.AsSpan());
 
         [DebuggerStepThrough]
-        public static int FindMatchingBrace(this ReadOnlySpan<char> span)
+        internal static int FindMatchingBrace(this ReadOnlySpan<char> span)
         {
             var braces = new Stack<char>();
 
@@ -61,7 +61,7 @@ namespace JiiLib.SimpleDsl
 
         // Output of a gist provided by https://gist.github.com/ufcpp
         // https://gist.github.com/ufcpp/5b2cf9a9bf7d0b8743714a0b88f7edc5
-        internal static readonly IReadOnlyDictionary<char, char> CharAliasMap
+        private static readonly IReadOnlyDictionary<char, char> CharAliasMap
             = new Dictionary<char, char> {
                     {'\"', '\"' },
                     {'[', ']' },

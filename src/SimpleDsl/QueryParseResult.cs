@@ -5,7 +5,8 @@ using System.Linq;
 namespace JiiLib.SimpleDsl
 {
     /// <summary>
-    ///     
+    ///     Contains the resulting functions that were parsed out of the user query,
+    ///     or the default of a function if that clause went unspecified.
     /// </summary>
     /// <typeparam name="T">
     ///     The element type that is queried against.
@@ -32,26 +33,29 @@ namespace JiiLib.SimpleDsl
 
         /// <summary>
         ///     The complete parsed predicate.
+        ///     The default function keeps everything.
         /// </summary>
         public Func<T, bool> Predicate { get; }
 
         /// <summary>
         ///     A function that orders the collection as desired.
+        ///     The default function leaves the collection as-is.
         /// </summary>
         public Func<IEnumerable<T>, IOrderedEnumerable<T>> Order { get; }
 
         /// <summary>
-        ///     The amount of items that are skipped.
+        ///     The amount of items that are skipped. The default value is 0.
         /// </summary>
         public int SkipAmount { get; }
 
         /// <summary>
-        ///     The amount of items that are taken.
+        ///     The amount of items that are taken. The default value is 10.
         /// </summary>
         public int TakeAmount { get; }
 
         /// <summary>
         ///     The selector from <typeparamref name="T"/> to a <see cref="String"/>.
+        ///     The default function calls <see cref="Object.ToString"/>.
         /// </summary>
         public Func<T, string> Selector { get; }
 
@@ -61,10 +65,18 @@ namespace JiiLib.SimpleDsl
         /// <param name="items">
         ///     The collection to apply the query to.
         /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="items"/> was <see langword="null"/>.
+        /// </exception>
         public IEnumerable<string> Apply(IEnumerable<T> items)
-            => Order(items.Where(Predicate))
+        {
+            if (items == null)
+                throw new ArgumentNullException(nameof(items));
+
+            return Order(items.Where(Predicate))
                 .Skip(SkipAmount)
                 .Take(TakeAmount)
                 .Select(Selector);
+        }
     }
 }

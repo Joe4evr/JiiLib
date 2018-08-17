@@ -56,6 +56,8 @@ namespace JiiLib.SimpleDsl
         private static readonly string Take = "take";
         private static readonly string Select = "select";
 
+        private static readonly string[] _clauses = new[] { Where, OrderBy, Skip, Take, Select };
+
         private static readonly string Sum = "sum";
 
         private static readonly string Contains = "<-";
@@ -127,11 +129,19 @@ namespace JiiLib.SimpleDsl
         /// <returns>
         ///     A <see cref="QueryParseResult{T}"/> that contains the desired queries.
         /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="input"/> was <see langword="null"/> or empty.
+        /// </exception>
         /// <exception cref="InvalidOperationException">
         ///     Some part of the query was not valid.
         /// </exception>
         public QueryParseResult<T> ParseFull(string input)
         {
+            if (String.IsNullOrWhiteSpace(input))
+                throw new ArgumentNullException(nameof(input));
+            if (!_clauses.Any(s => input.Contains(s)))
+                throw new InvalidOperationException("At least one clause should be specified.");
+
             Func<T, bool> predicate = null;
             Func<IEnumerable<T>, IOrderedEnumerable<T>> order = null;
             int skipAmount = 0;
@@ -630,13 +640,5 @@ namespace JiiLib.SimpleDsl
 
             return Expression.Call(_linqSum, Expression.NewArrayInit(_intType, props));
         }
-    }
-
-    [Flags]
-    public enum FormatModifiers
-    {
-        None = 0,
-        Bold = 1,
-        Italic = 1 << 1
     }
 }
