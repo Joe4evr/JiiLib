@@ -13,7 +13,14 @@ namespace JiiLib.SimpleDsl
             var ret = span;
             for (int i = 0; i < span.Length; i++)
             {
-                if (span[i] == delimeter && i > 0)
+                char current = span[i];
+                if (CharAliasMap.TryGetValue(current, out var match))
+                {
+                    i = span.FindMatchingBrace();
+                    continue;
+                }
+
+                if (current == delimeter && i > 0)
                 {
                     int remStart = i + 1; //skip the delimeter
                     remainder = span.Slice(remStart, span.Length - remStart).Trim();

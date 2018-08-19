@@ -19,6 +19,7 @@ namespace JiiLib.SimpleDsl
         private static readonly Type _ienumTargetType = typeof(IEnumerable<T>);
         private static readonly Type _iOrdEnumTargetType = typeof(IOrderedEnumerable<T>);
         private static readonly Type _funcTargetToIntType = typeof(Func<T, int>);
+        private static readonly Type[] _targetAndIntTypeArray = new[] { _targetType, InfoCache.IntType };
 
         private static readonly IReadOnlyDictionary<string, PropertyInfo> _targetProps = _targetType.GetProperties().ToImmutableDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
         private static readonly MethodInfo _cfgStringFmt = typeof(IInterpreterConfig<T>).GetMethod("FormatString", new Type[] { InfoCache.StrType, typeof(FormatModifiers) });
@@ -94,6 +95,7 @@ namespace JiiLib.SimpleDsl
         {
             if (String.IsNullOrWhiteSpace(input))
                 throw new ArgumentNullException(nameof(input));
+
             if (!InfoCache.Clauses.Any(s => input.Contains(s)))
                 throw new InvalidOperationException("At least one clause should be specified.");
 
@@ -182,21 +184,13 @@ namespace JiiLib.SimpleDsl
 
             BlockExpression AddClause(
                 BlockExpression blockExpr,
-                ReadOnlySpan<char> propSpan,
+                ReadOnlySpan<char> lhsSpan,
                 ReadOnlySpan<char> opSpan,
-                ReadOnlySpan<char> valSpan)
+                ReadOnlySpan<char> rhsSpan)
             {
-                var p = propSpan.Materialize();
-                if (!_targetProps.TryGetValue(p, out var prop))
-                    throw new InvalidOperationException($"No such property '{p}'");
-                var pType = prop.PropertyType;
-
-                var (isCollection, eType) = (pType.IsGenericType && pType.GetGenericTypeDefinition() == InfoCache.IEnumType)
-                    ? (true, pType.GetGenericArguments()[0])
-                    : (false, pType);
-
-                var valExpr = GetValueExpression(valSpan.Materialize());
-                var propExpr = Expression.Property(_targetParamExpr, prop);
+                var (lhsExpr, pType) = GetExprAndType(lhsSpan);
+                var (isCollection, eType) = IsCollectionType(pType);
+                var rhsExpr = GetValueExpression(rhsSpan.Materialize());
                 var intermVarExpr = Expression.Variable(pType, $"interm{blockExpr.Variables.Count}");
                 var op = ParseOperator(opSpan);
 
@@ -212,7 +206,7 @@ namespace JiiLib.SimpleDsl
                                     {
                                         Expression.Assign(
                                             intermVarExpr,
-                                            Expression.Call(propExpr, InfoCache.IntCompare, valExpr)),
+                                            Expression.Call(lhsExpr, InfoCache.IntCompare, rhsExpr)),
                                         Expression.Assign(
                                             resExpr,
                                             Expression.AndAlso(
@@ -227,7 +221,7 @@ namespace JiiLib.SimpleDsl
                                     {
                                         Expression.Assign(
                                             intermVarExpr,
-                                            Expression.Call(propExpr, InfoCache.IntCompare, valExpr)),
+                                            Expression.Call(lhsExpr, InfoCache.IntCompare, rhsExpr)),
                                         Expression.Assign(
                                             resExpr,
                                             Expression.AndAlso(
@@ -244,7 +238,7 @@ namespace JiiLib.SimpleDsl
                                     {
                                         Expression.Assign(
                                             intermVarExpr,
-                                            Expression.Call(propExpr, InfoCache.IntCompare, valExpr)),
+                                            Expression.Call(lhsExpr, InfoCache.IntCompare, rhsExpr)),
                                         Expression.Assign(
                                             resExpr,
                                             Expression.AndAlso(
@@ -259,7 +253,7 @@ namespace JiiLib.SimpleDsl
                                     {
                                         Expression.Assign(
                                             intermVarExpr,
-                                            Expression.Call(propExpr, InfoCache.IntCompare, valExpr)),
+                                            Expression.Call(lhsExpr, InfoCache.IntCompare, rhsExpr)),
                                         Expression.Assign(
                                             resExpr,
                                             Expression.AndAlso(
@@ -278,7 +272,7 @@ namespace JiiLib.SimpleDsl
                                         resExpr,
                                         Expression.AndAlso(
                                             resExpr,
-                                            GenerateExpression(true, propExpr, InfoCache.IntEquals, valExpr)))
+                                            GenerateExpression(true, lhsExpr, InfoCache.IntEquals, rhsExpr)))
                                     }));
                         case Operator.NotEqual:
                             return blockExpr.Update(
@@ -290,7 +284,7 @@ namespace JiiLib.SimpleDsl
                                         resExpr,
                                         Expression.AndAlso(
                                             resExpr,
-                                            GenerateExpression(false, propExpr, InfoCache.IntEquals, valExpr)))
+                                            GenerateExpression(false, lhsExpr, InfoCache.IntEquals, rhsExpr)))
                                     }));
                         default:
                             throw new InvalidOperationException($"Operation '{op}' not supported on integers.");
@@ -310,7 +304,7 @@ namespace JiiLib.SimpleDsl
                                             resExpr,
                                             Expression.AndAlso(
                                                 resExpr,
-                                                GenerateExpression(true, propExpr, InfoCache.StrContains, valExpr, InfoCache.StrCompExpr)))
+                                                GenerateExpression(true, lhsExpr, InfoCache.StrContains, rhsExpr, InfoCache.StrCompExpr)))
                                     }));
                         case Operator.NotContains:
                             return blockExpr.Update(
@@ -322,7 +316,7 @@ namespace JiiLib.SimpleDsl
                                             resExpr,
                                             Expression.AndAlso(
                                                 resExpr,
-                                                GenerateExpression(false, propExpr, InfoCache.StrContains, valExpr, InfoCache.StrCompExpr)))
+                                                GenerateExpression(false, lhsExpr, InfoCache.StrContains, rhsExpr, InfoCache.StrCompExpr)))
                                     }));
                         case Operator.IsEqual:
                             return blockExpr.Update(
@@ -334,7 +328,7 @@ namespace JiiLib.SimpleDsl
                                         resExpr,
                                         Expression.AndAlso(
                                             resExpr,
-                                            GenerateExpression(true, propExpr, InfoCache.StrEquals, valExpr, InfoCache.StrCompExpr)))
+                                            GenerateExpression(true, lhsExpr, InfoCache.StrEquals, rhsExpr, InfoCache.StrCompExpr)))
                                     }));
                         case Operator.NotEqual:
                             return blockExpr.Update(
@@ -346,7 +340,7 @@ namespace JiiLib.SimpleDsl
                                         resExpr,
                                         Expression.AndAlso(
                                             resExpr,
-                                            GenerateExpression(false, propExpr, InfoCache.StrEquals, valExpr, InfoCache.StrCompExpr)))
+                                            GenerateExpression(false, lhsExpr, InfoCache.StrEquals, rhsExpr, InfoCache.StrCompExpr)))
                                     }));
                         default:
                             throw new InvalidOperationException($"Operation '{op}' not supported on strings.");
@@ -359,6 +353,7 @@ namespace JiiLib.SimpleDsl
                         : (eType == InfoCache.IntType)
                             ? InfoCache.IEnumIntContains
                             : _config.GetContainsMethod(eType);
+
                     switch (op)
                     {
                         case Operator.Contains:
@@ -371,7 +366,7 @@ namespace JiiLib.SimpleDsl
                                             resExpr,
                                             Expression.AndAlso(
                                                 resExpr,
-                                                GenerateExpression(true, null, method, propExpr, valExpr)))
+                                                GenerateExpression(true, null, method, args: new[] { lhsExpr, rhsExpr })))
                                     }));
                         case Operator.NotContains:
                             return blockExpr.Update(
@@ -383,35 +378,37 @@ namespace JiiLib.SimpleDsl
                                             resExpr,
                                             Expression.AndAlso(
                                                 resExpr,
-                                                GenerateExpression(false, null, method, propExpr, valExpr)))
+                                                GenerateExpression(false, null, method, args: new[] { lhsExpr, rhsExpr })))
                                     }));
                         default:
                             throw new InvalidOperationException($"Operation '{op}' not supported on a collections.");
                     }
                 }
                 else
-                {
                     throw new InvalidOperationException($"Property type '{pType}' not supported.");
-                }
 
-                Expression GetValueExpression(string valueString)
+                (Expression, Type) GetExprAndType(ReadOnlySpan<char> span)
                 {
-                    if (_targetProps.TryGetValue(valueString, out var compareProp))
-                    {
-                        if (compareProp.PropertyType == eType)
-                        {
-                            return Expression.Property(_targetParamExpr, compareProp);
-                        }
-                    }
-
-                    if (InfoCache.IConvType.IsAssignableFrom(eType))
-                    {
-                        return Expression.Constant(Convert.ChangeType(valueString, eType), eType);
-                    }
+                    if (ParseKnownFunction(span) is Expression expr)
+                        return (expr, expr.Type);
                     else
                     {
-                        return Expression.Constant(valueString, InfoCache.StrType);
+                        var p = span.Materialize();
+                        if (!(Property(p) is PropertyInfo property))
+                            throw new InvalidOperationException($"No such function or property '{p}'");
+
+                        return (PropertyAccessExpression(property), property.PropertyType);
                     }
+                }
+                Expression GetValueExpression(string valueString)
+                {
+                    if (Property(valueString) is PropertyInfo compareProp
+                        && compareProp.PropertyType == eType)
+                        return PropertyAccessExpression(compareProp);
+
+                    return (InfoCache.IConvType.IsAssignableFrom(eType))
+                        ? Expression.Constant(Convert.ChangeType(valueString, eType), eType)
+                        : Expression.Constant(valueString, InfoCache.StrType);
                 }
                 Expression GenerateExpression(
                     bool isTrue,
@@ -422,6 +419,7 @@ namespace JiiLib.SimpleDsl
                     var call = (method.IsStatic)
                         ? Expression.Call(method, args)
                         : Expression.Call(target, method, args);
+
                     return (isTrue) ? Expression.IsTrue(call) : Expression.IsFalse(call);
                 }
             }
@@ -437,7 +435,7 @@ namespace JiiLib.SimpleDsl
             {
                 var identifier = ParseVarDecl(ref slice);
                 bool isDesc = ParseIsDescending(ref slice);
-                var invocation = ParseInvocationOrFunction(slice);
+                var invocation = ParseFunctionOrInvocation(slice);
 
                 if (identifier != null)
                 {
@@ -454,8 +452,8 @@ namespace JiiLib.SimpleDsl
                 var selExpr = Expression.Lambda<Func<T, int>>(expr, _targetParamExpr);
 
                 call = (call == null)
-                    ? Expression.Call(_config.GetOrderByMethod(_targetType, d), _targetsParamExpr, selExpr)
-                    : Expression.Call(_config.GetThenByMethod(_targetType, d), call, selExpr);
+                    ? Expression.Call((d ? InfoCache.LinqOBDOpen : InfoCache.LinqOBOpen).MakeGenericMethod(_targetAndIntTypeArray), _targetsParamExpr, selExpr)
+                    : Expression.Call((d ? InfoCache.LinqTBDOpen : InfoCache.LinqTBOpen).MakeGenericMethod(_targetAndIntTypeArray), call, selExpr);
             }
 
             var lambda = Expression.Lambda<Func<IEnumerable<T>, IOrderedEnumerable<T>>>(call, _targetsParamExpr);
@@ -465,14 +463,14 @@ namespace JiiLib.SimpleDsl
 
         private Func<T, string> ParseSelectClause(
             ReadOnlySpan<char> selectSpan,
-            Dictionary<string, Expression> vars)
+            IReadOnlyDictionary<string, Expression> vars)
         {
             var exprs = new List<Expression>();
 
             for (var slice = selectSpan.SliceUntil(',', out var next); slice.Length > 0; slice = next.SliceUntil(',', out next))
             {
                 var fmt = ParseFormatModifiers(ref slice);
-                var (expr, type, name) = ParseInvocationOrVariable(slice, vars);
+                var (expr, type, name) = ParseFunctionVariableOrInvocation(slice, vars);
 
                 exprs.Add(Expression.Convert(
                     Expression.Call(
@@ -543,62 +541,112 @@ namespace JiiLib.SimpleDsl
             }
             return fmt;
         }
-        private static Expression ParseInvocationOrFunction(ReadOnlySpan<char> slice)
+        private static Expression ParseFunctionOrInvocation(ReadOnlySpan<char> slice)
         {
-            if (slice.StartsWith(InfoCache.Sum.AsSpan()))
-            {
-                return CreateSumExpression(slice.Slice(InfoCache.Sum.Length).TrimBraces());
-            }
+            if (ParseKnownFunction(slice) is Expression knownFunc)
+                return knownFunc;
 
             var p = slice.Materialize();
-            if (_targetProps.TryGetValue(p, out var property))
-            {
-                return Expression.Property(_targetParamExpr, property);
-            }
+            if (Property(p) is PropertyInfo property)
+                return PropertyAccessExpression(property);
 
             throw new InvalidOperationException($"No such property or known function '{p}'.");
         }
-        private static (Expression, Type, string) ParseInvocationOrVariable(
+        private static (Expression, Type, string) ParseFunctionVariableOrInvocation(
             ReadOnlySpan<char> slice,
             IReadOnlyDictionary<string, Expression> vars)
         {
+            if (ParseKnownFunction(slice) is Expression knownFunc)
+                return (knownFunc, InfoCache.IntType, "");
+
             var p = slice.Materialize();
             if (vars.TryGetValue(p, out var expr))
             {
                 return (expr, InfoCache.ObjType, p);
             }
 
-            if (_targetProps.TryGetValue(p, out var property))
-            {
-                return (Expression.Property(_targetParamExpr, property), property.PropertyType, property.Name);
-            }
+            if (Property(p) is PropertyInfo property)
+                return (PropertyAccessExpression(property), property.PropertyType, property.Name);
 
             throw new InvalidOperationException($"No such property or declared variable '{p}'.");
         }
+
+
+        private static Expression ParseKnownFunction(ReadOnlySpan<char> slice)
+        {
+            if (slice.StartsWith(InfoCache.Sum.AsSpan()))
+                return CreateSumExpression(slice.Slice(InfoCache.Sum.Length).TrimBraces());
+
+            if (slice.StartsWith(InfoCache.Min.AsSpan()))
+                return CreateMinExpression(slice.Slice(InfoCache.Min.Length).TrimBraces());
+
+            if (slice.StartsWith(InfoCache.Max.AsSpan()))
+                return CreateMaxExpression(slice.Slice(InfoCache.Max.Length).TrimBraces());
+
+            if (slice.StartsWith(InfoCache.Average.AsSpan()))
+                return CreateAverageExpression(slice.Slice(InfoCache.Average.Length).TrimBraces());
+
+            if (slice.StartsWith(InfoCache.Count.AsSpan()))
+                return CreateCountExpression(slice.Slice(InfoCache.Count.Length).TrimBraces());
+
+            return null;
+        }
         private static Expression CreateSumExpression(ReadOnlySpan<char> itemSpan)
+            => Expression.Call(InfoCache.LinqSum, Expression.NewArrayInit(InfoCache.IntType, CreateIntList(itemSpan, InfoCache.Sum)));
+        private static Expression CreateMinExpression(ReadOnlySpan<char> itemSpan)
+            => Expression.Call(InfoCache.LinqMin, Expression.NewArrayInit(InfoCache.IntType, CreateIntList(itemSpan, InfoCache.Min)));
+        private static Expression CreateMaxExpression(ReadOnlySpan<char> itemSpan)
+            => Expression.Call(InfoCache.LinqMax, Expression.NewArrayInit(InfoCache.IntType, CreateIntList(itemSpan, InfoCache.Max)));
+        private static Expression CreateAverageExpression(ReadOnlySpan<char> itemSpan)
+            => Expression.Call(InfoCache.LinqAverage, Expression.NewArrayInit(InfoCache.IntType, CreateIntList(itemSpan, InfoCache.Average)));
+        private static Expression CreateCountExpression(ReadOnlySpan<char> itemSpan)
+        {
+            var p = itemSpan.Materialize();
+            if (!(Property(p) is PropertyInfo property))
+                throw new InvalidOperationException($"No such property or known function '{p}'.");
+
+            var (isCollection, eType) = IsCollectionType(property.PropertyType);
+            if (!isCollection)
+                throw new InvalidOperationException($"Property '{p}' must be a collection type to be used in 'count()'.");
+
+            return Expression.Call(
+                InfoCache.LinqCountOpen.MakeGenericMethod(eType),
+                PropertyAccessExpression(property));
+        }
+
+        private static PropertyInfo Property(string propName)
+            => (_targetProps.TryGetValue(propName, out var property))
+                ? property : null;
+        private static (bool, Type) IsCollectionType(Type type)
+            => (type.IsGenericType && type.GetGenericTypeDefinition() == InfoCache.IEnumOpenType)
+                    ? (true, type.GetGenericArguments()[0])
+                    : (false, type);
+        private static MemberExpression PropertyAccessExpression(PropertyInfo property)
+            => Expression.Property(_targetParamExpr, property);
+        private static List<Expression> CreateIntList(ReadOnlySpan<char> itemSpan, string functionName)
         {
             var props = new List<Expression>();
-            for (var item = itemSpan.SliceUntil(' ', out var next); item.Length > 0; item = next.SliceUntil(' ', out next))
+            for (var item = itemSpan.SliceUntil(',', out var next); item.Length > 0; item = next.SliceUntil(',', out next))
             {
-                var it = item.Materialize();
-                if (_targetProps.TryGetValue(it, out var property))
+                var p = item.Trim().Materialize();
+                if (Property(p) is PropertyInfo property)
                 {
                     if (property.PropertyType != InfoCache.IntType)
-                        throw new InvalidOperationException($"Property '{it}' must be a number to be used in 'sum()'.");
+                        throw new InvalidOperationException($"Property '{p}' must be a number to be used in '{functionName}()'.");
 
-                    props.Add(Expression.Property(_targetParamExpr, property));
+                    props.Add(PropertyAccessExpression(property));
                 }
-                else if (Int32.TryParse(it, out var i))
+                else if (Int32.TryParse(p, out var i))
                 {
                     props.Add(Expression.Constant(i, InfoCache.IntType));
                 }
                 else
                 {
-                    throw new InvalidOperationException($"'{it}' must be a number or a numeric property to be used in 'sum()'.");
+                    throw new InvalidOperationException($"'{p}' must be a number or a numeric property to be used in '{functionName}()'.");
                 }
             }
 
-            return Expression.Call(InfoCache.LinqSum, Expression.NewArrayInit(InfoCache.IntType, props));
+            return props;
         }
     }
 }

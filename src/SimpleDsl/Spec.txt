@@ -14,9 +14,12 @@ where_operands
   ;
 
 where_operand
-  : object_property_name binary_operator string
-  | object_property_name binary_operator int
-  | object_property_name binary_operator object_property_name
+  : object_property_name binary_operator string               -> bool
+  | object_property_name binary_operator int                  -> bool
+  | object_property_name binary_operator object_property_name -> bool
+  | known_function binary_operator string                     -> bool
+  | known_function binary_operator int                        -> bool
+  | known_function binary_operator object_property_name       -> bool
   ;
 
 binary_operator
@@ -42,7 +45,7 @@ orderby_operands
   ;
 
 orderby_operand
-  : variable_identifier? 'd:'? orderby_invocation
+  : variable_identifier? 'd:'? orderby_invocation   -> declared_variable
   ;
 
 orderby_invocation
@@ -55,7 +58,11 @@ variable_identifier
   ;
 
 known_function
-  : 'sum' '(' ints ')'
+  : 'sum' '(' ints ')'                   -> int
+  | 'min' '(' ints ')'                   -> int
+  | 'max' '(' ints ')'                   -> int
+  | 'average' '(' ints ')'               -> int
+  | 'count' '(' object_property_name ')' -> int
   ;
 
 ints
