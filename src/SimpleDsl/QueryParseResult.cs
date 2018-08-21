@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace JiiLib.SimpleDsl
 {
@@ -18,18 +19,25 @@ namespace JiiLib.SimpleDsl
         private static readonly Func<T, string> _defaultSelector = (_ => _.ToString());
 
         internal QueryParseResult(
+            IReadOnlyDictionary<string, Expression> vars,
             Func<T, bool> predicate,
             Func<IEnumerable<T>, IOrderedEnumerable<T>> order,
             int skipAmount,
             int takeAmount,
             Func<T, string> selector)
         {
+            InlineVars = vars;
             Predicate = predicate ?? _defaultFilter;
             Order = order ?? _defaultOrder;
             SkipAmount = skipAmount;
             TakeAmount = takeAmount;
             Selector = selector ?? _defaultSelector;
         }
+
+        /// <summary>
+        ///     The inline variables that have been declared for this query.
+        /// </summary>
+        public IReadOnlyDictionary<string, Expression> InlineVars { get; }
 
         /// <summary>
         ///     The complete parsed predicate.

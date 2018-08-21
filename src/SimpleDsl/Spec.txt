@@ -17,6 +17,7 @@ where_operand
   : object_property_name binary_operator string               -> bool
   | object_property_name binary_operator int                  -> bool
   | object_property_name binary_operator object_property_name -> bool
+  | object_property_name '{' where_operands '}'               -> bool
   | known_function binary_operator string                     -> bool
   | known_function binary_operator int                        -> bool
   | known_function binary_operator object_property_name       -> bool
@@ -45,7 +46,7 @@ orderby_operands
   ;
 
 orderby_operand
-  : variable_identifier? 'd:'? orderby_invocation   -> declared_variable
+  : variable_identifier? 'd:'? orderby_invocation
   ;
 
 orderby_invocation
@@ -85,7 +86,7 @@ take_operation
 =========
 
 select_operation
-  : 'select' '[' select_operands ']'
+  : 'select' '[' select_operands ']' -> string
   ;
 
 select_operands
@@ -110,6 +111,7 @@ format_chars
 format_char
   : 'b' //Bold 
   | 'i' //Italic
+  | 'u' //Underline
   ;
 
 =========
