@@ -6,6 +6,9 @@
         <LangVersion>7.3</LangVersion>
         <TargetFramework>netcoreapp2.1</TargetFramework>
         <Authors>Joe4evr</Authors>
+        <PackageLicenseUrl>http://opensource.org/licenses/MIT</PackageLicenseUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageProjectUrl>https://github.com/Joe4evr/JiiLib/blob/master/src/SimpleDsl/</PackageProjectUrl>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)'=='Release'">
         <DocumentationFile>C:\projects\JiiLib\src\SimpleDsl\JiiLib.SimpleDsl.xml</DocumentationFile>
