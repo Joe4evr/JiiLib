@@ -4,6 +4,9 @@ using System.Text;
 
 namespace JiiLib.SimpleDsl
 {
+    /// <summary>
+    ///     
+    /// </summary>
     public static class QueryLookups
     {
         internal static ConcurrentDictionary<Type, IOperatorLookup> MethodLookups { get; } = new ConcurrentDictionary<Type, IOperatorLookup>();
@@ -13,6 +16,15 @@ namespace JiiLib.SimpleDsl
             RegisterLookup(StringOperatorLookup.Instance);
         }
 
+        /// <summary>
+        ///     Register an operator lookup for a type.
+        /// </summary>
+        /// <typeparam name="T">
+        ///     The type the lookup is for.
+        /// </typeparam>
+        /// <param name="lookup">
+        ///     The lookup instance.
+        /// </param>
         public static void RegisterLookup<T>(OperatorLookup<T> lookup)
         {
             var type = typeof(T);

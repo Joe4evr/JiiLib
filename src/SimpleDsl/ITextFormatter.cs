@@ -7,11 +7,34 @@ namespace JiiLib.SimpleDsl
     /// </summary>
     public interface ITextFormats
     {
+        /// <summary>
+        ///     
+        /// </summary>
         string BoldOpen { get; }
+
+        /// <summary>
+        ///     
+        /// </summary>
         string BoldClose { get; }
+
+        /// <summary>
+        ///     
+        /// </summary>
         string ItalicOpen { get; }
+
+        /// <summary>
+        ///     
+        /// </summary>
         string ItalicClose { get; }
+
+        /// <summary>
+        ///     
+        /// </summary>
         string UnderlineOpen { get; }
+
+        /// <summary>
+        ///     
+        /// </summary>
         string UnderlineClose { get; }
     }
 
@@ -25,11 +48,17 @@ namespace JiiLib.SimpleDsl
         /// </summary>
         public static ITextFormats Instance { get; } = new MarkdownFormatter();
 
+        /// <inheritdoc />
         string ITextFormats.BoldOpen { get; } = "**";
+        /// <inheritdoc />
         string ITextFormats.BoldClose { get; } = "**";
+        /// <inheritdoc />
         string ITextFormats.ItalicOpen { get; } = "*";
+        /// <inheritdoc />
         string ITextFormats.ItalicClose { get; } = "*";
+        /// <inheritdoc />
         string ITextFormats.UnderlineOpen { get; } = "__";
+        /// <inheritdoc />
         string ITextFormats.UnderlineClose { get; } = "__";
 
         private MarkdownFormatter() { }
@@ -45,11 +74,17 @@ namespace JiiLib.SimpleDsl
         /// </summary>
         public static ITextFormats Instance { get; } = new HtmlFormatter();
 
+        /// <inheritdoc />
         string ITextFormats.BoldOpen { get; } = "<b>";
+        /// <inheritdoc />
         string ITextFormats.BoldClose { get; } = "</b>";
+        /// <inheritdoc />
         string ITextFormats.ItalicOpen { get; } = "<i>";
+        /// <inheritdoc />
         string ITextFormats.ItalicClose { get; } = "</i>";
+        /// <inheritdoc />
         string ITextFormats.UnderlineOpen { get; } = "<u>";
+        /// <inheritdoc />
         string ITextFormats.UnderlineClose { get; } = "</u>";
 
         private HtmlFormatter() { }

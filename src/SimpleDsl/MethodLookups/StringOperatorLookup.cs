@@ -9,9 +9,9 @@ namespace JiiLib.SimpleDsl
         private StringOperatorLookup() { }
 
         public override (BlockExpression, MethodCallExpression) GetContainsExpression(Expression lhs, Expression rhs)
-            => (InfoCache.EmptyBlock, Expression.Call(lhs, InfoCache.StrContains, rhs, InfoCache.StrCompsExpr));
+            => (EmptyBlock, Expression.Call(lhs, InfoCache.StrContains, rhs, InfoCache.StrCompsExpr));
         public override (BlockExpression, MethodCallExpression) GetIsEqualExpression(Expression lhs, Expression rhs)
-            => (InfoCache.EmptyBlock, Expression.Call(lhs, InfoCache.StrEquals, rhs, InfoCache.StrCompsExpr));
+            => (EmptyBlock, Expression.Call(lhs, InfoCache.StrEquals, rhs, InfoCache.StrCompsExpr));
 
         public override (BlockExpression, MethodCallExpression) GetGreaterThanExpression(Expression lhs, Expression rhs)
             => throw new InvalidOperationException("Greater/Less Than operations not supported on strings.");

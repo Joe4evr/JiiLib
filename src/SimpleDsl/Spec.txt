@@ -3,11 +3,11 @@ query
   ;
 
 known_function
-  : 'sum' '(' ints ')'                   -> int
-  | 'min' '(' ints ')'                   -> int
-  | 'max' '(' ints ')'                   -> int
-  | 'average' '(' ints ')'               -> int
-  | 'count' '(' object_property_name ')' -> int
+  : 'sum(' ints ')'                   -> int
+  | 'min(' ints ')'                   -> int
+  | 'max(' ints ')'                   -> int
+  | 'average(' ints ')'               -> int
+  | 'count(' object_property_name ')' -> int
   ;
 
 variable_identifier
@@ -33,7 +33,7 @@ where_operand
   | variable_identifier? object_property_name binary_operator int                  -> bool
   | variable_identifier? object_property_name binary_operator object_property_name -> bool
   | object_property_name '{' where_operands '}'                                    -> bool
-  | 'or' '(' where_operand ',' where_operand ')'                                   -> bool
+  | 'or(' where_operands ')'                                                       -> bool
   | '!'? object_property_name                                                      -> bool
   ;
 

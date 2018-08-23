@@ -2,7 +2,7 @@
     <PropertyGroup>
         <AssemblyName>JiiLib.SimpleDsl</AssemblyName>
         <VersionPrefix>1.0.0</VersionPrefix>
-        <VersionSuffix>alpha7</VersionSuffix>
+        <VersionSuffix>beta1</VersionSuffix>
         <LangVersion>7.3</LangVersion>
         <TargetFramework>netcoreapp2.1</TargetFramework>
         <Authors>Joe4evr</Authors>

@@ -8,12 +8,11 @@ namespace JiiLib.SimpleDsl
     internal sealed class EnumOperatorLookup<T> : OperatorLookup<T>
         where T : struct, Enum
     {
-        //private static readonly IEqualityComparer<T> _comparer = EqualityComparer<T>.Default;
         private static readonly ConstantExpression _comparer = Expression.Constant(EqualityComparer<T>.Default);
         private static readonly MethodInfo _equals = typeof(IEqualityComparer<T>).GetMethod(nameof(IEqualityComparer<T>.Equals));
 
         public override (BlockExpression, MethodCallExpression) GetIsEqualExpression(Expression lhs, Expression rhs)
-            => (InfoCache.EmptyBlock, Expression.Call(_comparer, _equals, lhs, rhs));
+            => (EmptyBlock, Expression.Call(_comparer, _equals, lhs, rhs));
 
         public override (BlockExpression, MethodCallExpression) GetContainsExpression(Expression lhs, Expression rhs)
             => throw new InvalidOperationException("Contains Than operations not supported on enums.");
