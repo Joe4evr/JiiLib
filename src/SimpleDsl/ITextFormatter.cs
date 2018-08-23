@@ -5,45 +5,53 @@ namespace JiiLib.SimpleDsl
     /// <summary>
     ///     Represents a contract for formatting text.
     /// </summary>
-    public interface ITextFormatter
+    public interface ITextFormats
     {
-        /// <summary>
-        ///     Formats a string to be displayed a certain way.
-        /// </summary>
-        /// <param name="value">
-        ///     The input string.
-        /// </param>
-        /// <param name="formats">
-        ///     The desired formats.
-        /// </param>
-        /// <returns>
-        ///     A string that will be displayed in the specified format on the target environment.
-        /// </returns>
-        string FormatString(string value, FormatModifiers formats);
+        string BoldOpen { get; }
+        string BoldClose { get; }
+        string ItalicOpen { get; }
+        string ItalicClose { get; }
+        string UnderlineOpen { get; }
+        string UnderlineClose { get; }
     }
 
     /// <summary>
-    ///     An implementation of <see cref="ITextFormatter"/> to use markdown formatting.
+    ///     An implementation of <see cref="ITextFormats"/> to use markdown formatting.
     /// </summary>
-    public sealed class MarkdownFormatter : ITextFormatter
+    public sealed class MarkdownFormatter : ITextFormats
     {
-        public static ITextFormatter Instance { get; } = new MarkdownFormatter();
+        /// <summary>
+        ///     The <see cref="MarkdownFormatter"/> instance.
+        /// </summary>
+        public static ITextFormats Instance { get; } = new MarkdownFormatter();
+
+        string ITextFormats.BoldOpen { get; } = "**";
+        string ITextFormats.BoldClose { get; } = "**";
+        string ITextFormats.ItalicOpen { get; } = "*";
+        string ITextFormats.ItalicClose { get; } = "*";
+        string ITextFormats.UnderlineOpen { get; } = "__";
+        string ITextFormats.UnderlineClose { get; } = "__";
 
         private MarkdownFormatter() { }
+    }
 
-        /// <inheritdoc />
-        string ITextFormatter.FormatString(string value, FormatModifiers formats)
-        {
-            if ((formats & FormatModifiers.Bold) == FormatModifiers.Bold)
-                value = $"**{value}**";
+    /// <summary>
+    ///     An implementation of <see cref="ITextFormats"/> to use HTML formatting.
+    /// </summary>
+    public sealed class HtmlFormatter : ITextFormats
+    {
+        /// <summary>
+        ///     The <see cref="HtmlFormatter"/> instance.
+        /// </summary>
+        public static ITextFormats Instance { get; } = new HtmlFormatter();
 
-            if ((formats & FormatModifiers.Italic) == FormatModifiers.Italic)
-                value = $"*{value}*";
+        string ITextFormats.BoldOpen { get; } = "<b>";
+        string ITextFormats.BoldClose { get; } = "</b>";
+        string ITextFormats.ItalicOpen { get; } = "<i>";
+        string ITextFormats.ItalicClose { get; } = "</i>";
+        string ITextFormats.UnderlineOpen { get; } = "<u>";
+        string ITextFormats.UnderlineClose { get; } = "</u>";
 
-            if ((formats & FormatModifiers.Underline) == FormatModifiers.Underline)
-                value = $"__{value}__";
-
-            return value;
-        }
+        private HtmlFormatter() { }
     }
 }

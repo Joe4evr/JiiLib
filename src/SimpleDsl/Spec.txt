@@ -2,6 +2,18 @@ query
   : where_operation? orderby_operation? skip_operation? take_operation? select_operation?
   ;
 
+known_function
+  : 'sum' '(' ints ')'                   -> int
+  | 'min' '(' ints ')'                   -> int
+  | 'max' '(' ints ')'                   -> int
+  | 'average' '(' ints ')'               -> int
+  | 'count' '(' object_property_name ')' -> int
+  ;
+
+variable_identifier
+  : string '|'
+  ;
+
 =========
 
 where_operation
@@ -14,13 +26,15 @@ where_operands
   ;
 
 where_operand
-  : object_property_name binary_operator string               -> bool
-  | object_property_name binary_operator int                  -> bool
-  | object_property_name binary_operator object_property_name -> bool
-  | object_property_name '{' where_operands '}'               -> bool
-  | known_function binary_operator string                     -> bool
-  | known_function binary_operator int                        -> bool
-  | known_function binary_operator object_property_name       -> bool
+  : variable_identifier? known_function binary_operator string                     -> bool
+  | variable_identifier? known_function binary_operator int                        -> bool
+  | variable_identifier? known_function binary_operator object_property_name       -> bool
+  | variable_identifier? object_property_name binary_operator string               -> bool
+  | variable_identifier? object_property_name binary_operator int                  -> bool
+  | variable_identifier? object_property_name binary_operator object_property_name -> bool
+  | object_property_name '{' where_operands '}'                                    -> bool
+  | 'or' '(' where_operand ',' where_operand ')'                                   -> bool
+  | '!'? object_property_name                                                      -> bool
   ;
 
 binary_operator
@@ -32,6 +46,13 @@ binary_operator
   | '>='
   | '=='
   | '!='
+  ;
+
+ints
+  : int
+  | object_property_name
+  | int ' ' ints
+  | object_property_name ' ' ints
   ;
 
 =========
@@ -52,25 +73,6 @@ orderby_operand
 orderby_invocation
   : object_property_name
   | known_function
-  ;
-
-variable_identifier
-  : string '|'
-  ;
-
-known_function
-  : 'sum' '(' ints ')'                   -> int
-  | 'min' '(' ints ')'                   -> int
-  | 'max' '(' ints ')'                   -> int
-  | 'average' '(' ints ')'               -> int
-  | 'count' '(' object_property_name ')' -> int
-  ;
-
-ints
-  : int
-  | object_property_name
-  | int ' ' ints
-  | object_property_name ' ' ints
   ;
 
 =========

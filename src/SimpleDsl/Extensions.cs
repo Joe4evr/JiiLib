@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace JiiLib.SimpleDsl
 {
     internal static class Extensions
     {
         [DebuggerStepThrough]
-        internal static ReadOnlySpan<char> SliceUntilFirst(this ReadOnlySpan<char> span, char delimeter, out ReadOnlySpan<char> remainder)
+        internal static ReadOnlySpan<char> SliceUntilFirstUnnested(this ReadOnlySpan<char> span, char delimeter, out ReadOnlySpan<char> remainder)
         {
             var ret = span;
             for (int i = 0; i < span.Length; i++)
@@ -38,10 +39,15 @@ namespace JiiLib.SimpleDsl
         [DebuggerStepThrough]
         internal static ReadOnlySpan<char> TrimBraces(this ReadOnlySpan<char> span)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (var (i, j) = (0, span.Length); i < span.Length; (i, j) = (i + 1, j - 1))
             {
-                if (!CharAliasMap.ContainsKey(span[i]))
-                    return span.Slice(i, span.Length - (i + 1)).Trim();
+                if (j <= i)
+                    break;
+
+                var ci = span[i];
+                var cj = span[j - 1];
+                if (!(CharAliasMap.TryGetValue(ci, out var e) && cj == e))
+                    return span.Slice(i, j - i).Trim();
             }
             return span;
         }
@@ -80,6 +86,32 @@ namespace JiiLib.SimpleDsl
                 throw new InvalidOperationException($"Must use '{c}' after '{name}'.");
 
             return span;
+        }
+
+        [DebuggerStepThrough]
+        internal static void AddInlineVar(this Dictionary<string, Expression> vars, string identifier, Expression invocation)
+        {
+            if (identifier != null)
+            {
+                if (!vars.TryAdd(identifier, invocation))
+                    throw new InvalidOperationException($"Inline variable identifier '{identifier}' is already used.");
+            }
+        }
+
+        [DebuggerStepThrough]
+        internal static bool ParseIsDescending(ref this ReadOnlySpan<char> span)
+        {
+            if (span.IndexOf(':') >= 0)
+            {
+                var prefix = span.SliceUntilFirstUnnested(':', out span);
+                for (int i = 0; i < prefix.Length; i++)
+                {
+                    var cur = prefix[i];
+                    if (cur == 'd')
+                        return true;
+                }
+            }
+            return false;
         }
 
         // Output of a gist provided by https://gist.github.com/ufcpp
@@ -159,7 +191,7 @@ namespace JiiLib.SimpleDsl
         private static readonly string _startChars = new string(CharAliasMap.Keys.ToArray());
         private static readonly string _endChars = new string(CharAliasMap.Values.ToArray());
 
-
+        [DebuggerStepThrough]
         internal static bool IsCollectionType(this Type type, out Type elementType)
         {
             if (type.IsGenericType && type.GetGenericTypeDefinition() == InfoCache.IEnumOpenType)
@@ -170,5 +202,12 @@ namespace JiiLib.SimpleDsl
             elementType = type;
             return false;
         }
+
+        [DebuggerStepThrough]
+        internal static Expression Stringify(this Expression objExpr)
+            => (objExpr.Type == InfoCache.StrType)
+                ? objExpr
+                //-> obj.ToString();
+                : Expression.Call(objExpr, InfoCache.ObjToString);
     }
 }
