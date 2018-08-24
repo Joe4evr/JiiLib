@@ -6,11 +6,16 @@ using System.Reflection;
 
 namespace JiiLib.SimpleDsl
 {
+    internal delegate (Expression, Type) GetLhsFunc(ReadOnlySpan<char> span);
+    internal delegate Expression GetRhsFunc(string value, Type type);
+    internal delegate Expression TempAssignFunc(Expression result, Expression value);
+
     internal static class InfoCache
     {
         internal static readonly Type StrType = typeof(string);
         internal static readonly Type BoolType = typeof(bool);
         internal static readonly Type IntType = typeof(int);
+        internal static readonly Type NullableOpenType = typeof(Nullable<>);
         internal static readonly Type IConvType = typeof(IConvertible);
         internal static readonly Type IEnumOpenType = typeof(IEnumerable<>);
         internal static readonly Type IEnumStringType = typeof(IEnumerable<string>);
@@ -30,11 +35,10 @@ namespace JiiLib.SimpleDsl
             var IEnumGenParamArr = new Type[] { IEnumTSource };
             var IEnumGenParamIntArr = new Type[] { IEnumTSource, IntType };
             var IEnumGenParamFuncToBoolArr = new Type[] { IEnumTSource, FuncTSourceToBool };
-            var StrStrCompArr = new Type[] { StrType, typeof(StringComparison) };
 
 
-            StrContains = StrType.GetMethod(nameof(String.Contains), StrStrCompArr);
-            StrEquals = StrType.GetMethod(nameof(String.Equals), StrStrCompArr);
+            //StrContains = StrType.GetMethod(nameof(String.Contains), new Type[] { StrType, typeof(StringComparison) });
+            StrEquals = StrType.GetMethod(nameof(String.Equals), new Type[] { StrType, StrType, typeof(StringComparison) });
 
             IntEquals = IntType.GetMethod(nameof(Int32.Equals), IntTypeArr);
             IntCompare = IntType.GetMethod(nameof(Int32.CompareTo), IntTypeArr);
@@ -62,7 +66,7 @@ namespace JiiLib.SimpleDsl
         internal static readonly MethodInfo StrConcat2 = StrType.GetMethod(nameof(String.Concat), new Type[] { StrType, StrType });
         internal static readonly MethodInfo StrConcat3 = StrType.GetMethod(nameof(String.Concat), new Type[] { StrType, StrType, StrType });
         internal static readonly MethodInfo StrJoin = StrType.GetMethod(nameof(String.Join), new Type[] { StrType, IEnumStringType });
-        internal static readonly MethodInfo StrContains;
+        //internal static readonly MethodInfo StrContains;
         internal static readonly MethodInfo StrEquals;
 
         internal static readonly MethodInfo IntEquals;
@@ -85,8 +89,8 @@ namespace JiiLib.SimpleDsl
         internal static readonly MethodInfo IEnumStrContains;
         //internal static readonly MethodInfo IEnumIntContains;
 
-        internal static readonly Func<Expression, Expression, Expression> AndAlso = Expression.AndAlso;
-        internal static readonly Func<Expression, Expression, Expression> OrElse = Expression.OrElse;
+        internal static readonly TempAssignFunc AndAlso = Expression.AndAlso;
+        internal static readonly TempAssignFunc OrElse = Expression.OrElse;
 
         internal static readonly string Colon = ": ";
         internal static readonly ConstantExpression EmptyStrExpr = Expression.Constant(String.Empty);

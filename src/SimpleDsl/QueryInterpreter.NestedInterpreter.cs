@@ -8,8 +8,6 @@ namespace JiiLib.SimpleDsl
 {
     public sealed partial class QueryInterpreter<T>
     {
-        private delegate (Expression, Type) ExprType(ReadOnlySpan<char> span);
-
         private interface INestedInterpreter
         {
             Expression ParseNestedWhere(ReadOnlySpan<char> span, MemberExpression parentPropExpr, Dictionary<string, Expression> vars);
@@ -17,15 +15,17 @@ namespace JiiLib.SimpleDsl
             //Expression ParseNestedSelect(ReadOnlySpan<char> span, Expression parentPropExpr, IReadOnlyDictionary<string, Expression> vars);
         }
 
-        private sealed class NestedInterpreter<TInner> : INestedInterpreter
+        private sealed class NestedCollectionInterpreter<TInner> : INestedInterpreter
         {
             private static readonly MethodInfo _linqWhere;
             private static readonly MethodInfo _linqSelect;
             private static readonly MethodInfo _linqAny;
             private static readonly ParameterExpression _nestedParamExpr;
             private static readonly IReadOnlyDictionary<string, PropertyInfo> _props;
+            private static readonly GetLhsFunc _lhsFunc = GetExprAndType;
+            private static readonly GetRhsFunc _rhsFunc = GetRhsExpression;
 
-            static NestedInterpreter()
+            static NestedCollectionInterpreter()
             {
                 var type = typeof(TInner);
                 var typeArr = new Type[] { type };
@@ -53,7 +53,7 @@ namespace JiiLib.SimpleDsl
                 var nestedVars = new Dictionary<string, Expression>(StringComparer.OrdinalIgnoreCase);
 
                 for (var slice = span.SliceUntilFirstUnnested(',', out var next); slice.Length > 0; slice = next.SliceUntilFirstUnnested(',', out next))
-                    filterBlockExpr = ParseOperation(slice, filterBlockExpr, resExpr, GetExprAndType, GetRhsExpression, InfoCache.AndAlso, nestedVars);
+                    filterBlockExpr = ParseWhereOperand(slice, filterBlockExpr, resExpr, GetExprAndType, GetRhsExpression, InfoCache.AndAlso, nestedVars);
 
                 var lambda = Expression.Lambda<Func<TInner, bool>>(filterBlockExpr, _nestedParamExpr);
                 if (nestedVars.Count > 0)
@@ -122,6 +122,27 @@ namespace JiiLib.SimpleDsl
 
                     return (PropertyAccessExpression(property), property.PropertyType);
                 }
+            }
+        }
+
+        private sealed class NestedPropertyInterpreter<TInner> : INestedInterpreter
+        {
+            private static readonly IReadOnlyDictionary<string, PropertyInfo> _props;
+
+            static NestedPropertyInterpreter()
+            {
+                var type = typeof(TInner);
+                var typeArr = new Type[] { type };
+
+                _props = type.GetProperties().ToImmutableDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
+            }
+
+            Expression INestedInterpreter.ParseNestedWhere(
+                ReadOnlySpan<char> span,
+                MemberExpression parentPropExpr,
+                Dictionary<string, Expression> vars)
+            {
+                throw new NotImplementedException();
             }
         }
     }

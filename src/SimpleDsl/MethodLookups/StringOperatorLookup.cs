@@ -1,21 +1,30 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace JiiLib.SimpleDsl
 {
     internal sealed class StringOperatorLookup : OperatorLookup<string>
     {
         public static StringOperatorLookup Instance { get; } = new StringOperatorLookup();
+
+        private static readonly MethodInfo _contains = typeof(StringOperatorLookup).GetMethod(nameof(Contains));
+
         private StringOperatorLookup() { }
 
-        public override (BlockExpression, MethodCallExpression) GetContainsExpression(Expression lhs, Expression rhs)
-            => (EmptyBlock, Expression.Call(lhs, InfoCache.StrContains, rhs, InfoCache.StrCompsExpr));
-        public override (BlockExpression, MethodCallExpression) GetIsEqualExpression(Expression lhs, Expression rhs)
-            => (EmptyBlock, Expression.Call(lhs, InfoCache.StrEquals, rhs, InfoCache.StrCompsExpr));
+        public override (BlockExpression, Expression) GetContainsExpression(Expression lhs, Expression rhs)
+            //Contains(lhs, rhs);
+            => (EmptyBlock, Expression.Call(_contains, lhs, rhs));
+        public override (BlockExpression, Expression) GetIsEqualExpression(Expression lhs, Expression rhs)
+            //String.Equals(lhs, rhs, StringComparison.OrdinalIgnoreCase);
+            => (EmptyBlock, Expression.Call(InfoCache.StrEquals, lhs, rhs, InfoCache.StrCompsExpr));
 
-        public override (BlockExpression, MethodCallExpression) GetGreaterThanExpression(Expression lhs, Expression rhs)
+        public override (BlockExpression, Expression) GetGreaterThanExpression(Expression lhs, Expression rhs)
             => throw new InvalidOperationException("Greater/Less Than operations not supported on strings.");
-        public override (BlockExpression, MethodCallExpression) GetLessThanExpression(Expression lhs, Expression rhs)
+        public override (BlockExpression, Expression) GetLessThanExpression(Expression lhs, Expression rhs)
             => throw new InvalidOperationException("Greater/Less Than operations not supported on strings.");
+
+        public static bool Contains(string source, string sub)
+            => source?.Contains(sub, StringComparison.OrdinalIgnoreCase) ?? false;
     }
 }

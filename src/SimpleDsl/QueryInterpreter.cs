@@ -24,6 +24,9 @@ namespace JiiLib.SimpleDsl
 
         private static readonly IReadOnlyDictionary<string, PropertyInfo> _targetProps = _targetType.GetProperties().ToImmutableDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
 
+        private static readonly GetLhsFunc _lhsFunc = GetExprAndType;
+        private static readonly GetRhsFunc _rhsFunc = GetRhsExpression;
+
         static QueryInterpreter()
         {
             var ienumTargetType = typeof(IEnumerable<T>);
@@ -149,7 +152,7 @@ namespace JiiLib.SimpleDsl
                 Expression.Assign(resExpr, InfoCache.True));
 
             for (var slice = whereSpan.SliceUntilFirstUnnested(',', out var next); slice.Length > 0; slice = next.SliceUntilFirstUnnested(',', out next))
-                filterBlockExpr = ParseOperation(slice, filterBlockExpr, resExpr, GetExprAndType, GetRhsExpression, InfoCache.AndAlso, vars);
+                filterBlockExpr = ParseWhereOperand(slice, filterBlockExpr, resExpr, GetExprAndType, GetRhsExpression, InfoCache.AndAlso, vars);
 
             var lambda = Expression.Lambda<Func<T, bool>>(filterBlockExpr, _targetParamExpr);
 
@@ -243,13 +246,13 @@ namespace JiiLib.SimpleDsl
             return lambda.Compile();
         }
 
-        private static BlockExpression ParseOperation(
+        private static BlockExpression ParseWhereOperand(
             ReadOnlySpan<char> span,
             BlockExpression blockExpr,
             Expression resExpr,
-            ExprType getLhs,
-            Func<string, Type, Expression> getRhs,
-            Func<Expression, Expression, Expression> tempAssign,
+            GetLhsFunc getLhs,
+            GetRhsFunc getRhs,
+            TempAssignFunc tempAssign,
             Dictionary<string, Expression> vars)
         {
             var lhsSpan = span.SliceUntilFirstUnnested(' ', out var rhsSpan);
@@ -269,7 +272,7 @@ namespace JiiLib.SimpleDsl
 
                 var items = lhsSpan.Slice(InfoCache.Or.Length).VerifyOpenChar('(', InfoCache.Or).TrimBraces();
                 for (var item = items.SliceUntilFirstUnnested(',', out var next); item.Length > 0; item = next.SliceUntilFirstUnnested(',', out next))
-                    tmpBlk = ParseOperation(item, tmpBlk, tmpRes, getLhs, getRhs, InfoCache.OrElse, vars);
+                    tmpBlk = ParseWhereOperand(item, tmpBlk, tmpRes, getLhs, getRhs, InfoCache.OrElse, vars);
 
                 (interimBlock, result, truthy) = (tmpBlk, tmpRes, true);
             }
@@ -282,10 +285,10 @@ namespace JiiLib.SimpleDsl
                     (interimBlock, result, truthy) = (InfoCache.EmptyBlock, invocation, !negatedBool);
                 else if (invocation is MemberExpression memberExpr && rhsSpan[0] == '{') //nested op
                 {
-                    if (!isCollection)
+                    if (!isCollection) //TODO: extend support to non-primitives
                         throw new InvalidOperationException($"Property '{memberExpr.Member.Name}' must be a collection type to allow nested queries.");
 
-                    var reader = _nested.GetOrAdd(eType, (k) => (INestedInterpreter)Activator.CreateInstance(typeof(NestedInterpreter<>).MakeGenericType(_targetType, k)));
+                    var reader = _nested.GetOrAdd(eType, (k) => (INestedInterpreter)Activator.CreateInstance(typeof(NestedCollectionInterpreter<>).MakeGenericType(_targetType, k)));
                     var trimmed = rhsSpan.TrimBraces();
 
                     (interimBlock, result, truthy) = (InfoCache.EmptyBlock, reader.ParseNestedWhere(trimmed, memberExpr, vars), true);
@@ -381,6 +384,10 @@ namespace JiiLib.SimpleDsl
                 && compareProp.PropertyType == comparingType)
                 return PropertyAccessExpression(compareProp);
 
+            var t = comparingType;
+            if ((comparingType.IsClass || comparingType.IsNullableStruct(out comparingType)) && valueString == "null")
+                return Expression.Constant(null, t);
+
             if (comparingType.IsEnum)
             {
                 return (Enum.TryParse(comparingType, valueString, true, out var e))
@@ -388,7 +395,7 @@ namespace JiiLib.SimpleDsl
                     : throw new InvalidOperationException($"Enum type '{comparingType}' does not have a definition for '{valueString}'.");
             }
 
-            return (InfoCache.IConvType.IsAssignableFrom(comparingType))
+            return (comparingType != InfoCache.StrType && InfoCache.IConvType.IsAssignableFrom(comparingType))
                 ? Expression.Constant(Convert.ChangeType(valueString, comparingType), comparingType)
                 : Expression.Constant(valueString, InfoCache.StrType);
         }

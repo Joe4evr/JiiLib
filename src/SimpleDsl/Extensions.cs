@@ -204,6 +204,21 @@ namespace JiiLib.SimpleDsl
         }
 
         [DebuggerStepThrough]
+        internal static bool IsNullableStruct(this Type type, out Type elementType)
+        {
+            if (type.IsValueType)
+            {
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == InfoCache.NullableOpenType)
+                {
+                    elementType = type.GetGenericArguments()[0];
+                    return true;
+                }
+            }
+            elementType = type;
+            return false;
+        }
+
+        [DebuggerStepThrough]
         internal static Expression Stringify(this Expression objExpr)
             => (objExpr.Type == InfoCache.StrType)
                 ? objExpr

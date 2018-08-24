@@ -39,7 +39,7 @@ namespace JiiLib.SimpleDsl
                 throw new InvalidOperationException("Unrecognized operator");
         }
 
-        private static ((BlockExpression, MethodCallExpression), bool) CreateOperatorExpression(Type type, Expression lhs, Operator op, Expression rhs)
+        private static ((BlockExpression, Expression), bool) CreateOperatorExpression(Type type, Expression lhs, Operator op, Expression rhs)
         {
             var lookup = QueryLookups.GetLookup(type);
 

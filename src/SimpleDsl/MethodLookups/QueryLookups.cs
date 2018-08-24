@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Text;
 
 namespace JiiLib.SimpleDsl
 {
@@ -38,6 +37,9 @@ namespace JiiLib.SimpleDsl
         {
             if (MethodLookups.TryGetValue(type, out var lookup))
                 return lookup;
+
+            if (type.IsNullableStruct(out var t))
+                return MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(NullableOperatorLookup<>).MakeGenericType(t)));
 
             if (type.IsEnum)
                 return MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(EnumOperatorLookup<>).MakeGenericType(k)));
