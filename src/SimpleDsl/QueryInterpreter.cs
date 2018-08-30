@@ -16,22 +16,41 @@ namespace JiiLib.SimpleDsl
     /// </typeparam>
     public sealed partial class QueryInterpreter<T>
     {
-        private static readonly Type _targetType = typeof(T);
-        private static readonly Type[] _targetAndIntTypeArray = new[] { _targetType, InfoCache.IntType };
+        private static readonly MethodInfo _linqWhere;
+        private static readonly MethodInfo _linqSelect;
+        private static readonly MethodInfo _linqAny;
+        private static readonly MethodInfo _linqOrderBy;
+        private static readonly MethodInfo _linqOrderByDescending;
+        private static readonly MethodInfo _linqThenBy;
+        private static readonly MethodInfo _linqThenByDescending;
 
-        private static readonly ParameterExpression _targetParamExpr = Expression.Parameter(_targetType, "target");
+        private static readonly ParameterExpression _targetParamExpr;
         private static readonly ParameterExpression _targetsParamExpr;
 
-        private static readonly IReadOnlyDictionary<string, PropertyInfo> _targetProps = _targetType.GetProperties().ToImmutableDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
-
-        private static readonly GetLhsFunc _lhsFunc = GetExprAndType;
-        private static readonly GetRhsFunc _rhsFunc = GetRhsExpression;
+        private static readonly IReadOnlyDictionary<string, PropertyInfo> _targetProps;
 
         static QueryInterpreter()
         {
+            var targetType = typeof(T);
             var ienumTargetType = typeof(IEnumerable<T>);
+            var typeArr = new Type[] { targetType };
+            var typeStrArr = new Type[] { targetType, InfoCache.StrType };
+            var targetAndIntTypeArray = new[] { targetType, InfoCache.IntType };
 
-            _targetsParamExpr = Expression.Parameter(ienumTargetType, "targets");
+            _targetParamExpr = Expression.Parameter(targetType);
+            _targetsParamExpr = Expression.Parameter(ienumTargetType);
+            _targetProps = targetType.GetProperties().ToImmutableDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
+            _nullExpr = (targetType.IsValueType)
+                ? null
+                : Expression.Constant(null, targetType);
+
+            _linqWhere = InfoCache.LinqWhere.MakeGenericMethod(typeArr);
+            _linqSelect = InfoCache.LinqSelect.MakeGenericMethod(typeStrArr);
+            _linqAny = InfoCache.LinqAny.MakeGenericMethod(typeArr);
+            _linqOrderBy = InfoCache.LinqOBOpen.MakeGenericMethod(targetAndIntTypeArray);
+            _linqOrderByDescending = InfoCache.LinqOBDOpen.MakeGenericMethod(targetAndIntTypeArray);
+            _linqThenBy = InfoCache.LinqTBOpen.MakeGenericMethod(targetAndIntTypeArray);
+            _linqThenByDescending = InfoCache.LinqTBDOpen.MakeGenericMethod(targetAndIntTypeArray);
         }
 
         private static readonly ConcurrentDictionary<Type, INestedInterpreter> _nested = new ConcurrentDictionary<Type, INestedInterpreter>();
@@ -91,7 +110,8 @@ namespace JiiLib.SimpleDsl
                 var matchIdx = remainder.VerifyOpenChar('[', InfoCache.Where).FindMatchingBrace();
                 var whereClause = remainder.Slice(1, matchIdx - 1);
                 remainder = remainder.Slice(matchIdx + 1).Trim();
-                predicate = ParseWhereClause(whereClause, inlineVars);
+
+                predicate = ParseWhereClause(whereClause, inlineVars).Compile();
 
                 opWord = remainder.SliceUntilFirstUnnested(' ', out remainder);
             }
@@ -101,7 +121,7 @@ namespace JiiLib.SimpleDsl
                 var matchIdx = remainder.VerifyOpenChar('[', InfoCache.OrderBy).FindMatchingBrace();
                 var orderByClause = remainder.Slice(1, matchIdx - 1);
                 remainder = remainder.Slice(matchIdx + 1).Trim();
-                order = ParseOrderByClause(orderByClause, inlineVars);
+                order = ParseOrderByClause(orderByClause, inlineVars).Compile();
 
                 opWord = remainder.SliceUntilFirstUnnested(' ', out remainder);
             }
@@ -133,7 +153,7 @@ namespace JiiLib.SimpleDsl
                 var matchIdx = remainder.VerifyOpenChar('[', InfoCache.Select).FindMatchingBrace();
                 var selectClause = remainder.Slice(1, matchIdx - 1);
                 remainder = remainder.Slice(matchIdx + 1).Trim();
-                selector = ParseSelectClause(selectClause, inlineVars);
+                selector = ParseSelectClause(selectClause, inlineVars).Compile();
 
                 if (!remainder.SequenceEqual(ReadOnlySpan<char>.Empty))
                     throw new InvalidOperationException("Select clause must be the last part of a query.");
@@ -142,25 +162,34 @@ namespace JiiLib.SimpleDsl
             return new QueryParseResult<T>(inlineVars.ToImmutableDictionary(), predicate, order, skipAmount, takeAmount, selector);
         }
 
-        private Func<T, bool> ParseWhereClause(
+        private Expression<Func<T, bool>> ParseWhereClause(
             ReadOnlySpan<char> whereSpan,
-            Dictionary<string, Expression> vars)
+            Dictionary<string, Expression> vars,
+            ParameterExpression target = null)
         {
             var resExpr = Expression.Variable(InfoCache.BoolType, "result");
-            var filterBlockExpr = Expression.Block(InfoCache.BoolType,
-                new[] { resExpr },
-                Expression.Assign(resExpr, InfoCache.True));
+            var blkVars = new List<ParameterExpression>()
+            {
+                resExpr
+            };
+            var exprs = new List<Expression>()
+            {
+                Expression.Assign(resExpr, InfoCache.True)
+            };
 
             for (var slice = whereSpan.SliceUntilFirstUnnested(',', out var next); slice.Length > 0; slice = next.SliceUntilFirstUnnested(',', out next))
-                filterBlockExpr = ParseWhereOperand(slice, filterBlockExpr, resExpr, GetExprAndType, GetRhsExpression, InfoCache.AndAlso, vars);
+            {
+                exprs.Add(
+                    Expression.Assign(
+                        resExpr, Expression.AndAlso(
+                            resExpr, ParseWhereOperand(slice, resExpr, vars, blkVars))));
+            }
 
-            var lambda = Expression.Lambda<Func<T, bool>>(filterBlockExpr, _targetParamExpr);
-
-            return lambda.Compile();
-
+            var filterBlockExpr = Expression.Block(InfoCache.BoolType, blkVars, exprs);
+            return Expression.Lambda<Func<T, bool>>(filterBlockExpr, target ?? _targetParamExpr);
         }
 
-        private Func<IEnumerable<T>, IOrderedEnumerable<T>> ParseOrderByClause(
+        private static Expression<Func<IEnumerable<T>, IOrderedEnumerable<T>>> ParseOrderByClause(
             ReadOnlySpan<char> orderBySpan,
             Dictionary<string, Expression> vars)
         {
@@ -184,16 +213,15 @@ namespace JiiLib.SimpleDsl
 
                 call = (call == null)
                     //-> targets.OrderBy{Descending}(selExpr);
-                    ? Expression.Call((d ? InfoCache.LinqOBDOpen : InfoCache.LinqOBOpen).MakeGenericMethod(_targetAndIntTypeArray), _targetsParamExpr, selExpr)
+                    ? Expression.Call((d ? _linqOrderByDescending : _linqOrderBy), _targetsParamExpr, selExpr)
                     //-> call.ThenBy{Descending}(selExpr);
-                    : Expression.Call((d ? InfoCache.LinqTBDOpen : InfoCache.LinqTBOpen).MakeGenericMethod(_targetAndIntTypeArray), call, selExpr);
+                    : Expression.Call((d ? _linqThenByDescending : _linqThenBy), call, selExpr);
             }
 
-            var lambda = Expression.Lambda<Func<IEnumerable<T>, IOrderedEnumerable<T>>>(call, _targetsParamExpr);
-            return lambda.Compile();
+            return Expression.Lambda<Func<IEnumerable<T>, IOrderedEnumerable<T>>>(call, _targetsParamExpr);
         }
 
-        private Func<T, string> ParseSelectClause(
+        private Expression<Func<T, string>> ParseSelectClause(
             ReadOnlySpan<char> selectSpan,
             IReadOnlyDictionary<string, Expression> vars)
         {
@@ -238,76 +266,86 @@ namespace JiiLib.SimpleDsl
 
             var fmtExpr = Expression.NewArrayInit(InfoCache.StrType, exprs);
 
-            var lambda = Expression.Lambda<Func<T, string>>(
+            return Expression.Lambda<Func<T, string>>(
                 //-> String.Join(", ", fmtExpr);
                 Expression.Call(InfoCache.StrJoin, InfoCache.CommaExpr, fmtExpr),
                 _targetParamExpr);
-
-            return lambda.Compile();
         }
 
-        private static BlockExpression ParseWhereOperand(
+        private Expression ParseWhereOperand(
             ReadOnlySpan<char> span,
-            BlockExpression blockExpr,
             Expression resExpr,
-            GetLhsFunc getLhs,
-            GetRhsFunc getRhs,
-            TempAssignFunc tempAssign,
-            Dictionary<string, Expression> vars)
+            Dictionary<string, Expression> vars,
+            List<ParameterExpression> blkVars)
         {
+            var exprs = new List<Expression>();
             var lhsSpan = span.SliceUntilFirstUnnested(' ', out var rhsSpan);
             var identifier = ParseVarDecl(ref lhsSpan);
             var negatedBool = (lhsSpan[0] == '!');
             lhsSpan = negatedBool ? lhsSpan.Slice(1).Trim() : lhsSpan;
 
-            BlockExpression interimBlock;
             Expression result;
             bool truthy;
             if (lhsSpan.StartsWith(InfoCache.Or.AsSpan()))
             {
                 var tmpRes = Expression.Variable(InfoCache.BoolType);
-                var tmpBlk = Expression.Block(
-                    new[] { tmpRes },
-                    new Expression[] { Expression.Assign(tmpRes, InfoCache.False) });
+                var tmpVars = new List<ParameterExpression>() { tmpRes };
+                var tmpExprs = new List<Expression>()
+                {
+                    Expression.Assign(tmpRes, InfoCache.False)
+                };
 
                 var items = lhsSpan.Slice(InfoCache.Or.Length).VerifyOpenChar('(', InfoCache.Or).TrimBraces();
                 for (var item = items.SliceUntilFirstUnnested(',', out var next); item.Length > 0; item = next.SliceUntilFirstUnnested(',', out next))
-                    tmpBlk = ParseWhereOperand(item, tmpBlk, tmpRes, getLhs, getRhs, InfoCache.OrElse, vars);
+                    tmpExprs.Add(
+                        Expression.Assign(
+                            tmpRes, Expression.OrElse(
+                                tmpRes, ParseWhereOperand(item, resExpr, vars, tmpVars))));
 
-                (interimBlock, result, truthy) = (tmpBlk, tmpRes, true);
+                var tmpBlk = Expression.Block(InfoCache.BoolType, tmpVars, tmpExprs);
+                (result, truthy) = (tmpBlk, true);
             }
             else
             {
-                var (invocation, pType) = getLhs(lhsSpan);
-                var isCollection = pType.IsCollectionType(out var eType);
+                var (invocation, pType) = GetLhsExprAndType(lhsSpan);
 
-                if (pType == InfoCache.BoolType) //bool access
-                    (interimBlock, result, truthy) = (InfoCache.EmptyBlock, invocation, !negatedBool);
+                if (pType == InfoCache.BoolType) //simple bool access
+                    (result, truthy) = (invocation, !negatedBool);
                 else if (invocation is MemberExpression memberExpr && rhsSpan[0] == '{') //nested op
                 {
-                    if (!isCollection) //TODO: extend support to non-primitives
-                        throw new InvalidOperationException($"Property '{memberExpr.Member.Name}' must be a collection type to allow nested queries.");
+                    if (pType.IsPrimitive)
+                        throw new InvalidOperationException($"Property '{memberExpr.Member.Name}' must be a non-primitive type to allow nested queries.");
 
-                    var reader = _nested.GetOrAdd(eType, (k) => (INestedInterpreter)Activator.CreateInstance(typeof(NestedCollectionInterpreter<>).MakeGenericType(_targetType, k)));
+                    var reader = _nested.GetOrAdd(pType, (k) =>
+                        {
+                            k.IsCollectionType(out var eType);
+                            return (INestedInterpreter)Activator.CreateInstance(typeof(QueryInterpreter<>).MakeGenericType(eType), new[] { _formats });
+                        });
                     var trimmed = rhsSpan.TrimBraces();
+                    var nestedItem = Expression.Variable(invocation.Type, "nestedItem");
 
-                    (interimBlock, result, truthy) = (InfoCache.EmptyBlock, reader.ParseNestedWhere(trimmed, memberExpr, vars), true);
+                    (result, truthy) = (reader.ParseNestedWhere(trimmed, /*memberExpr,*/ nestedItem, resExpr, vars), true);
                 }
                 else //simple op
                 {
                     vars.AddInlineVar(identifier, invocation);
                     var opSpan = rhsSpan.SliceUntilFirstUnnested(' ', out var rem);
+                    //var lhsParam = Expression.Variable(invocation.Type, "lhs");
+                    //blkVars.Add(lhsParam);
 
-                    ((interimBlock, result), truthy) = CreateOperatorExpression(invocation.Type, invocation, ParseOperator(opSpan), getRhs(rem.TrimBraces().Materialize(), eType));
+                    (result, truthy) = CreateOperatorExpression(invocation, ParseOperator(opSpan), GetRhsExpression(rem.TrimBraces().Materialize(), pType));
                 }
             }
 
+            if (result is BlockExpression blkExpr)
+            {
+                blkVars.AddRange(blkExpr.Variables);
+                exprs.AddRange(blkExpr.Expressions);
+            }
+
             var resAssign = (truthy) ? Expression.IsTrue(result) : Expression.IsFalse(result);
-            return blockExpr.Update(
-                    blockExpr.Variables.Concat(interimBlock.Variables),
-                    blockExpr.Expressions.Concat(
-                        interimBlock.Expressions.Append(
-                            Expression.Assign(resExpr, tempAssign(resExpr, resAssign)))));
+            //return Expression.Assign(resExpr, tempAssign(resExpr, resAssign));
+            return resAssign;
         }
 
         private static string ParseVarDecl(ref ReadOnlySpan<char> slice)
@@ -380,23 +418,25 @@ namespace JiiLib.SimpleDsl
 
         private static Expression GetRhsExpression(string valueString, Type comparingType)
         {
+            comparingType.IsCollectionType(out var eType);
+
             if (Property(valueString) is PropertyInfo compareProp
-                && compareProp.PropertyType == comparingType)
+                && compareProp.PropertyType == eType)
                 return PropertyAccessExpression(compareProp);
 
-            var t = comparingType;
-            if ((comparingType.IsClass || comparingType.IsNullableStruct(out comparingType)) && valueString == "null")
+            var t = eType;
+            if ((eType.IsClass || eType.IsNullableStruct(out eType)) && valueString == "null")
                 return Expression.Constant(null, t);
 
-            if (comparingType.IsEnum)
+            if (eType.IsEnum)
             {
-                return (Enum.TryParse(comparingType, valueString, true, out var e))
-                    ? Expression.Constant(e, comparingType)
-                    : throw new InvalidOperationException($"Enum type '{comparingType}' does not have a definition for '{valueString}'.");
+                return (Enum.TryParse(eType, valueString, true, out var e))
+                    ? Expression.Constant(e, eType)
+                    : throw new InvalidOperationException($"Enum type '{eType}' does not have a definition for '{valueString}'.");
             }
 
-            return (comparingType != InfoCache.StrType && InfoCache.IConvType.IsAssignableFrom(comparingType))
-                ? Expression.Constant(Convert.ChangeType(valueString, comparingType), comparingType)
+            return (eType != InfoCache.StrType && InfoCache.IConvType.IsAssignableFrom(eType))
+                ? Expression.Constant(Convert.ChangeType(valueString, eType), eType)
                 : Expression.Constant(valueString, InfoCache.StrType);
         }
         private static Expression GenerateEqualityExpression(
@@ -411,7 +451,7 @@ namespace JiiLib.SimpleDsl
 
             return (isTrue) ? Expression.IsTrue(call) : Expression.IsFalse(call);
         }
-        private static (Expression, Type) GetExprAndType(ReadOnlySpan<char> span)
+        private static (Expression, Type) GetLhsExprAndType(ReadOnlySpan<char> span)
         {
             if (ParseKnownFunction(span) is Expression expr)
                 return (expr, expr.Type);

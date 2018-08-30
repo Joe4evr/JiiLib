@@ -6,9 +6,7 @@ using System.Reflection;
 
 namespace JiiLib.SimpleDsl
 {
-    internal delegate (Expression, Type) GetLhsFunc(ReadOnlySpan<char> span);
-    internal delegate Expression GetRhsFunc(string value, Type type);
-    internal delegate Expression TempAssignFunc(Expression result, Expression value);
+    //internal delegate Expression TempAssignFunc(Expression result, Expression value);
 
     internal static class InfoCache
     {
@@ -23,6 +21,7 @@ namespace JiiLib.SimpleDsl
 
         static InfoCache()
         {
+            var ObjType = typeof(object);
             var TSourceType = Type.MakeGenericMethodParameter(0);
             var TResultType = Type.MakeGenericMethodParameter(1);
             var IEnumTSource = IEnumOpenType.MakeGenericType(TSourceType);
@@ -36,37 +35,40 @@ namespace JiiLib.SimpleDsl
             var IEnumGenParamIntArr = new Type[] { IEnumTSource, IntType };
             var IEnumGenParamFuncToBoolArr = new Type[] { IEnumTSource, FuncTSourceToBool };
 
+            ObjToString = ObjType.GetMethod(nameof(Object.ToString), Array.Empty<Type>());
+            ObjRefEquals = ObjType.GetMethod(nameof(Object.ReferenceEquals), new Type[] { ObjType, ObjType });
 
-            //StrContains = StrType.GetMethod(nameof(String.Contains), new Type[] { StrType, typeof(StringComparison) });
             StrEquals = StrType.GetMethod(nameof(String.Equals), new Type[] { StrType, StrType, typeof(StringComparison) });
 
             IntEquals = IntType.GetMethod(nameof(Int32.Equals), IntTypeArr);
             IntCompare = IntType.GetMethod(nameof(Int32.CompareTo), IntTypeArr);
 
             var LinqType = typeof(Enumerable);
+            var IEnumFuncTtoTResultArr = new Type[] { IEnumTSource, FuncTToTR.MakeGenericType(new Type[] { TSourceType, TResultType }) };
+            var IOrdEnumFuncTtoTResultArr = new Type[] { typeof(IOrderedEnumerable<>).MakeGenericType(TSourceType), FuncTToTR.MakeGenericType(new Type[] { TSourceType, TResultType }) };
             LinqSum = LinqType.GetMethod(nameof(Enumerable.Sum), IEnumIntTypeArr);
             LinqMin = LinqType.GetMethod(nameof(Enumerable.Min), IEnumIntTypeArr);
             LinqMax = LinqType.GetMethod(nameof(Enumerable.Max), IEnumIntTypeArr);
             LinqAverage = LinqType.GetMethod(nameof(Enumerable.Average), IEnumIntTypeArr);
             LinqAny = LinqType.GetMethod(nameof(Enumerable.Any), 1, IEnumGenParamFuncToBoolArr);
             LinqWhere = LinqType.GetMethod(nameof(Enumerable.Where), 1, IEnumGenParamFuncToBoolArr);
-            LinqSelect = LinqType.GetMethod(nameof(Enumerable.Select), 2, new Type[] { IEnumTSource, FuncTToTR.MakeGenericType(new Type[] { TSourceType, TResultType }) });
+            LinqSelect = LinqType.GetMethod(nameof(Enumerable.Select), 2, IEnumFuncTtoTResultArr);
             LinqCountOpen = LinqType.GetMethod(nameof(Enumerable.Count), 1, IEnumGenParamArr);
-            LinqOBOpen = LinqType.GetMethod(nameof(Enumerable.OrderBy), 2, IEnumGenParamIntArr);
-            LinqOBDOpen = LinqType.GetMethod(nameof(Enumerable.OrderByDescending), 2, IEnumGenParamIntArr);
-            LinqTBOpen = LinqType.GetMethod(nameof(Enumerable.ThenBy), 2, IEnumGenParamIntArr);
-            LinqTBDOpen = LinqType.GetMethod(nameof(Enumerable.ThenByDescending), 2, IEnumGenParamIntArr);
+            LinqOBOpen = LinqType.GetMethod(nameof(Enumerable.OrderBy), 2, IEnumFuncTtoTResultArr);
+            LinqOBDOpen = LinqType.GetMethod(nameof(Enumerable.OrderByDescending), 2, IEnumFuncTtoTResultArr);
+            LinqTBOpen = LinqType.GetMethod(nameof(Enumerable.ThenBy), 2, IOrdEnumFuncTtoTResultArr);
+            LinqTBDOpen = LinqType.GetMethod(nameof(Enumerable.ThenByDescending), 2, IOrdEnumFuncTtoTResultArr);
             LinqContainsOpen = LinqType.GetMethod(nameof(Enumerable.Contains), 1, new Type[] { IEnumTSource, TSourceType });
             IEnumStrContains = LinqType.GetMethod(nameof(Enumerable.Contains), 1, new Type[] { IEnumTSource, TSourceType, IEqcmpOpenType.MakeGenericType(TSourceType) }).MakeGenericMethod(StrTypeArr);
             //IEnumIntContains = LinqContainsOpen.MakeGenericMethod(IntTypeArr);
         }
 
-        internal static readonly MethodInfo ObjToString = typeof(object).GetMethod(nameof(Object.ToString), Array.Empty<Type>());
+        internal static readonly MethodInfo ObjToString;
+        internal static readonly MethodInfo ObjRefEquals;
 
         internal static readonly MethodInfo StrConcat2 = StrType.GetMethod(nameof(String.Concat), new Type[] { StrType, StrType });
         internal static readonly MethodInfo StrConcat3 = StrType.GetMethod(nameof(String.Concat), new Type[] { StrType, StrType, StrType });
         internal static readonly MethodInfo StrJoin = StrType.GetMethod(nameof(String.Join), new Type[] { StrType, IEnumStringType });
-        //internal static readonly MethodInfo StrContains;
         internal static readonly MethodInfo StrEquals;
 
         internal static readonly MethodInfo IntEquals;
@@ -89,8 +91,8 @@ namespace JiiLib.SimpleDsl
         internal static readonly MethodInfo IEnumStrContains;
         //internal static readonly MethodInfo IEnumIntContains;
 
-        internal static readonly TempAssignFunc AndAlso = Expression.AndAlso;
-        internal static readonly TempAssignFunc OrElse = Expression.OrElse;
+        //internal static readonly TempAssignFunc AndAlso = Expression.AndAlso;
+        //internal static readonly TempAssignFunc OrElse = Expression.OrElse;
 
         internal static readonly string Colon = ": ";
         internal static readonly ConstantExpression EmptyStrExpr = Expression.Constant(String.Empty);

@@ -81,10 +81,19 @@ namespace JiiLib.SimpleDsl
             if (items == null)
                 throw new ArgumentNullException(nameof(items));
 
+#if DEBUG
+            var filtered = items.Where(Predicate).ToArray();
+            var ordered = Order(filtered).ToArray();
+            var skipped = ordered.Skip(SkipAmount).ToArray();
+            var taken = skipped.Take(TakeAmount).ToArray();
+            var selection = taken.Select(Selector).ToArray();
+            return selection;
+#else
             return Order(items.Where(Predicate))
                 .Skip(SkipAmount)
                 .Take(TakeAmount)
                 .Select(Selector);
+#endif
         }
     }
 }

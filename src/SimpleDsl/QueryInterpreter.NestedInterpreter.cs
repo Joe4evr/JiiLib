@@ -1,149 +1,76 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace JiiLib.SimpleDsl
 {
-    public sealed partial class QueryInterpreter<T>
+    public sealed partial class QueryInterpreter<T> : INestedInterpreter
     {
-        private interface INestedInterpreter
+        private static readonly ConstantExpression _nullExpr;
+
+        Expression INestedInterpreter.ParseNestedWhere(
+            ReadOnlySpan<char> span,
+            //MemberExpression memberExpr,
+            ParameterExpression itemExpr,
+            Expression resExpr,
+            Dictionary<string, Expression> vars)
         {
-            Expression ParseNestedWhere(ReadOnlySpan<char> span, MemberExpression parentPropExpr, Dictionary<string, Expression> vars);
-            //Expression ParseNestedOrderBy(ReadOnlySpan<char> span, Expression parentPropExpr, Dictionary<string, Expression> vars);
-            //Expression ParseNestedSelect(ReadOnlySpan<char> span, Expression parentPropExpr, IReadOnlyDictionary<string, Expression> vars);
-        }
-
-        private sealed class NestedCollectionInterpreter<TInner> : INestedInterpreter
-        {
-            private static readonly MethodInfo _linqWhere;
-            private static readonly MethodInfo _linqSelect;
-            private static readonly MethodInfo _linqAny;
-            private static readonly ParameterExpression _nestedParamExpr;
-            private static readonly IReadOnlyDictionary<string, PropertyInfo> _props;
-            private static readonly GetLhsFunc _lhsFunc = GetExprAndType;
-            private static readonly GetRhsFunc _rhsFunc = GetRhsExpression;
-
-            static NestedCollectionInterpreter()
+            if (itemExpr.Type.IsCollectionType(out var eType))
             {
-                var type = typeof(TInner);
-                var typeArr = new Type[] { type };
-                var typeStrArr = new Type[] { type, InfoCache.StrType };
-
-                _linqWhere = InfoCache.LinqWhere.MakeGenericMethod(typeArr);
-                _linqSelect = InfoCache.LinqSelect.MakeGenericMethod(typeStrArr);
-                _linqAny = InfoCache.LinqAny.MakeGenericMethod(typeArr);
-                _linqSelect = InfoCache.LinqSelect.MakeGenericMethod(typeStrArr);
-                _linqAny = InfoCache.LinqAny.MakeGenericMethod(typeArr);
-                _props = type.GetProperties().ToImmutableDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
-                _nestedParamExpr = Expression.Parameter(type, "prop");
-            }
-
-            Expression INestedInterpreter.ParseNestedWhere(
-                ReadOnlySpan<char> span,
-                MemberExpression parentPropExpr,
-                Dictionary<string, Expression> vars)
-            {
-                var resExpr = Expression.Variable(InfoCache.BoolType, "nestResult");
-                var filterBlockExpr = Expression.Block(InfoCache.BoolType,
-                    new[] { resExpr },
-                    Expression.Assign(resExpr, Expression.Constant(true)));
-
                 var nestedVars = new Dictionary<string, Expression>(StringComparer.OrdinalIgnoreCase);
+                var lambda = ParseWhereClause(span, nestedVars);
 
-                for (var slice = span.SliceUntilFirstUnnested(',', out var next); slice.Length > 0; slice = next.SliceUntilFirstUnnested(',', out next))
-                    filterBlockExpr = ParseWhereOperand(slice, filterBlockExpr, resExpr, GetExprAndType, GetRhsExpression, InfoCache.AndAlso, nestedVars);
-
-                var lambda = Expression.Lambda<Func<TInner, bool>>(filterBlockExpr, _nestedParamExpr);
                 if (nestedVars.Count > 0)
                 {
                     //-> parentPropExpr.Where(lambda);
-                    var filtered = Expression.Call(_linqWhere, parentPropExpr, lambda);
+                    var filtered = Expression.Call(_linqWhere, itemExpr, lambda);
                     foreach (var (id, expr) in nestedVars)
                     {
                         //-> filtered.Select(expr);
                         var selected = Expression.Call(
                             _linqSelect,
                             filtered,
-                            Expression.Lambda<Func<TInner, string>>(
+                            Expression.Lambda<Func<T, string>>(
                                 expr.Stringify(),
-                                _nestedParamExpr));
+                                _targetParamExpr));
 
                         vars.AddInlineVar(id, selected);
                     }
                 }
 
                 //-> parentPropExpr.Any(lambda);
-                return Expression.Call(_linqAny, parentPropExpr, lambda);
+                return Expression.Call(_linqAny, itemExpr, lambda);
             }
-
-            //Expression INestedInterpreter.ParseNestedOrderBy(
-            //    ReadOnlySpan<char> span,
-            //    Expression parentPropExpr,
-            //    Dictionary<string, Expression> vars)
-            //{
-
-            //}
-
-            //Expression INestedInterpreter.ParseNestedSelect(
-            //    ReadOnlySpan<char> span,
-            //    Expression parentPropExpr,
-            //    IReadOnlyDictionary<string, Expression> vars)
-            //{
-
-            //}
-
-            private static PropertyInfo Property(string propName)
-                => (_props.TryGetValue(propName, out var property))
-                    ? property : null;
-            private static MemberExpression PropertyAccessExpression(PropertyInfo property)
-                => Expression.Property(_nestedParamExpr, property);
-            private static Expression GetRhsExpression(string valueString, Type comparingType)
+            else
             {
-                if (Property(valueString) is PropertyInfo compareProp
-                    && compareProp.PropertyType == comparingType)
-                    return PropertyAccessExpression(compareProp);
-
-                return (InfoCache.IConvType.IsAssignableFrom(comparingType))
-                    ? Expression.Constant(Convert.ChangeType(valueString, comparingType), comparingType)
-                    : Expression.Constant(valueString, InfoCache.StrType);
-            }
-
-            private static (Expression, Type) GetExprAndType(ReadOnlySpan<char> span)
-            {
-                if (ParseKnownFunction(span) is Expression expr)
-                    return (expr, expr.Type);
-                else
+                //var itemExpr = Expression.Variable(memberExpr.Type, "nestedItem");
+                var blkVars = new List<ParameterExpression>()
                 {
-                    var p = span.Materialize();
-                    if (!(Property(p) is PropertyInfo property))
-                        throw new InvalidOperationException($"No such function or property '{p}'.");
+                    itemExpr
+                };
+                var exprs = new List<Expression>()
+                {
+                    //Expression.Assign(itemExpr, memberExpr),
+                    Expression.Assign(
+                        resExpr, Expression.AndAlso(
+                            resExpr, Expression.IsFalse(IsNull(itemExpr))))
+                };
 
-                    return (PropertyAccessExpression(property), property.PropertyType);
+                for (var slice = span.SliceUntilFirstUnnested(',', out var next); slice.Length > 0; slice = next.SliceUntilFirstUnnested(',', out next))
+                {
+                    exprs.Add(
+                        Expression.Assign(
+                            resExpr, Expression.AndAlso(
+                                resExpr, ParseWhereOperand(slice, resExpr, vars, blkVars))));
                 }
+                return Expression.Block(InfoCache.BoolType, blkVars, exprs);
             }
         }
 
-        private sealed class NestedPropertyInterpreter<TInner> : INestedInterpreter
-        {
-            private static readonly IReadOnlyDictionary<string, PropertyInfo> _props;
-
-            static NestedPropertyInterpreter()
-            {
-                var type = typeof(TInner);
-                var typeArr = new Type[] { type };
-
-                _props = type.GetProperties().ToImmutableDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
-            }
-
-            Expression INestedInterpreter.ParseNestedWhere(
-                ReadOnlySpan<char> span,
-                MemberExpression parentPropExpr,
-                Dictionary<string, Expression> vars)
-            {
-                throw new NotImplementedException();
-            }
-        }
+        private static Expression IsNull(Expression member)
+            => (member.Type.IsValueType)
+                ? (Expression)InfoCache.False
+                : Expression.Call(InfoCache.ObjRefEquals, member, _nullExpr);
     }
 }

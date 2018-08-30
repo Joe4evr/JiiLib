@@ -15,6 +15,12 @@ namespace JiiLib.SimpleDsl
             for (int i = 0; i < span.Length; i++)
             {
                 char current = span[i];
+                if (current == '\\') //skip a backslash-escaped char
+                {
+                    i += 1;
+                    continue;
+                }
+
                 if (CharAliasMap.TryGetValue(current, out var match))
                 {
                     i = span.FindMatchingBrace(i);
@@ -55,12 +61,18 @@ namespace JiiLib.SimpleDsl
         [DebuggerStepThrough]
         internal static int FindMatchingBrace(this ReadOnlySpan<char> span, int startIdx = 0)
         {
-            var braces = new Stack<char>();
+            var braces = new Stack<(char, int)>();
 
             for (int i = startIdx; i < span.Length; i++)
             {
                 var current = span[i];
-                var c = (braces.Count > 0)
+                if (current == '\\') //skip a backslash-escaped char
+                {
+                    i += 1;
+                    continue;
+                }
+
+                var (c, _) = (braces.Count > 0)
                     ? braces.Peek()
                     : default;
 
@@ -72,11 +84,12 @@ namespace JiiLib.SimpleDsl
                 }
                 else if (CharAliasMap.TryGetValue(current, out var match))
                 {
-                    braces.Push(match);
+                    braces.Push((match, i));
                 }
             }
 
-            throw new InvalidOperationException($"No matching brace found for '{braces.Peek()}'");
+            var (ch, idx) = braces.Peek();
+            throw new InvalidOperationException($"No matching brace found for '{ch}' at:\n{span.Materialize()}\n{new string('-', idx)}^");
         }
 
         [DebuggerStepThrough]

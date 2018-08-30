@@ -7,40 +7,41 @@ namespace JiiLib.SimpleDsl
     internal sealed class ComparableOperatorLookup<T> : OperatorLookup<T>
         where T : IComparable<T>
     {
-        private static readonly MethodInfo _compareTo = typeof(IComparable<T>).GetMethod(nameof(IComparable<T>.CompareTo));
+        private static readonly MethodInfo _compare = typeof(ComparableOperatorLookup<T>).GetMethod(nameof(ComparableOperatorLookup<T>.Compare));
 
-        public override (BlockExpression, Expression) GetLessThanExpression(Expression lhs, Expression rhs)
-        {
-            var intermVarExpr = Expression.Variable(InfoCache.IntType);
-            return (CreateCompareBlock(intermVarExpr, lhs, rhs),
-                //interimVar.Equals(-1);
-                Expression.Call(intermVarExpr, InfoCache.IntEquals, InfoCache.IntNegOneExpr));
-        }
-        public override (BlockExpression, Expression) GetGreaterThanExpression(Expression lhs, Expression rhs)
-        {
-            var intermVarExpr = Expression.Variable(InfoCache.IntType);
-            return (CreateCompareBlock(intermVarExpr, lhs, rhs),
-                //interimVar.Equals(1);
-                Expression.Call(intermVarExpr, InfoCache.IntEquals, InfoCache.IntOneExpr));
-        }
-        public override (BlockExpression, Expression) GetIsEqualExpression(Expression lhs, Expression rhs)
-        {
-            var intermVarExpr = Expression.Variable(InfoCache.IntType);
-            return (CreateCompareBlock(intermVarExpr, lhs, rhs),
-                //interimVar.Equals(0);
-                Expression.Call(intermVarExpr, InfoCache.IntEquals, InfoCache.IntZeroExpr));
-        }
+        public override Expression GetLessThanExpression(Expression lhs, Expression rhs)
+            => CreateCompareBlock(lhs, rhs, InfoCache.IntNegOneExpr);
+        public override Expression GetGreaterThanExpression(Expression lhs, Expression rhs)
+            => CreateCompareBlock(lhs, rhs, InfoCache.IntOneExpr);
+        public override Expression GetIsEqualExpression(Expression lhs, Expression rhs)
+            => CreateCompareBlock(lhs, rhs, InfoCache.IntZeroExpr);
 
-        public override (BlockExpression, Expression) GetContainsExpression(Expression lhs, Expression rhs)
+        public override Expression GetContainsExpression(Expression lhs, Expression rhs)
             => throw new InvalidOperationException($"Contains operations not supported on type '{lhs.Type}'.");
 
-        private static BlockExpression CreateCompareBlock(ParameterExpression varExpr, Expression lhs, Expression rhs)
-            => Expression.Block(
-                variables: new[] { varExpr },
+        private static BlockExpression CreateCompareBlock(
+            Expression lhs,
+            Expression rhs,
+            ConstantExpression resultCheck)
+        {
+            var varExpr = Expression.Variable(InfoCache.IntType, "compareResult");
+            var vars = (lhs is ParameterExpression paramLhs)
+                ? new[] { varExpr, paramLhs }
+                : new[] { varExpr };
+            //var vars = new[] { varExpr };
+
+            return Expression.Block(
+                variables: vars,
                 expressions: new Expression[]
                 {
-                    //int interimVar = lhs.CompareTo(rhs);
-                    Expression.Assign(varExpr, Expression.Call(lhs, _compareTo, rhs))
+                    Expression.Assign(varExpr,
+                        Expression.Call(_compare, lhs, rhs)),
+                    //compareResult.Equals(resultCheck);
+                    Expression.Call(varExpr, InfoCache.IntEquals, resultCheck)
                 });
+        }
+
+        public static int Compare(T lhs, T rhs)
+            => lhs.CompareTo(rhs);
     }
 }

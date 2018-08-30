@@ -20,22 +20,19 @@ namespace JiiLib.SimpleDsl
             _baseLookup = QueryLookups.GetLookup(elemType);
         }
 
-        public override (BlockExpression, Expression) GetContainsExpression(Expression lhs, Expression rhs)
-        {
-            var (b, m) = _baseLookup.GetIsEqualExpression(_elementExpr, rhs);
-            return (InfoCache.EmptyBlock, Expression.Call(
+        public override Expression GetContainsExpression(Expression lhs, Expression rhs)
+            => Expression.Call(
                 _linqAny,
                 lhs,
                 Expression.Lambda<Func<T, bool>>(
-                    b.Update(b.Variables, b.Expressions.Append(m)),
-                    _elementExpr)));
-        }
+                    _baseLookup.GetIsEqualExpression(_elementExpr, rhs),
+                    _elementExpr));
 
-        public override (BlockExpression, Expression) GetGreaterThanExpression(Expression lhs, Expression rhs)
+        public override Expression GetGreaterThanExpression(Expression lhs, Expression rhs)
             => throw new InvalidOperationException("Greater/Less Than operations not supported on collections.");
-        public override (BlockExpression, Expression) GetLessThanExpression(Expression lhs, Expression rhs)
+        public override Expression GetLessThanExpression(Expression lhs, Expression rhs)
             => throw new InvalidOperationException("Greater/Less Than operations not supported on collections.");
-        public override (BlockExpression, Expression) GetIsEqualExpression(Expression lhs, Expression rhs)
+        public override Expression GetIsEqualExpression(Expression lhs, Expression rhs)
             => throw new InvalidOperationException("Equals operations not supported on collections.");
     }
 }

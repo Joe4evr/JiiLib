@@ -29,7 +29,7 @@ namespace JiiLib.SimpleDsl
         ///     A <see cref="BlockExpression"/> that holds intermediate expressions or is empty,
         ///     and a <see cref="MethodCallExpression"/> that performs the Contains operation.
         /// </returns>
-        public abstract (BlockExpression, Expression) GetContainsExpression(Expression lhs, Expression rhs);
+        public abstract Expression GetContainsExpression(Expression lhs, Expression rhs);
 
         /// <summary>
         ///     
@@ -44,7 +44,7 @@ namespace JiiLib.SimpleDsl
         ///     A <see cref="BlockExpression"/> that holds intermediate expressions or is empty,
         ///     and a <see cref="MethodCallExpression"/> that performs the LessThan operation.
         /// </returns>
-        public abstract (BlockExpression, Expression) GetLessThanExpression(Expression lhs, Expression rhs);
+        public abstract Expression GetLessThanExpression(Expression lhs, Expression rhs);
 
         /// <summary>
         ///     
@@ -59,7 +59,7 @@ namespace JiiLib.SimpleDsl
         ///     A <see cref="BlockExpression"/> that holds intermediate expressions or is empty,
         ///     and a <see cref="MethodCallExpression"/> that performs the GreaterThan operation.
         /// </returns>
-        public abstract (BlockExpression, Expression) GetGreaterThanExpression(Expression lhs, Expression rhs);
+        public abstract Expression GetGreaterThanExpression(Expression lhs, Expression rhs);
 
         /// <summary>
         ///     
@@ -74,6 +74,6 @@ namespace JiiLib.SimpleDsl
         ///     A <see cref="BlockExpression"/> that holds intermediate expressions or is empty,
         ///     and a <see cref="MethodCallExpression"/> that performs the IsEqual operation.
         /// </returns>
-        public abstract (BlockExpression, Expression) GetIsEqualExpression(Expression lhs, Expression rhs);
+        public abstract Expression GetIsEqualExpression(Expression lhs, Expression rhs);
     }
 }

@@ -29,8 +29,8 @@ namespace JiiLib.SimpleDsl
             var type = typeof(T);
             MethodLookups.GetOrAdd(type, lookup);
 
-            //if (type.IsValueType)
-            //    MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(NullableOperatorLookup<>).MakeGenericType(type)));
+            if (type.IsValueType)
+                MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(NullableOperatorLookup<>).MakeGenericType(type)));
         }
 
         internal static IOperatorLookup GetLookup(Type type)

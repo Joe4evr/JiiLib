@@ -20,34 +20,34 @@ namespace JiiLib.SimpleDsl
             _value = nullType.GetProperty(nameof(Nullable<T>.Value));
         }
 
-        public override (BlockExpression, Expression) GetContainsExpression(Expression lhs, Expression rhs)
+        public override Expression GetContainsExpression(Expression lhs, Expression rhs)
         {
             if (rhs.Type.IsNullableStruct(out _))
-                return (EmptyBlock, InvertHasValue(lhs));
+                return InvertHasValue(lhs);
 
             return _baseLookup.GetContainsExpression(Expression.Property(lhs, _value), rhs);
         }
 
-        public override (BlockExpression, Expression) GetGreaterThanExpression(Expression lhs, Expression rhs)
+        public override Expression GetGreaterThanExpression(Expression lhs, Expression rhs)
         {
             if (rhs.Type.IsNullableStruct(out _))
-                return (EmptyBlock, InvertHasValue(lhs));
+                return InvertHasValue(lhs);
 
             return _baseLookup.GetGreaterThanExpression(Expression.Property(lhs, _value), rhs);
         }
 
-        public override (BlockExpression, Expression) GetIsEqualExpression(Expression lhs, Expression rhs)
+        public override Expression GetIsEqualExpression(Expression lhs, Expression rhs)
         {
             if (rhs.Type.IsNullableStruct(out _))
-                return (EmptyBlock, InvertHasValue(lhs));
+                return InvertHasValue(lhs);
 
             return _baseLookup.GetIsEqualExpression(Expression.Property(lhs, _value), rhs);
         }
 
-        public override (BlockExpression, Expression) GetLessThanExpression(Expression lhs, Expression rhs)
+        public override Expression GetLessThanExpression(Expression lhs, Expression rhs)
         {
             if (rhs.Type.IsNullableStruct(out _))
-                return (EmptyBlock, InvertHasValue(lhs));
+                return InvertHasValue(lhs);
 
             return _baseLookup.GetLessThanExpression(Expression.Property(lhs, _value), rhs);
         }

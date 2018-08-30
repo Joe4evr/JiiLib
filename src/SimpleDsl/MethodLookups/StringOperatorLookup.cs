@@ -12,16 +12,16 @@ namespace JiiLib.SimpleDsl
 
         private StringOperatorLookup() { }
 
-        public override (BlockExpression, Expression) GetContainsExpression(Expression lhs, Expression rhs)
+        public override Expression GetContainsExpression(Expression lhs, Expression rhs)
             //Contains(lhs, rhs);
-            => (EmptyBlock, Expression.Call(_contains, lhs, rhs));
-        public override (BlockExpression, Expression) GetIsEqualExpression(Expression lhs, Expression rhs)
+            => Expression.Call(_contains, lhs, rhs);
+        public override Expression GetIsEqualExpression(Expression lhs, Expression rhs)
             //String.Equals(lhs, rhs, StringComparison.OrdinalIgnoreCase);
-            => (EmptyBlock, Expression.Call(InfoCache.StrEquals, lhs, rhs, InfoCache.StrCompsExpr));
+            => Expression.Call(InfoCache.StrEquals, lhs, rhs, InfoCache.StrCompsExpr);
 
-        public override (BlockExpression, Expression) GetGreaterThanExpression(Expression lhs, Expression rhs)
+        public override Expression GetGreaterThanExpression(Expression lhs, Expression rhs)
             => throw new InvalidOperationException("Greater/Less Than operations not supported on strings.");
-        public override (BlockExpression, Expression) GetLessThanExpression(Expression lhs, Expression rhs)
+        public override Expression GetLessThanExpression(Expression lhs, Expression rhs)
             => throw new InvalidOperationException("Greater/Less Than operations not supported on strings.");
 
         public static bool Contains(string source, string sub)
