@@ -47,7 +47,10 @@ namespace JiiLib.SimpleDsl
             if (typeof(IComparable<>).MakeGenericType(type).IsAssignableFrom(type))
                 return MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(ComparableOperatorLookup<>).MakeGenericType(k)));
 
-            if (type.IsCollectionType(out var eType))
+            if (type.IsQueryableType(out var eType))
+                return MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(QueryableOperatorLookup<>).MakeGenericType(eType)));
+
+            if (type.IsEnumerableType(out eType))
                 return MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(EnumerableOperatorLookup<>).MakeGenericType(eType)));
 
             throw new InvalidOperationException($"No operator lookup found for property of type '{type}'.");

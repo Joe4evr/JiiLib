@@ -3,64 +3,37 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 
 namespace JiiLib.SimpleDsl
 {
-    //internal delegate Expression TempAssignFunc(Expression result, Expression value);
-
-    internal static class InfoCache
+    internal static partial class InfoCache
     {
         internal static readonly Type StrType = typeof(string);
         internal static readonly Type BoolType = typeof(bool);
         internal static readonly Type IntType = typeof(int);
         internal static readonly Type NullableOpenType = typeof(Nullable<>);
         internal static readonly Type IConvType = typeof(IConvertible);
-        internal static readonly Type IEnumOpenType = typeof(IEnumerable<>);
+        internal static readonly Type IEnumObjType = typeof(IEnumerable<object>);
         internal static readonly Type IEnumStringType = typeof(IEnumerable<string>);
         internal static readonly Type IEqcmpOpenType = typeof(IEqualityComparer<>);
+
+        private static EnumerableCache _eCache;
+        private static QueryableCache _qCache;
+        internal static ILinqCache Enumerable => LazyInitializer.EnsureInitialized(ref _eCache);
+        internal static ILinqCache Queryable  => LazyInitializer.EnsureInitialized(ref _qCache);
 
         static InfoCache()
         {
             var ObjType = typeof(object);
-            var TSourceType = Type.MakeGenericMethodParameter(0);
-            var TResultType = Type.MakeGenericMethodParameter(1);
-            var IEnumTSource = IEnumOpenType.MakeGenericType(TSourceType);
-            var FuncTToTR = typeof(Func<,>);
-            var FuncTSourceToBool = FuncTToTR.MakeGenericType(TSourceType, BoolType);
-
-            var StrTypeArr = new Type[] { StrType };
-            var IntTypeArr = new Type[] { IntType };
-            var IEnumIntTypeArr = new Type[] { typeof(IEnumerable<int>) };
-            var IEnumGenParamArr = new Type[] { IEnumTSource };
-            var IEnumGenParamIntArr = new Type[] { IEnumTSource, IntType };
-            var IEnumGenParamFuncToBoolArr = new Type[] { IEnumTSource, FuncTSourceToBool };
-
             ObjToString = ObjType.GetMethod(nameof(Object.ToString), Array.Empty<Type>());
             ObjRefEquals = ObjType.GetMethod(nameof(Object.ReferenceEquals), new Type[] { ObjType, ObjType });
 
             StrEquals = StrType.GetMethod(nameof(String.Equals), new Type[] { StrType, StrType, typeof(StringComparison) });
 
+            var IntTypeArr = new Type[] { IntType };
             IntEquals = IntType.GetMethod(nameof(Int32.Equals), IntTypeArr);
             IntCompare = IntType.GetMethod(nameof(Int32.CompareTo), IntTypeArr);
-
-            var LinqType = typeof(Enumerable);
-            var IEnumFuncTtoTResultArr = new Type[] { IEnumTSource, FuncTToTR.MakeGenericType(new Type[] { TSourceType, TResultType }) };
-            var IOrdEnumFuncTtoTResultArr = new Type[] { typeof(IOrderedEnumerable<>).MakeGenericType(TSourceType), FuncTToTR.MakeGenericType(new Type[] { TSourceType, TResultType }) };
-            LinqSum = LinqType.GetMethod(nameof(Enumerable.Sum), IEnumIntTypeArr);
-            LinqMin = LinqType.GetMethod(nameof(Enumerable.Min), IEnumIntTypeArr);
-            LinqMax = LinqType.GetMethod(nameof(Enumerable.Max), IEnumIntTypeArr);
-            LinqAverage = LinqType.GetMethod(nameof(Enumerable.Average), IEnumIntTypeArr);
-            LinqAny = LinqType.GetMethod(nameof(Enumerable.Any), 1, IEnumGenParamFuncToBoolArr);
-            LinqWhere = LinqType.GetMethod(nameof(Enumerable.Where), 1, IEnumGenParamFuncToBoolArr);
-            LinqSelect = LinqType.GetMethod(nameof(Enumerable.Select), 2, IEnumFuncTtoTResultArr);
-            LinqCountOpen = LinqType.GetMethod(nameof(Enumerable.Count), 1, IEnumGenParamArr);
-            LinqOBOpen = LinqType.GetMethod(nameof(Enumerable.OrderBy), 2, IEnumFuncTtoTResultArr);
-            LinqOBDOpen = LinqType.GetMethod(nameof(Enumerable.OrderByDescending), 2, IEnumFuncTtoTResultArr);
-            LinqTBOpen = LinqType.GetMethod(nameof(Enumerable.ThenBy), 2, IOrdEnumFuncTtoTResultArr);
-            LinqTBDOpen = LinqType.GetMethod(nameof(Enumerable.ThenByDescending), 2, IOrdEnumFuncTtoTResultArr);
-            LinqContainsOpen = LinqType.GetMethod(nameof(Enumerable.Contains), 1, new Type[] { IEnumTSource, TSourceType });
-            IEnumStrContains = LinqType.GetMethod(nameof(Enumerable.Contains), 1, new Type[] { IEnumTSource, TSourceType, IEqcmpOpenType.MakeGenericType(TSourceType) }).MakeGenericMethod(StrTypeArr);
-            //IEnumIntContains = LinqContainsOpen.MakeGenericMethod(IntTypeArr);
         }
 
         internal static readonly MethodInfo ObjToString;
@@ -73,26 +46,6 @@ namespace JiiLib.SimpleDsl
 
         internal static readonly MethodInfo IntEquals;
         internal static readonly MethodInfo IntCompare;
-
-        internal static readonly MethodInfo LinqSum;
-        internal static readonly MethodInfo LinqMin;
-        internal static readonly MethodInfo LinqMax;
-        internal static readonly MethodInfo LinqAverage;
-        internal static readonly MethodInfo LinqAny;
-        internal static readonly MethodInfo LinqWhere;
-        internal static readonly MethodInfo LinqSelect;
-        internal static readonly MethodInfo LinqCountOpen;
-        internal static readonly MethodInfo LinqOBOpen;
-        internal static readonly MethodInfo LinqOBDOpen;
-        internal static readonly MethodInfo LinqTBOpen;
-        internal static readonly MethodInfo LinqTBDOpen;
-
-        internal static readonly MethodInfo LinqContainsOpen;
-        internal static readonly MethodInfo IEnumStrContains;
-        //internal static readonly MethodInfo IEnumIntContains;
-
-        //internal static readonly TempAssignFunc AndAlso = Expression.AndAlso;
-        //internal static readonly TempAssignFunc OrElse = Expression.OrElse;
 
         internal static readonly string Colon = ": ";
         internal static readonly ConstantExpression EmptyStrExpr = Expression.Constant(String.Empty);
@@ -130,5 +83,6 @@ namespace JiiLib.SimpleDsl
         internal static readonly string GreaterThanOrEqual = ">=";
         internal static readonly string IsEqual = "==";
         internal static readonly string IsNotEqual = "!=";
+
     }
 }

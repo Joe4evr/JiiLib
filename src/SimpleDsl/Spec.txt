@@ -3,11 +3,11 @@ query
   ;
 
 known_function
-  : 'sum(' ints ')'                   -> int
-  | 'min(' ints ')'                   -> int
-  | 'max(' ints ')'                   -> int
-  | 'average(' ints ')'               -> int
-  | 'count(' object_property_name ')' -> int
+  : 'sum(' ints ')'              -> int
+  | 'min(' ints ')'              -> int
+  | 'max(' ints ')'              -> int
+  | 'average(' ints ')'          -> int
+  | 'count(' property_access ')' -> int
   ;
 
 variable_identifier
@@ -26,15 +26,15 @@ where_operands
   ;
 
 where_operand
-  : variable_identifier? known_function binary_operator string                     -> bool
-  | variable_identifier? known_function binary_operator int                        -> bool
-  | variable_identifier? known_function binary_operator object_property_name       -> bool
-  | variable_identifier? object_property_name binary_operator string               -> bool
-  | variable_identifier? object_property_name binary_operator int                  -> bool
-  | variable_identifier? object_property_name binary_operator object_property_name -> bool
-  | object_property_name '{' where_operands '}'                                    -> bool
-  | 'or(' where_operands ')'                                                       -> bool
-  | '!'? object_property_name                                                      -> bool
+  : variable_identifier? known_function binary_operator string           -> bool
+  | variable_identifier? known_function binary_operator int              -> bool
+  | variable_identifier? known_function binary_operator property_access  -> bool
+  | variable_identifier? property_access binary_operator string          -> bool
+  | variable_identifier? property_access binary_operator int             -> bool
+  | variable_identifier? property_access binary_operator property_access -> bool
+  | property_access '{' where_operands '}'                               -> bool
+  | '!'? 'or(' where_operands ')'                                        -> bool
+  | '!'? property_access                                                 -> bool
   ;
 
 binary_operator
@@ -50,9 +50,9 @@ binary_operator
 
 ints
   : int
-  | object_property_name
+  | property_access
   | int ' ' ints
-  | object_property_name ' ' ints
+  | property_access ' ' ints
   ;
 
 =========
@@ -71,7 +71,7 @@ orderby_operand
   ;
 
 orderby_invocation
-  : object_property_name
+  : property_access
   | known_function
   ;
 
@@ -101,7 +101,7 @@ select_operand
   ;
 
 select_invocation
-  : object_property_name
+  : property_access
   | declared_variable
   ;
 

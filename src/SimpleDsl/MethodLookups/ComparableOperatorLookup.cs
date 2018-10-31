@@ -24,19 +24,17 @@ namespace JiiLib.SimpleDsl
             Expression rhs,
             ConstantExpression resultCheck)
         {
-            var varExpr = Expression.Variable(InfoCache.IntType, "compareResult");
-            var vars = (lhs is ParameterExpression paramLhs)
-                ? new[] { varExpr, paramLhs }
-                : new[] { varExpr };
-            //var vars = new[] { varExpr };
+            var varExpr = Expression.Variable(InfoCache.IntType);
+            //var lhsVar = Expression.Variable(lhs.Type, "tmp");
 
             return Expression.Block(
-                variables: vars,
+                variables: new[] { varExpr },
                 expressions: new Expression[]
                 {
+                    //Expression.Assign(lhsVar, lhs),
                     Expression.Assign(varExpr,
                         Expression.Call(_compare, lhs, rhs)),
-                    //compareResult.Equals(resultCheck);
+
                     Expression.Call(varExpr, InfoCache.IntEquals, resultCheck)
                 });
         }

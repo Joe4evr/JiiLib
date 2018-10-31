@@ -11,31 +11,22 @@ namespace JiiLib.SimpleDsl
         [DebuggerStepThrough]
         internal static ReadOnlySpan<char> SliceUntilFirstUnnested(this ReadOnlySpan<char> span, char delimeter, out ReadOnlySpan<char> remainder)
         {
-            var ret = span;
-            for (int i = 0; i < span.Length; i++)
-            {
-                char current = span[i];
-                if (current == '\\') //skip a backslash-escaped char
-                {
-                    i += 1;
-                    continue;
-                }
+            var splitter = span.CreateSplitter(delimeter);
+            splitter.TryMoveNext(out var result);
+            remainder = splitter.Span;
+            return result;
+        }
 
-                if (CharAliasMap.TryGetValue(current, out var match))
-                {
-                    i = span.FindMatchingBrace(i);
-                    continue;
-                }
+        [DebuggerStepThrough]
+        internal static UnnestedCharSpanSplitter CreateSplitter(this ReadOnlySpan<char> span, char separator)
+            => new UnnestedCharSpanSplitter(span, separator);
 
-                if (current == delimeter && i > 0)
-                {
-                    int remStart = i + 1; //skip the delimeter
-                    remainder = span.Slice(remStart).Trim();
-                    return span.Slice(0, i).Trim();
-                }
-            }
-            remainder = ReadOnlySpan<char>.Empty;
-            return ret;
+        [DebuggerStepThrough]
+        internal static bool ContainsUnnested(this ReadOnlySpan<char> span, char needle, out ReadOnlySpan<char> remainder)
+        {
+            var splitter = span.CreateSplitter(needle);
+            splitter.TryMoveNext(out remainder);
+            return splitter.Span.Length > 0;
         }
 
         [DebuggerStepThrough]
@@ -93,23 +84,23 @@ namespace JiiLib.SimpleDsl
         }
 
         [DebuggerStepThrough]
-        internal static ReadOnlySpan<char> VerifyOpenChar(this ReadOnlySpan<char> span, char c, string name)
+        internal static ReadOnlySpan<char> VerifyOpenChar(this ReadOnlySpan<char> span, char c, string funcName)
         {
             if (span[0] != c)
-                throw new InvalidOperationException($"Must use '{c}' after '{name}'.");
+                throw new InvalidOperationException($"Must use '{c}' after '{funcName}'.");
 
             return span;
         }
 
-        [DebuggerStepThrough]
-        internal static void AddInlineVar(this Dictionary<string, Expression> vars, string identifier, Expression invocation)
-        {
-            if (identifier != null)
-            {
-                if (!vars.TryAdd(identifier, invocation))
-                    throw new InvalidOperationException($"Inline variable identifier '{identifier}' is already used.");
-            }
-        }
+        //[DebuggerStepThrough]
+        //internal static void AddInlineVar(this Dictionary<string, InlineVar> vars, string identifier, ParameterExpression parent, Expression invocation)
+        //{
+        //    if (!String.IsNullOrWhiteSpace(identifier))
+        //    {
+        //        if (!vars.TryAdd(identifier, new InlineVar(parent, invocation)))
+        //            throw new InvalidOperationException($"Inline variable identifier '{identifier}' is already used.");
+        //    }
+        //}
 
         [DebuggerStepThrough]
         internal static bool ParseIsDescending(ref this ReadOnlySpan<char> span)
@@ -129,7 +120,7 @@ namespace JiiLib.SimpleDsl
 
         // Output of a gist provided by https://gist.github.com/ufcpp
         // https://gist.github.com/ufcpp/5b2cf9a9bf7d0b8743714a0b88f7edc5
-        private static readonly IReadOnlyDictionary<char, char> CharAliasMap
+        internal static readonly IReadOnlyDictionary<char, char> CharAliasMap
             = new Dictionary<char, char> {
                     {'\"', '\"' },
                     {'[', ']' },
@@ -205,9 +196,21 @@ namespace JiiLib.SimpleDsl
         private static readonly string _endChars = new string(CharAliasMap.Values.ToArray());
 
         [DebuggerStepThrough]
-        internal static bool IsCollectionType(this Type type, out Type elementType)
+        internal static bool IsEnumerableType(this Type type, out Type elementType)
         {
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == InfoCache.IEnumOpenType)
+            if (InfoCache.IEnumObjType.IsAssignableFrom(type))
+            {
+                elementType = type.GetGenericArguments()[0];
+                return true;
+            }
+            elementType = type;
+            return false;
+        }
+
+        [DebuggerStepThrough]
+        internal static bool IsQueryableType(this Type type, out Type elementType)
+        {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == InfoCache.Queryable.OpenType)
             {
                 elementType = type.GetGenericArguments()[0];
                 return true;
@@ -237,5 +240,77 @@ namespace JiiLib.SimpleDsl
                 ? objExpr
                 //-> obj.ToString();
                 : Expression.Call(objExpr, InfoCache.ObjToString);
+
+        [DebuggerStepThrough]
+        internal static TValue TryGet<TValue>(this IReadOnlyDictionary<string, TValue> dict, string key)
+            => (dict.TryGetValue(key, out var property))
+                ? property
+                : default;
+
+        [DebuggerStepThrough]
+        internal static IEnumerable<(T item, int index)> AsIndexed<T>(this IList<T> items)
+        {
+            for (int i = 0; i < items.Count; i++)
+                yield return (items[i], i);
+        }
+
+        [DebuggerStepThrough]
+        internal static IEnumerable<TResult> NoCapSelect<TKey, TSource, TValue, TResult>(
+            this IReadOnlyDictionary<TKey, Func<TSource, TValue>> source,
+            TSource obj,
+            Func<TKey, TValue, TResult> selector)
+        {
+            //foreach (var (key, value) in source)
+            //    yield return selector(key, value(obj));
+            return source.Select(kvp => selector(kvp.Key, kvp.Value(obj)));
+        }
+
+        [DebuggerStepThrough]
+        internal static bool IsOrHasBlock(this Expression expr, out BlockExpression block)
+        {
+            if (expr is BlockExpression blk)
+            {
+                block = blk;
+                return true;
+            }
+            if (expr is UnaryExpression unary && unary.Operand is BlockExpression blk2)
+            {
+                block = blk2;
+                return true;
+            }
+
+            block = null;
+            return false;
+        }
+
+        [DebuggerStepThrough]
+        internal static (ConstantExpression open, ConstantExpression close) CreateFormatExpressions(this ITextFormats formatter, FormatModifiers formats)
+        {
+            if (formats == FormatModifiers.None)
+                return (InfoCache.EmptyStrExpr, InfoCache.EmptyStrExpr);
+
+            var o = String.Empty;
+            var c = String.Empty;
+
+            if ((formats & FormatModifiers.Bold) == FormatModifiers.Bold)
+            {
+                o = formatter.BoldOpen + o;
+                c += formatter.BoldClose;
+            }
+
+            if ((formats & FormatModifiers.Italic) == FormatModifiers.Italic)
+            {
+                o = formatter.ItalicOpen + o;
+                c += formatter.ItalicClose;
+            }
+
+            if ((formats & FormatModifiers.Underline) == FormatModifiers.Underline)
+            {
+                o = formatter.UnderlineOpen + o;
+                c += formatter.UnderlineClose;
+            }
+
+            return (Expression.Constant(o), Expression.Constant(c));
+        }
     }
 }

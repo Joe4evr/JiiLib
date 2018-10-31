@@ -6,16 +6,16 @@ using System.Reflection;
 
 namespace JiiLib.SimpleDsl
 {
-    internal sealed class EnumerableOperatorLookup<T> : OperatorLookup<IEnumerable<T>>
+    internal sealed class QueryableOperatorLookup<T> : OperatorLookup<IQueryable<T>>
     {
         private static readonly MethodInfo _linqAny;
         private static readonly ParameterExpression _elementExpr;
         private static readonly IOperatorLookup _baseLookup;
 
-        static EnumerableOperatorLookup()
+        static QueryableOperatorLookup()
         {
             var elemType = typeof(T);
-            _linqAny = InfoCache.Enumerable.LinqAny.MakeGenericMethod(elemType);
+            _linqAny = InfoCache.Queryable.LinqAny.MakeGenericMethod(elemType);
             _elementExpr = Expression.Parameter(elemType);
             _baseLookup = QueryLookups.GetLookup(elemType);
         }
@@ -24,9 +24,10 @@ namespace JiiLib.SimpleDsl
             => Expression.Call(
                 _linqAny,
                 lhs,
-                Expression.Lambda<Func<T, bool>>(
-                    _baseLookup.GetIsEqualExpression(_elementExpr, rhs),
-                    _elementExpr));
+                Expression.Quote(
+                    Expression.Lambda<Func<T, bool>>(
+                        _baseLookup.GetIsEqualExpression(_elementExpr, rhs),
+                        _elementExpr)));
 
         public override Expression GetGreaterThanExpression(Expression lhs, Expression rhs)
             => throw new InvalidOperationException("Greater/Less Than operations not supported on collections.");

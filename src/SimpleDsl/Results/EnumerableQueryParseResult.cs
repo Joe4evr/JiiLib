@@ -12,23 +12,25 @@ namespace JiiLib.SimpleDsl
     /// <typeparam name="T">
     ///     The element type that is queried against.
     /// </typeparam>
-    public sealed class QueryParseResult<T>
+    public sealed class EnumerableQueryParseResult<T>
     {
         private static readonly Func<T, bool> _defaultFilter = (_ => true);
-        private static readonly Func<IEnumerable<T>, IOrderedEnumerable<T>> _defaultOrder = (__ => __.OrderBy(_ => 0));
+        private static readonly Func<T, int> _defaultOrder = (_ => 0);
         private static readonly Func<T, string> _defaultSelector = (_ => _.ToString());
 
-        internal QueryParseResult(
-            IReadOnlyDictionary<string, Expression> vars,
+        private readonly IReadOnlyCollection<OrderByFunc<T>> _orderFuncs;
+
+        internal EnumerableQueryParseResult(
+            IReadOnlyDictionary<string, Expression<Func<T, string>>> vars,
             Func<T, bool> predicate,
-            Func<IEnumerable<T>, IOrderedEnumerable<T>> order,
+            IReadOnlyCollection<OrderByFunc<T>> orderFuncs,
             int skipAmount,
             int takeAmount,
             Func<T, string> selector)
         {
             InlineVars = vars;
             Predicate = predicate ?? _defaultFilter;
-            Order = order ?? _defaultOrder;
+            _orderFuncs = orderFuncs;
             SkipAmount = skipAmount;
             TakeAmount = takeAmount;
             Selector = selector ?? _defaultSelector;
@@ -37,19 +39,13 @@ namespace JiiLib.SimpleDsl
         /// <summary>
         ///     The inline variables that have been declared for this query.
         /// </summary>
-        public IReadOnlyDictionary<string, Expression> InlineVars { get; }
+        public IReadOnlyDictionary<string, Expression<Func<T, string>>> InlineVars { get; }
 
         /// <summary>
         ///     The complete parsed predicate.
         ///     The default function keeps everything.
         /// </summary>
         public Func<T, bool> Predicate { get; }
-
-        /// <summary>
-        ///     A function that orders the collection as desired.
-        ///     The default function leaves the collection as-is.
-        /// </summary>
-        public Func<IEnumerable<T>, IOrderedEnumerable<T>> Order { get; }
 
         /// <summary>
         ///     The amount of items that are skipped. The default value is 0.
@@ -66,6 +62,18 @@ namespace JiiLib.SimpleDsl
         ///     The default function calls <see cref="Object.ToString"/>.
         /// </summary>
         public Func<T, string> Selector { get; }
+
+        private IOrderedEnumerable<T> Order(IEnumerable<T> items)
+        {
+            var result = items.OrderBy(_defaultOrder);
+
+            foreach (var func in _orderFuncs)
+                result = (func.IsDescending)
+                    ? result.ThenByDescending(func.Function)
+                    : result.ThenBy(func.Function);
+
+            return result;
+        }
 
         /// <summary>
         ///     Applies all the functions to the given collection.
