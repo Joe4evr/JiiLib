@@ -7,22 +7,23 @@ using System.Linq.Expressions;
 namespace JiiLib.SimpleDsl
 {
     public sealed class QueryableQueryParseResult<T>
+        where T : notnull
     {
         private static readonly Expression<Func<T, bool>> _defaultFilter = (_ => true);
         private static readonly Expression<Func<T, int>> _defaultOrder = (_ => 0);
-        private static readonly Func<T, string> _defaultSelector = (_ => _.ToString());
+        private static readonly Func<T, string> _defaultSelector = (_ => _.ToString()!);
 
         private readonly IReadOnlyCollection<OrderByExpression<T>> _orderExprs;
 
         internal QueryableQueryParseResult(
-            IReadOnlyDictionary<string, Expression<Func<T, string>>> vars,
-            Expression<Func<T, bool>> predicate,
+            IReadOnlyDictionary<string, Expression<Func<T, string>>>? vars,
+            Expression<Func<T, bool>>? predicate,
             IReadOnlyCollection<OrderByExpression<T>> orderExprs,
             int skipAmount,
             int takeAmount,
-            Func<T, string> selector)
+            Func<T, string>? selector)
         {
-            InlineVars = vars;
+            InlineVars = vars ?? ImmutableDictionary<string, Expression<Func<T, string>>>.Empty;
             Predicate = predicate ?? _defaultFilter;
             _orderExprs = orderExprs;
             SkipAmount = skipAmount;

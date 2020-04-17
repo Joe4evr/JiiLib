@@ -5,14 +5,20 @@ namespace JiiLib.SimpleDsl
 {
     internal ref struct UnnestedCharSpanSplitter
     {
-        private readonly char _separator;
+        private readonly Func<char, bool> _separatorPredicate;
         public ReadOnlySpan<char> Span { get; private set; }
 
         [DebuggerStepThrough]
-        public UnnestedCharSpanSplitter(ReadOnlySpan<char> span, char separator)
+        public UnnestedCharSpanSplitter(ReadOnlySpan<char> span, Func<char, bool> separatorPredicate)
         {
+            _separatorPredicate = separatorPredicate ?? throw new ArgumentNullException(nameof(separatorPredicate));
             Span = span;
-            _separator = separator;
+        }
+
+        [DebuggerStepThrough]
+        public UnnestedCharSpanSplitter(ReadOnlySpan<char> span, char seperator)
+            : this(span, c => c == seperator)
+        {
         }
 
         [DebuggerStepThrough]
@@ -40,7 +46,7 @@ namespace JiiLib.SimpleDsl
                     continue;
                 }
 
-                if (current == _separator && i > 0)
+                if (_separatorPredicate(current) && i > 0)
                 {
                     int remStart = i + 1; //skip the delimeter
                     Span = ret.Slice(remStart).Trim();

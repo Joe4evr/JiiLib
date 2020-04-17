@@ -10,16 +10,15 @@ namespace JiiLib.SimpleDsl
     public partial class QueryInterpreter<T>
     {
         private Func<T, string> ParseSelectClause(
-            ReadOnlySpan<char> selectSpan,
-            ILinqCache linqCache)
+            ReadOnlySpan<char> selectSpan, QueryModel model, ILinqCache linqCache)
         {
             var exprs = new List<Expression>();
 
-            for (var slice = selectSpan.SliceUntilFirstUnnested(',', out var next); slice.Length > 0; slice = next.SliceUntilFirstUnnested(',', out next))
+            for (var slice = selectSpan.SliceToFirstUnnested(',', out var next); slice.Length > 0; slice = next.SliceToFirstUnnested(',', out next))
             {
                 var fmt = DslHelpers.ParseFormatModifiers(ref slice);
                 var (open, close) = _formats.CreateFormatExpressions(fmt);
-                var (expr, name) = ParseFunctionVariableOrInvocation(slice, linqCache);
+                var (expr, name) = ParseFunctionVariableOrInvocation(slice, model, linqCache);
                 Expression formatted;
 
                 if (expr.Type == InfoCache.IEnumStringType)
@@ -66,17 +65,16 @@ namespace JiiLib.SimpleDsl
         }
 
         private (Expression, string) ParseFunctionVariableOrInvocation(
-            ReadOnlySpan<char> slice,
-            ILinqCache linqCache)
+            ReadOnlySpan<char> slice, QueryModel model, ILinqCache linqCache)
         {
             if (ParseKnownFunction(slice, linqCache) is IQueryNode node)
                 return (node.Value, "");
 
             var p = slice.Materialize();
-            if (_model.InlineVars.TryGetValue(p, out var n))
+            if (model.InlineVars.TryGetValue(p, out var n))
                 return (n.Value, p);
 
-            if (Property(p) is PropertyInfo property)
+            if (Property(p) is { } property)
                 return (_targetParamExpr.PropertyAccess(property), property.Name);
 
             throw new InvalidOperationException($"No such function, property, or declared variable '{p}'.");

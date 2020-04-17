@@ -7,7 +7,7 @@ namespace JiiLib.SimpleDsl
     internal sealed class ComparableOperatorLookup<T> : OperatorLookup<T>
         where T : IComparable<T>
     {
-        private static readonly MethodInfo _compare = typeof(ComparableOperatorLookup<T>).GetMethod(nameof(ComparableOperatorLookup<T>.Compare));
+        private static readonly MethodInfo _compare = typeof(ComparableOperatorLookup<T>).GetMethod(nameof(ComparableOperatorLookup<T>.Compare))!;
 
         public override Expression GetLessThanExpression(Expression lhs, Expression rhs)
             => CreateCompareBlock(lhs, rhs, InfoCache.IntNegOneExpr);

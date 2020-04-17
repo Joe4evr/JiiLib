@@ -9,7 +9,7 @@ namespace JiiLib.SimpleDsl
         where T : struct, Enum
     {
         private static readonly ConstantExpression _comparer = Expression.Constant(EqualityComparer<T>.Default);
-        private static readonly MethodInfo _equals = typeof(IEqualityComparer<T>).GetMethod(nameof(IEqualityComparer<T>.Equals));
+        private static readonly MethodInfo _equals = typeof(IEqualityComparer<T>).GetMethod(nameof(IEqualityComparer<T>.Equals))!;
 
         public override Expression GetIsEqualExpression(Expression lhs, Expression rhs)
             => Expression.Call(_comparer, _equals, lhs, rhs);

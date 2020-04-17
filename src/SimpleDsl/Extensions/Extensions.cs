@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -9,9 +10,17 @@ namespace JiiLib.SimpleDsl
     internal static class Extensions
     {
         [DebuggerStepThrough]
-        internal static ReadOnlySpan<char> SliceUntilFirstUnnested(this ReadOnlySpan<char> span, char delimeter, out ReadOnlySpan<char> remainder)
+        internal static ReadOnlySpan<char> SliceToFirstUnnested(this ReadOnlySpan<char> span, char delimeter, out ReadOnlySpan<char> remainder)
         {
             var splitter = span.CreateSplitter(delimeter);
+            splitter.TryMoveNext(out var result);
+            remainder = splitter.Span;
+            return result;
+        }
+
+        internal static ReadOnlySpan<char> SliceToFirstUnnestedWhitespace(this ReadOnlySpan<char> span, out ReadOnlySpan<char> remainder)
+        {
+            var splitter = new UnnestedCharSpanSplitter(span, c => Char.IsWhiteSpace(c));
             splitter.TryMoveNext(out var result);
             remainder = splitter.Span;
             return result;
@@ -44,7 +53,7 @@ namespace JiiLib.SimpleDsl
                 var ci = span[i];
                 var cj = span[j - 1];
                 if (!(CharAliasMap.TryGetValue(ci, out var e) && cj == e))
-                    return span.Slice(i, j - i).Trim();
+                    return span[i..j].Trim();
             }
             return span;
         }
@@ -107,13 +116,15 @@ namespace JiiLib.SimpleDsl
         {
             if (span.IndexOf(':') >= 0)
             {
-                var prefix = span.SliceUntilFirstUnnested(':', out span);
-                for (int i = 0; i < prefix.Length; i++)
-                {
-                    var cur = prefix[i];
-                    if (cur == 'd')
-                        return true;
-                }
+                var prefix = span.SliceToFirstUnnested(':', out span);
+                return (prefix.Length == 1 && prefix[0] == 'd');
+
+                //for (int i = 0; i < prefix.Length; i++)
+                //{
+                //    var cur = prefix[i];
+                //    if (cur == 'd')
+                //        return true;
+                //}
             }
             return false;
         }
@@ -242,6 +253,7 @@ namespace JiiLib.SimpleDsl
                 : Expression.Call(objExpr, InfoCache.ObjToString);
 
         [DebuggerStepThrough]
+        [return: MaybeNull]
         internal static TValue TryGet<TValue>(this IReadOnlyDictionary<string, TValue> dict, string key)
             => (dict.TryGetValue(key, out var property))
                 ? property
@@ -259,6 +271,7 @@ namespace JiiLib.SimpleDsl
             this IReadOnlyDictionary<TKey, Func<TSource, TValue>> source,
             TSource obj,
             Func<TKey, TValue, TResult> selector)
+            where TKey : notnull
         {
             //foreach (var (key, value) in source)
             //    yield return selector(key, value(obj));
@@ -266,7 +279,7 @@ namespace JiiLib.SimpleDsl
         }
 
         [DebuggerStepThrough]
-        internal static bool IsOrHasBlock(this Expression expr, out BlockExpression block)
+        internal static bool IsOrHasBlock(this Expression expr, [NotNullWhen(true)] out BlockExpression? block)
         {
             if (expr is BlockExpression blk)
             {

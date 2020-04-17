@@ -16,8 +16,8 @@ namespace JiiLib.SimpleDsl
             var elemType = typeof(T);
             var nullType = typeof(T?);
             _baseLookup = QueryLookups.GetLookup(elemType);
-            _hasValue = nullType.GetProperty(nameof(Nullable<T>.HasValue));
-            _value = nullType.GetProperty(nameof(Nullable<T>.Value));
+            _hasValue = nullType.GetProperty(nameof(Nullable<T>.HasValue))!;
+            _value = nullType.GetProperty(nameof(Nullable<T>.Value))!;
         }
 
         public override Expression GetContainsExpression(Expression lhs, Expression rhs)

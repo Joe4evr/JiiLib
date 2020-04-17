@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -13,22 +14,23 @@ namespace JiiLib.SimpleDsl
     ///     The element type that is queried against.
     /// </typeparam>
     public sealed class EnumerableQueryParseResult<T>
+        where T : notnull
     {
         private static readonly Func<T, bool> _defaultFilter = (_ => true);
         private static readonly Func<T, int> _defaultOrder = (_ => 0);
-        private static readonly Func<T, string> _defaultSelector = (_ => _.ToString());
+        private static readonly Func<T, string> _defaultSelector = (_ => _.ToString()!);
 
         private readonly IReadOnlyCollection<OrderByFunc<T>> _orderFuncs;
 
         internal EnumerableQueryParseResult(
-            IReadOnlyDictionary<string, Expression<Func<T, string>>> vars,
-            Func<T, bool> predicate,
+            IReadOnlyDictionary<string, Expression<Func<T, string>>>? vars,
+            Func<T, bool>? predicate,
             IReadOnlyCollection<OrderByFunc<T>> orderFuncs,
             int skipAmount,
             int takeAmount,
-            Func<T, string> selector)
+            Func<T, string>? selector)
         {
-            InlineVars = vars;
+            InlineVars = vars ?? ImmutableDictionary<string, Expression<Func<T, string>>>.Empty;
             Predicate = predicate ?? _defaultFilter;
             _orderFuncs = orderFuncs;
             SkipAmount = skipAmount;

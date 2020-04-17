@@ -26,20 +26,20 @@ namespace JiiLib.SimpleDsl
                 var IQueryFuncTtoTResultArr = new Type[] { IQueryTSource, ExprOpenType.MakeGenericType(Func2.MakeGenericType(new Type[] { TSourceType, TResultType })) };
                 var IOrdQueryFuncTtoTResultArr = new Type[] { typeof(IOrderedQueryable<>).MakeGenericType(TSourceType), ExprOpenType.MakeGenericType(Func2.MakeGenericType(new Type[] { TSourceType, TResultType })) };
 
-                LinqSum = LinqType.GetMethod(nameof(LQueryable.Sum), IQueryIntTypeArr);
-                LinqMin = LinqType.GetMethod(nameof(LQueryable.Min), IQueryIntTypeArr);
-                LinqMax = LinqType.GetMethod(nameof(LQueryable.Max), IQueryIntTypeArr);
-                LinqAverage = LinqType.GetMethod(nameof(LQueryable.Average), IQueryIntTypeArr);
-                LinqCountOpen = LinqType.GetMethod(nameof(LQueryable.Count), 1, new Type[] { IQueryTSource });
-                LinqContainsOpen = LinqType.GetMethod(nameof(LQueryable.Contains), 1, new Type[] { IQueryTSource, TSourceType });
+                LinqSum = LinqType.GetMethod(nameof(LQueryable.Sum), IQueryIntTypeArr)!;
+                LinqMin = LinqType.GetMethod(nameof(LQueryable.Min), IQueryIntTypeArr)!;
+                LinqMax = LinqType.GetMethod(nameof(LQueryable.Max), IQueryIntTypeArr)!;
+                LinqAverage = LinqType.GetMethod(nameof(LQueryable.Average), IQueryIntTypeArr)!;
+                LinqCountOpen = LinqType.GetMethod(nameof(LQueryable.Count), 1, new Type[] { IQueryTSource })!;
+                LinqContainsOpen = LinqType.GetMethod(nameof(LQueryable.Contains), 1, new Type[] { IQueryTSource, TSourceType })!;
 
-                LinqAny = LinqType.GetMethod(nameof(LQueryable.Any), 1, IQueryGenParamFuncToBoolArr);
-                LinqWhere = LinqType.GetMethod(nameof(LQueryable.Where), 1, IQueryGenParamFuncToBoolArr);
-                LinqSelect = LinqType.GetMethod(nameof(LQueryable.Select), 2, IQueryFuncTtoTResultArr);
-                LinqOBOpen = LinqType.GetMethod(nameof(LQueryable.OrderBy), 2, IQueryFuncTtoTResultArr);
-                LinqOBDOpen = LinqType.GetMethod(nameof(LQueryable.OrderByDescending), 2, IQueryFuncTtoTResultArr);
-                LinqTBOpen = LinqType.GetMethod(nameof(LQueryable.ThenBy), 2, IOrdQueryFuncTtoTResultArr);
-                LinqTBDOpen = LinqType.GetMethod(nameof(LQueryable.ThenByDescending), 2, IOrdQueryFuncTtoTResultArr);
+                LinqAny = LinqType.GetMethod(nameof(LQueryable.Any), 1, IQueryGenParamFuncToBoolArr)!;
+                LinqWhere = LinqType.GetMethod(nameof(LQueryable.Where), 1, IQueryGenParamFuncToBoolArr)!;
+                LinqSelect = LinqType.GetMethod(nameof(LQueryable.Select), 2, IQueryFuncTtoTResultArr)!;
+                LinqOBOpen = LinqType.GetMethod(nameof(LQueryable.OrderBy), 2, IQueryFuncTtoTResultArr)!;
+                LinqOBDOpen = LinqType.GetMethod(nameof(LQueryable.OrderByDescending), 2, IQueryFuncTtoTResultArr)!;
+                LinqTBOpen = LinqType.GetMethod(nameof(LQueryable.ThenBy), 2, IOrdQueryFuncTtoTResultArr)!;
+                LinqTBDOpen = LinqType.GetMethod(nameof(LQueryable.ThenByDescending), 2, IOrdQueryFuncTtoTResultArr)!;
             }
 
             public Type OpenType { get; } = typeof(IQueryable<>);

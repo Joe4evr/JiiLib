@@ -17,8 +17,8 @@ namespace JiiLib.SimpleDsl.Nodes
             Operator = op;
             Right = right;
 
-            var (val, truthy) = DslHelpers.CreateOperatorExpression(left.Value, op.Operator, right.Value);
-            Value = truthy ? Expression.IsTrue(val) : Expression.IsFalse(val);
+            var (expr, isTruthy) = DslHelpers.CreateOperatorExpression(left.Value, op.Operator, right.Value);
+            Value = isTruthy ? Expression.IsTrue(expr) : Expression.IsFalse(expr);
         }
     }
 }

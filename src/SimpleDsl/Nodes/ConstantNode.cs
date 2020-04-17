@@ -7,7 +7,7 @@ namespace JiiLib.SimpleDsl.Nodes
     {
         public Expression Value { get; }
 
-        public ConstantNode(object value, Type type)
+        public ConstantNode(object? value, Type type)
         {
             Value = Expression.Constant(value, type);
         }

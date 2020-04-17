@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading;
 
 namespace JiiLib.SimpleDsl
 {
@@ -18,30 +17,42 @@ namespace JiiLib.SimpleDsl
         internal static readonly Type IEnumStringType = typeof(IEnumerable<string>);
         internal static readonly Type IEqcmpOpenType = typeof(IEqualityComparer<>);
 
-        private static EnumerableCache _eCache;
-        private static QueryableCache _qCache;
-        internal static ILinqCache Enumerable => LazyInitializer.EnsureInitialized(ref _eCache);
-        internal static ILinqCache Queryable  => LazyInitializer.EnsureInitialized(ref _qCache);
+        //internal static HashSet<Type> NumericTypes = new HashSet<Type>
+        //{
+        //    typeof(byte),
+        //    typeof(sbyte),
+        //    typeof(short),
+        //    typeof(ushort),
+        //    typeof(int),
+        //    typeof(uint),
+        //    typeof(long),
+        //    typeof(ulong)
+        //};
+
+        private static EnumerableCache? _eCache;
+        private static QueryableCache? _qCache;
+        internal static ILinqCache Enumerable => _eCache ??= new EnumerableCache();
+        internal static ILinqCache Queryable  => _qCache ??= new QueryableCache();
 
         static InfoCache()
         {
             var ObjType = typeof(object);
-            ObjToString = ObjType.GetMethod(nameof(Object.ToString), Array.Empty<Type>());
-            ObjRefEquals = ObjType.GetMethod(nameof(Object.ReferenceEquals), new Type[] { ObjType, ObjType });
+            ObjToString = ObjType.GetMethod(nameof(Object.ToString), Array.Empty<Type>())!;
+            ObjRefEquals = ObjType.GetMethod(nameof(Object.ReferenceEquals), new Type[] { ObjType, ObjType })!;
 
-            StrEquals = StrType.GetMethod(nameof(String.Equals), new Type[] { StrType, StrType, typeof(StringComparison) });
+            StrEquals = StrType.GetMethod(nameof(String.Equals), new Type[] { StrType, StrType, typeof(StringComparison) })!;
 
             var IntTypeArr = new Type[] { IntType };
-            IntEquals = IntType.GetMethod(nameof(Int32.Equals), IntTypeArr);
-            IntCompare = IntType.GetMethod(nameof(Int32.CompareTo), IntTypeArr);
+            IntEquals = IntType.GetMethod(nameof(Int32.Equals), IntTypeArr)!;
+            IntCompare = IntType.GetMethod(nameof(Int32.CompareTo), IntTypeArr)!;
         }
 
         internal static readonly MethodInfo ObjToString;
         internal static readonly MethodInfo ObjRefEquals;
 
-        internal static readonly MethodInfo StrConcat2 = StrType.GetMethod(nameof(String.Concat), new Type[] { StrType, StrType });
-        internal static readonly MethodInfo StrConcat3 = StrType.GetMethod(nameof(String.Concat), new Type[] { StrType, StrType, StrType });
-        internal static readonly MethodInfo StrJoin = StrType.GetMethod(nameof(String.Join), new Type[] { StrType, IEnumStringType });
+        internal static readonly MethodInfo StrConcat2 = StrType.GetMethod(nameof(String.Concat), new Type[] { StrType, StrType })!;
+        internal static readonly MethodInfo StrConcat3 = StrType.GetMethod(nameof(String.Concat), new Type[] { StrType, StrType, StrType })!;
+        internal static readonly MethodInfo StrJoin = StrType.GetMethod(nameof(String.Join), new Type[] { StrType, IEnumStringType })!;
         internal static readonly MethodInfo StrEquals;
 
         internal static readonly MethodInfo IntEquals;

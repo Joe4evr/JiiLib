@@ -19,7 +19,7 @@ namespace JiiLib.SimpleDsl
         private readonly Dictionary<string, InlineVariableNode> _inlineVars
             = new Dictionary<string, InlineVariableNode>(StringComparer.OrdinalIgnoreCase);
 
-        internal void AddInlineVar(string name, IQueryNode node)
+        internal void AddInlineVar(string? name, IQueryNode node)
         {
             if (String.IsNullOrWhiteSpace(name))
                 return;

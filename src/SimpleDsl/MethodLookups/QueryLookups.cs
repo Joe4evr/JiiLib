@@ -30,7 +30,7 @@ namespace JiiLib.SimpleDsl
             MethodLookups.GetOrAdd(type, lookup);
 
             if (type.IsValueType)
-                MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(NullableOperatorLookup<>).MakeGenericType(type)));
+                MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(NullableOperatorLookup<>).MakeGenericType(type))!);
         }
 
         internal static IOperatorLookup GetLookup(Type type)
@@ -39,19 +39,19 @@ namespace JiiLib.SimpleDsl
                 return lookup;
 
             if (type.IsNullableStruct(out var t))
-                return MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(NullableOperatorLookup<>).MakeGenericType(t)));
+                return MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(NullableOperatorLookup<>).MakeGenericType(t))!);
 
             if (type.IsEnum)
-                return MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(EnumOperatorLookup<>).MakeGenericType(k)));
+                return MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(EnumOperatorLookup<>).MakeGenericType(k))!);
 
             if (typeof(IComparable<>).MakeGenericType(type).IsAssignableFrom(type))
-                return MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(ComparableOperatorLookup<>).MakeGenericType(k)));
+                return MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(ComparableOperatorLookup<>).MakeGenericType(k))!);
 
             if (type.IsQueryableType(out var eType))
-                return MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(QueryableOperatorLookup<>).MakeGenericType(eType)));
+                return MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(QueryableOperatorLookup<>).MakeGenericType(eType))!);
 
             if (type.IsEnumerableType(out eType))
-                return MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(EnumerableOperatorLookup<>).MakeGenericType(eType)));
+                return MethodLookups.GetOrAdd(type, (k) => (IOperatorLookup)Activator.CreateInstance(typeof(EnumerableOperatorLookup<>).MakeGenericType(eType))!);
 
             throw new InvalidOperationException($"No operator lookup found for property of type '{type}'.");
         }

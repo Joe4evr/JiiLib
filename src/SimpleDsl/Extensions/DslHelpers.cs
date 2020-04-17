@@ -46,25 +46,18 @@ namespace JiiLib.SimpleDsl
             var fmt = FormatModifiers.None;
             if (slice.IndexOf(':') >= 0)
             {
-                var prefix = slice.SliceUntilFirstUnnested(':', out slice);
+                var prefix = slice.SliceToFirstUnnested(':', out slice);
 
                 for (int i = 0; i < prefix.Length; i++)
                 {
                     var cur = prefix[i];
-                    switch (cur)
+                    fmt = cur switch
                     {
-                        case 'b':
-                            fmt = fmt |= FormatModifiers.Bold;
-                            break;
-                        case 'i':
-                            fmt = fmt |= FormatModifiers.Italic;
-                            break;
-                        case 'u':
-                            fmt = fmt |= FormatModifiers.Underline;
-                            break;
-                        default:
-                            throw new InvalidOperationException($"Unknown format modifier '{cur}'.");
-                    }
+                        'b' => fmt |= FormatModifiers.Bold,
+                        'i' => fmt |= FormatModifiers.Italic,
+                        'u' => fmt |= FormatModifiers.Underline,
+                        _ => throw new InvalidOperationException($"Unknown format modifier '{cur}'."),
+                    };
                 }
             }
             return fmt;
@@ -74,7 +67,7 @@ namespace JiiLib.SimpleDsl
         {
             if (opSpan.SequenceEqual(InfoCache.Contains.AsSpan()))
                 return Operator.Contains;
-            if (opSpan.SequenceEqual(InfoCache.NotContains.AsSpan()))
+            else if (opSpan.SequenceEqual(InfoCache.NotContains.AsSpan()))
                 return Operator.NotContains;
             else if (opSpan.SequenceEqual(InfoCache.LessThan.AsSpan()))
                 return Operator.LessThan;
@@ -92,31 +85,22 @@ namespace JiiLib.SimpleDsl
                 throw new InvalidOperationException("Unrecognized operator");
         }
 
-        internal static (Expression, bool) CreateOperatorExpression(Expression lhs, Operator op, Expression rhs)
+        internal static (Expression expr, bool isTruthy) CreateOperatorExpression(Expression lhs, Operator op, Expression rhs)
         {
             var lookup = QueryLookups.GetLookup(lhs.Type);
 
-            switch (op)
+            return op switch
             {
-                case Operator.Contains:
-                    return (lookup.GetContainsExpression(lhs, rhs), true);
-                case Operator.NotContains:
-                    return (lookup.GetContainsExpression(lhs, rhs), false);
-                case Operator.LessThan:
-                    return (lookup.GetLessThanExpression(lhs, rhs), true);
-                case Operator.LessThanOrEqual:
-                    return (lookup.GetGreaterThanExpression(lhs, rhs), false);
-                case Operator.GreaterThan:
-                    return (lookup.GetGreaterThanExpression(lhs, rhs), true);
-                case Operator.GreaterThanOrEqual:
-                    return (lookup.GetLessThanExpression(lhs, rhs), false);
-                case Operator.IsEqual:
-                    return (lookup.GetIsEqualExpression(lhs, rhs), true);
-                case Operator.NotEqual:
-                    return (lookup.GetIsEqualExpression(lhs, rhs), false);
-                default:
-                    throw new InvalidOperationException("Unrecognized operator");
-            }
+                Operator.Contains           => (lookup.GetContainsExpression(lhs, rhs), true),
+                Operator.NotContains        => (lookup.GetContainsExpression(lhs, rhs), false),
+                Operator.LessThan           => (lookup.GetLessThanExpression(lhs, rhs), true),
+                Operator.LessThanOrEqual    => (lookup.GetGreaterThanExpression(lhs, rhs), false),
+                Operator.GreaterThan        => (lookup.GetGreaterThanExpression(lhs, rhs), true),
+                Operator.GreaterThanOrEqual => (lookup.GetLessThanExpression(lhs, rhs), false),
+                Operator.IsEqual            => (lookup.GetIsEqualExpression(lhs, rhs), true),
+                Operator.NotEqual           => (lookup.GetIsEqualExpression(lhs, rhs), false),
+                _ => throw new InvalidOperationException("Unrecognized operator"),
+            };
         }
 
         [DebuggerStepThrough]

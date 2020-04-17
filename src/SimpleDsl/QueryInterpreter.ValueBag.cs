@@ -14,14 +14,14 @@ namespace JiiLib.SimpleDsl
         {
             [DebuggerStepThrough]
             public ValueBag(
-                IReadOnlyDictionary<string, InlineVariableNode> vars,
-                Expression<Func<T, bool>> predicate,
+                IReadOnlyDictionary<string, InlineVariableNode>? vars,
+                Expression<Func<T, bool>>? predicate,
                 ImmutableArray<OrderByExpression<T>> order,
                 int skip,
                 int take,
-                Func<T, string> selector)
+                Func<T, string>? selector)
             {
-                InlineVars = vars;
+                InlineVars = vars ?? ImmutableDictionary<string, InlineVariableNode>.Empty;
                 Predicate = predicate;
                 Order = order;
                 Skip = skip;
@@ -30,11 +30,11 @@ namespace JiiLib.SimpleDsl
             }
 
             public IReadOnlyDictionary<string, InlineVariableNode> InlineVars { get; }
-            public Expression<Func<T, bool>> Predicate { get; }
+            public Expression<Func<T, bool>>? Predicate { get; }
             public ImmutableArray<OrderByExpression<T>> Order { get; }
             public int Skip { get; }
             public int Take { get; }
-            public Func<T, string> Selector { get; }
+            public Func<T, string>? Selector { get; }
 
             public QueryableQueryParseResult<T> ToQueryResult()
             {

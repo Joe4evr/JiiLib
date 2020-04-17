@@ -9,7 +9,7 @@ namespace JiiLib.SimpleDsl
 {
     public partial class QueryInterpreter<T>
     {
-        private static IQueryNode ParseKnownFunction(ReadOnlySpan<char> span, ILinqCache linqCache)
+        private static IQueryNode? ParseKnownFunction(ReadOnlySpan<char> span, ILinqCache linqCache)
         {
             if (span.StartsWith(InfoCache.Count.AsSpan()))
             {
@@ -21,7 +21,8 @@ namespace JiiLib.SimpleDsl
             }
 
             var args = ReadOnlySpan<char>.Empty;
-            (MethodInfo method, string name) = default((MethodInfo, string));
+            (MethodInfo? method, string? name) = default((MethodInfo, string));
+
             if (span.StartsWith(InfoCache.Sum.AsSpan()))
             {
                 args = span.Slice(InfoCache.Sum.Length).VerifyOpenChar('(', InfoCache.Sum).TrimBraces();
@@ -57,7 +58,7 @@ namespace JiiLib.SimpleDsl
                 while (splitter.TryMoveNext(out var item))
                 {
                     var p = item.Materialize();
-                    if (_targetProps.TryGet(p) is PropertyInfo property)
+                    if (_targetProps.TryGet(p) is { } property)
                     {
                         if (property.PropertyType != InfoCache.IntType)
                             throw new InvalidOperationException($"Property '{p}' must be a numeric type to be used in '{name}()'.");

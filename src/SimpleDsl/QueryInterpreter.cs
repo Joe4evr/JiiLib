@@ -5,8 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using JiiLib.SimpleDsl.Nodes;
-
 
 namespace JiiLib.SimpleDsl
 {
@@ -17,6 +15,7 @@ namespace JiiLib.SimpleDsl
     ///     The element type of an <see cref="IEnumerable{T}"/>.
     /// </typeparam>
     public partial class QueryInterpreter<T>
+        where T : notnull
     {
         private static readonly ParameterExpression _targetParamExpr;
         private static readonly ParameterExpression _targetsParamExpr;
@@ -36,9 +35,8 @@ namespace JiiLib.SimpleDsl
         }
 
         private readonly ConcurrentDictionary<Type, INestedInterpreter> _nested = new ConcurrentDictionary<Type, INestedInterpreter>();
-        private readonly QueryModel _model = new QueryModel();
         private readonly ITextFormats _formats;
-        private readonly ConstantExpression _cfgExpr;
+        //private readonly ConstantExpression _cfgExpr;
 
         /// <summary>
         ///     Creates a new interpreter.
@@ -52,7 +50,7 @@ namespace JiiLib.SimpleDsl
         public QueryInterpreter(ITextFormats formats)
         {
             _formats = formats ?? throw new ArgumentNullException(nameof(formats));
-            _cfgExpr = Expression.Constant(_formats);
+            //_cfgExpr = Expression.Constant(_formats);
         }
 
         /// <summary>
@@ -114,76 +112,79 @@ namespace JiiLib.SimpleDsl
 
         private ValueBag ParseFull(string query, ILinqCache linqCache)
         {
-            Expression<Func<T, bool>> predicate = null;
+            var model = new QueryModel();
+
+            Expression<Func<T, bool>>? predicate = null;
             var orders = ImmutableArray.CreateBuilder<OrderByExpression<T>>();
             int skipAmount = 0;
             int takeAmount = 10;
-            Func<T, string> selector = null;
+            Func<T, string>? selector = null;
 
             var span = query.ToLowerInvariant().AsSpan().Trim();
 
-            var opWord = span.SliceUntilFirstUnnested(' ', out var remainder);
+            var opWord = span.SliceToFirstUnnestedWhitespace(out var remainder);
             if (opWord.SequenceEqual(InfoCache.Where.AsSpan()))
             {
                 var matchIdx = remainder.VerifyOpenChar('[', InfoCache.Where).FindMatchingBrace();
-                var whereClause = remainder.Slice(1, matchIdx - 1);
+                var whereClause = remainder[1..matchIdx];
                 remainder = remainder.Slice(matchIdx + 1).Trim();
 
-                predicate = ParseWhereClause(whereClause, linqCache);
+                predicate = ParseWhereClause(whereClause, model, linqCache);
 
-                opWord = remainder.SliceUntilFirstUnnested(' ', out remainder);
+                opWord = remainder.SliceToFirstUnnestedWhitespace(out remainder);
             }
 
             if (opWord.SequenceEqual(InfoCache.OrderBy.AsSpan()))
             {
                 var matchIdx = remainder.VerifyOpenChar('[', InfoCache.OrderBy).FindMatchingBrace();
-                var clauses = remainder.Slice(1, matchIdx - 1);
+                var clauses = remainder[1..matchIdx];
                 remainder = remainder.Slice(matchIdx + 1).Trim();
-                orders.AddRange(ParseOrderByClauses(clauses, linqCache));
+                orders.AddRange(ParseOrderByClauses(clauses, model, linqCache));
 
-                opWord = remainder.SliceUntilFirstUnnested(' ', out remainder);
+                opWord = remainder.SliceToFirstUnnestedWhitespace(out remainder);
             }
 
             if (opWord.SequenceEqual(InfoCache.Skip.AsSpan()))
             {
-                var skipStr = remainder.SliceUntilFirstUnnested(' ', out remainder).Materialize();
+                var skipStr = remainder.SliceToFirstUnnestedWhitespace(out remainder).Materialize();
                 if (!Int32.TryParse(skipStr, out var s))
                     throw new InvalidOperationException();
 
                 skipAmount = s;
 
-                opWord = remainder.SliceUntilFirstUnnested(' ', out remainder);
+                opWord = remainder.SliceToFirstUnnestedWhitespace(out remainder);
             }
 
             if (opWord.SequenceEqual(InfoCache.Take.AsSpan()))
             {
-                var takeStr = remainder.SliceUntilFirstUnnested(' ', out remainder).Materialize();
+                var takeStr = remainder.SliceToFirstUnnestedWhitespace(out remainder).Materialize();
                 if (!Int32.TryParse(takeStr, out var t))
                     throw new InvalidOperationException();
 
                 takeAmount = t;
 
-                opWord = remainder.SliceUntilFirstUnnested(' ', out remainder);
+                opWord = remainder.SliceToFirstUnnestedWhitespace(out remainder);
             }
 
             if (opWord.SequenceEqual(InfoCache.Select.AsSpan()))
             {
                 var matchIdx = remainder.VerifyOpenChar('[', InfoCache.Select).FindMatchingBrace();
-                var selectClause = remainder.Slice(1, matchIdx - 1);
+                var selectClause = remainder[1..matchIdx];
                 remainder = remainder.Slice(matchIdx + 1).Trim();
-                selector = ParseSelectClause(selectClause, linqCache);
+                selector = ParseSelectClause(selectClause, model, linqCache);
 
                 if (!remainder.SequenceEqual(ReadOnlySpan<char>.Empty))
                     throw new InvalidOperationException("Select clause must be the last part of a query.");
             }
 
-            return new ValueBag(_model.InlineVars.ToImmutableDictionary(), predicate, orders.ToImmutable(), skipAmount, takeAmount, selector);
+            return new ValueBag(model.InlineVars.ToImmutableDictionary(), predicate, orders.ToImmutable(), skipAmount, takeAmount, selector);
         }
 
-        private static PropertyInfo Property(string propName)
+        private static PropertyInfo? Property(string propName)
             => (_targetProps.TryGetValue(propName, out var property))
                 ? property : null;
-        private static string ParseVarDecl(ref ReadOnlySpan<char> slice)
+
+        private static string? ParseVarDecl(ref ReadOnlySpan<char> slice)
         {
             if (slice.ContainsUnnested('|', out var idspan))
             {

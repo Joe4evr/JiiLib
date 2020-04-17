@@ -27,21 +27,21 @@ namespace JiiLib.SimpleDsl
                 var IEnumFuncTtoTResultArr = new Type[] { IEnumTSource, Func2.MakeGenericType(new Type[] { TSourceType, TResultType }) };
                 var IOrdEnumFuncTtoTResultArr = new Type[] { typeof(IOrderedEnumerable<>).MakeGenericType(TSourceType), Func2.MakeGenericType(new Type[] { TSourceType, TResultType }) };
 
-                LinqSum = LinqType.GetMethod(nameof(LEnumerable.Sum), IEnumIntTypeArr);
-                LinqMin = LinqType.GetMethod(nameof(LEnumerable.Min), IEnumIntTypeArr);
-                LinqMax = LinqType.GetMethod(nameof(LEnumerable.Max), IEnumIntTypeArr);
-                LinqAverage = LinqType.GetMethod(nameof(LEnumerable.Average), IEnumIntTypeArr);
-                LinqCountOpen = LinqType.GetMethod(nameof(LEnumerable.Count), 1, new Type[] { IEnumTSource });
-                LinqContainsOpen = LinqType.GetMethod(nameof(LEnumerable.Contains), 1, new Type[] { IEnumTSource, TSourceType });
+                LinqSum = LinqType.GetMethod(nameof(LEnumerable.Sum), IEnumIntTypeArr)!;
+                LinqMin = LinqType.GetMethod(nameof(LEnumerable.Min), IEnumIntTypeArr)!;
+                LinqMax = LinqType.GetMethod(nameof(LEnumerable.Max), IEnumIntTypeArr)!;
+                LinqAverage = LinqType.GetMethod(nameof(LEnumerable.Average), IEnumIntTypeArr)!;
+                LinqCountOpen = LinqType.GetMethod(nameof(LEnumerable.Count), 1, new Type[] { IEnumTSource })!;
+                LinqContainsOpen = LinqType.GetMethod(nameof(LEnumerable.Contains), 1, new Type[] { IEnumTSource, TSourceType })!;
 
-                LinqAny = LinqType.GetMethod(nameof(LEnumerable.Any), 1, IEnumGenParamFuncToBoolArr);
-                LinqWhere = LinqType.GetMethod(nameof(LEnumerable.Where), 1, IEnumGenParamFuncToBoolArr);
-                LinqSelect = LinqType.GetMethod(nameof(LEnumerable.Select), 2, IEnumFuncTtoTResultArr);
-                LinqOBOpen = LinqType.GetMethod(nameof(LEnumerable.OrderBy), 2, IEnumFuncTtoTResultArr);
-                LinqOBDOpen = LinqType.GetMethod(nameof(LEnumerable.OrderByDescending), 2, IEnumFuncTtoTResultArr);
-                LinqTBOpen = LinqType.GetMethod(nameof(LEnumerable.ThenBy), 2, IOrdEnumFuncTtoTResultArr);
-                LinqTBDOpen = LinqType.GetMethod(nameof(LEnumerable.ThenByDescending), 2, IOrdEnumFuncTtoTResultArr);
-                IEnumStrContains = LinqType.GetMethod(nameof(LEnumerable.Contains), 1, new Type[] { IEnumTSource, TSourceType, IEqcmpOpenType.MakeGenericType(TSourceType) }).MakeGenericMethod(StrTypeArr);
+                LinqAny = LinqType.GetMethod(nameof(LEnumerable.Any), 1, IEnumGenParamFuncToBoolArr)!;
+                LinqWhere = LinqType.GetMethod(nameof(LEnumerable.Where), 1, IEnumGenParamFuncToBoolArr)!;
+                LinqSelect = LinqType.GetMethod(nameof(LEnumerable.Select), 2, IEnumFuncTtoTResultArr)!;
+                LinqOBOpen = LinqType.GetMethod(nameof(LEnumerable.OrderBy), 2, IEnumFuncTtoTResultArr)!;
+                LinqOBDOpen = LinqType.GetMethod(nameof(LEnumerable.OrderByDescending), 2, IEnumFuncTtoTResultArr)!;
+                LinqTBOpen = LinqType.GetMethod(nameof(LEnumerable.ThenBy), 2, IOrdEnumFuncTtoTResultArr)!;
+                LinqTBDOpen = LinqType.GetMethod(nameof(LEnumerable.ThenByDescending), 2, IOrdEnumFuncTtoTResultArr)!;
+                IEnumStrContains = LinqType.GetMethod(nameof(LEnumerable.Contains), 1, new Type[] { IEnumTSource, TSourceType, IEqcmpOpenType.MakeGenericType(TSourceType) })!.MakeGenericMethod(StrTypeArr);
             }
 
             public Type OpenType { get; } = typeof(IEnumerable<>);

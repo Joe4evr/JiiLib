@@ -17,7 +17,7 @@ namespace JiiLib.SimpleDsl.Nodes
             var funcTToBool = typeof(Func<,>).MakeGenericType(TSourceType, InfoCache.BoolType);
             var checkParamTypesArray = new[] { funcTToBool, TSourceType };
 
-            _checkScalarMethod = typeof(ScalarLambdaNode).GetMethod(nameof(Check), 1, checkParamTypesArray);
+            _checkScalarMethod = typeof(ScalarLambdaNode).GetMethod(nameof(Check), 1, checkParamTypesArray)!;
         }
 
         public PropertyAccessNode Property { get; }

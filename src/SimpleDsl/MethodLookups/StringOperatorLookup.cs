@@ -8,7 +8,7 @@ namespace JiiLib.SimpleDsl
     {
         public static StringOperatorLookup Instance { get; } = new StringOperatorLookup();
 
-        private static readonly MethodInfo _contains = typeof(StringOperatorLookup).GetMethod(nameof(Contains));
+        private static readonly MethodInfo _contains = typeof(StringOperatorLookup).GetMethod(nameof(Contains))!;
 
         private StringOperatorLookup() { }
 
