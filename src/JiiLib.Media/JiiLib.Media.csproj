@@ -2,8 +2,19 @@
   <PropertyGroup>
     <Authors>Joe4evr</Authors>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>8.0</LangVersion>
     <PackageLicenseUrl>http://opensource.org/licenses/MIT</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
     <RootNamespace>JiiLib.Media</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
+    <!--<PackageReference Include="System.Collections.Specialized" Version="4.3.0" />-->
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <!--<ItemGroup>
+    <ProjectReference Include="..\JiiLib\JiiLib.csproj" />
+  </ItemGroup>-->
 </Project>

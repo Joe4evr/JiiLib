@@ -1,31 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using JiiLib.Media;
 
 namespace JiiLib.Media.Metadata.Vorbis
 {
-    public abstract class VorbisComment<TFile> : Tag<TFile> where TFile : VorbisFile
+    public abstract class VorbisComment<TFile> : MediaTag<TFile>
+        where TFile : VorbisFile
     {
-        #region protected/private fields
-        protected static readonly Encoding enc = Encoding.UTF8;
-        protected IList<string> _artists;
-        #endregion
+        protected static readonly Encoding Enc = Encoding.UTF8;
 
-        public VorbisComment()
-        {
-            _artists = new List<string>();
-        }
+        protected IList<string> Artists { get; private set; } = new List<string>();
 
         public override string Title { get; protected set; }
-        
+
         public override string Artist
         {
-            get { return String.Join(", ", _artists); }
-            protected set { _artists = new List<string> { value }; }
+            get => String.Join(", ", Artists);
+            protected set
+            {
+                if (value is null)
+                {
+                    Artists = new List<string>();
+                    return;
+                }
+
+                Artists = new List<string> { value };
+            }
         }
 
         public override int? Year { get; protected set; }
@@ -139,62 +140,70 @@ namespace JiiLib.Media.Metadata.Vorbis
         //}
         protected void AssignFields(string field, string value)
         {
-            switch (field)
+            switch (field.ToUpperInvariant())
             {
                 case "TITLE":
-                case "title":
-                    this.Title = value;
+                    Title = value;
                     break;
                 case "ARTIST":
-                case "artist":
-                    this.Artist = value;
+                    Artists.Add(value);
                     break;
                 case "DATE":
-                case "date":
-                    this.Year = Int32.Parse(value);
+                    Year = TryParseInt(value);
                     break;
                 case "GENRE":
-                case "genre":
-                    this.Genre = value;
+                    Genre = value;
                     break;
                 case "ALBUM":
-                case "album":
-                    this.Album = value;
+                    Album = value;
                     break;
                 case "ALBUMARTIST":
-                case "albumartist":
-                    this.AlbumArtist = value;
+                    AlbumArtist = value;
                     break;
                 case "TRACKNUMBER":
-                case "tracknumber":
-                    this.TrackNumber = Int32.Parse(value);
+                    var tracks = TryParseMultiInt(value);
+                    TrackNumber = tracks[0];
+                    if (tracks.Length >= 2)
+                        TotalTracks = tracks[1];
                     break;
                 case "TRACKTOTAL":
-                case "tracktotal":
                 case "TOTALTRACKS":
-                case "totaltracks":
-                    this.TotalTracks = Int32.Parse(value);
+                    TotalTracks = TryParseInt(value);
                     break;
                 case "DISCNUMBER":
-                case "discnumber":
-                    this.DiscNumber = Int32.Parse(value);
+                    var discs = TryParseMultiInt(value);
+                    DiscNumber = discs[0];
+                    if (discs.Length >= 2)
+                        TotalDiscs = discs[1];
                     break;
-                case "TOTALDISCS":
-                case "totaldiscs":
-                    this.TotalDiscs = Int32.Parse(value);
-                    break;
+                //case "TOTALDISCS":
+                //    TotalDiscs = TryParseInt(value);
+                //    break;
                 case "COMMENT":
-                case "comment":
-                    this.Comment = value;
+                    Comment = value;
                     break;
                 default:
                     break;
+            }
+
+            static int? TryParseInt(string s)
+                => Int32.TryParse(s, out var i) ? i : (int?)null;
+
+            static int?[] TryParseMultiInt(string s)
+            {
+                var parts = s.Split('/');
+                var vals = new int?[parts.Length];
+                for (int i = 0; i < parts.Length; i++)
+                    vals[i] = TryParseInt(parts[i]);
+
+                return vals;
             }
         }
     }
 
     public abstract class VorbisFile : MediaFile
     {
-        public VorbisFile(string path) : base(path) { }
+        protected VorbisFile(FileInfo fileInfo) : base(fileInfo) { }
+        protected VorbisFile(string path) : base(path) { }
     }
 }

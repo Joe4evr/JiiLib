@@ -4,29 +4,28 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using JiiLib.Media.Internal;
 using JiiLib.Media.Metadata.Vorbis;
 
 namespace JiiLib.Media.Metadata.Flac
 {
-    public class FlacTag : VorbisComment<FlacFile>
+    public sealed class FlacTag : VorbisComment<FlacFile>
     {
-        #region ctors
         public FlacTag(FlacFile file)
         {
             ReadComments(file);
         }
 
-        private FlacTag()
-        {
-        }
+        private FlacTag() { }
+
+        private string _reference;
 
         /// <summary>
-        /// Create an <see cref="FlacTag"/> tag from an existing tag.
+        ///     Creates a <see cref="FlacTag"/> tag from an existing tag.
         /// </summary>
-        /// <typeparam name="TFile"></typeparam>
         /// <param name="tag"></param>
         /// <returns></returns>
-        public static FlacTag FromTag<TFile>(Tag<TFile> tag) where TFile : MediaFile
+        public static FlacTag FromTag(MediaTag tag)
         {
             return new FlacTag
             {
@@ -43,73 +42,78 @@ namespace JiiLib.Media.Metadata.Flac
                 Comment = tag.Comment
             };
         }
-        #endregion
 
-        public override void WriteTo(FlacFile file)
-        {
-            throw new NotImplementedException();
-        }
+        //public override void WriteTo(FlacFile file)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         private void ReadComments(FlacFile file)
         {
-            var headBuffer = new byte[4];
+            var dataBlock = GetDataBlock(file);
+            using var ms = new MemoryStream(dataBlock, writable: false);
+            using var reader = new BinaryReader(ms);
 
-            using (FileStream fs = new FileStream(file.Path, FileMode.Open, FileAccess.Read))
+            while (ms.Position < ms.Length)
             {
-                fs.Read(headBuffer, 0, 4);
-                if (!headBuffer.StartsWith(new byte[] { 0x66, 0x4C, 0x61, 0x43 })) //"fLaC"
+                int l = reader.ReadInt32();
+
+                Span<byte> tag = (l <= 64)
+                    ? stackalloc byte[l]
+                    : new byte[l];
+
+                reader.Read(tag);
+                var s = Enc.GetString(tag);
+
+                if (s.StartsWith("reference", StringComparison.OrdinalIgnoreCase))
                 {
-                    throw new InvalidDataException("File was not in a correct format.");
+                    _reference = s;
+                    reader.ReadBytes(4); //need to advance 4 extra bytes for some reason ¯\_(ツ)_/¯
+                    continue;
                 }
-                
-                bool lastBlock = false;
-                while (!lastBlock)
+
+                var tagParts = s.Split('=');
+                if (tagParts.Length == 2)
                 {
-                    var blh = (byte)fs.ReadByte();
+                    AssignFields(tagParts[0], tagParts[1]);
+                }
+            }
+
+            static byte[] GetDataBlock(FlacFile file)
+            {
+                using var fs = file.File.OpenRead();
+                using var reader = new BinaryReader(fs);
+
+                Span<byte> head = stackalloc byte[4];
+                reader.Read(head);
+
+                ReadOnlySpan<byte> flac = stackalloc byte[] { 0x66, 0x4C, 0x61, 0x43 }; //"fLaC"
+                if (!flac.SequenceEqual(head))
+                    throw new InvalidDataException("Data not a Flac tag.");
+
+                bool lastBlock = false;
+                do
+                {
+                    var blh = reader.ReadByte();
                     var blockType = blh % 128;
-                    var len = new byte[3];
                     lastBlock = blh >= 128;
-                    fs.Read(len, 0, 3);
-                    var length = (len[0] << 16) + (len[1] << 8) + len[2];
+                    var length = reader.ReadInt24();
                     var metadataBlock = new byte[length];
-                    fs.Read(metadataBlock, 0, length);
+                    reader.Read(metadataBlock);
 
                     if (blockType == 4)
-                    {
-                        using (MemoryStream ms = new MemoryStream(metadataBlock, writable: false))
-                        {
-                            var first = true;
-                            while (ms.Position < ms.Length)
-                            {
-                                var h = new byte[4];
-                                ms.Read(h, 0, 4);
-                                int l = (h[3] << 24) + (h[2] << 16) + (h[1] << 8) + h[0];
-
-                                var tag = new byte[l];
-                                ms.Read(tag, 0, l);
-                                var s = new String(enc.GetChars(tag));
-
-                                var t = s.Split('=');
-                                if (t.Length == 2)
-                                {
-                                    AssignFields(t[0], t[1]);
-                                }
-
-                                if (first)
-                                {
-                                    ms.Read(new byte[4], 0, 4);
-                                    first = false;
-                                }
-                            }
-                        }
-                    }
+                        return metadataBlock;
                 }
+                while (!lastBlock);
+
+                return Array.Empty<byte>();
             }
         }
     }
 
-    public class FlacFile : VorbisFile
+    public sealed class FlacFile : VorbisFile
     {
+        public FlacFile(FileInfo fileInfo) : base(fileInfo) { }
         public FlacFile(string path) : base(path) { }
     }
 }

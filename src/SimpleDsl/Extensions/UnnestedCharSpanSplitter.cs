@@ -16,8 +16,8 @@ namespace JiiLib.SimpleDsl
         }
 
         [DebuggerStepThrough]
-        public UnnestedCharSpanSplitter(ReadOnlySpan<char> span, char seperator)
-            : this(span, c => c == seperator)
+        public UnnestedCharSpanSplitter(ReadOnlySpan<char> span, char separator)
+            : this(span, c => c == separator)
         {
         }
 

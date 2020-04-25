@@ -197,3 +197,6 @@ FakesAssemblies/
 *.opt
 
 build.cmd
+*.flac
+*.mp3
+*.ogg

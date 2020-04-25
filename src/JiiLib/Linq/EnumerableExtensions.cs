@@ -40,7 +40,7 @@ namespace JiiLib.Linq
                 while (!(boxSum < n * ((Byte.MaxValue * box.Length) / n)));
                 int k = (boxSum % n);
                 n--;
-                T value = buffer[k];
+                var value = buffer[k];
                 buffer[k] = buffer[n];
                 buffer[n] = value;
             }
@@ -49,7 +49,7 @@ namespace JiiLib.Linq
         }
 
         /// <summary>
-        ///     Indicates whether a <see cref="IEnumerable{string}"/> contains a given string case-invariantly.
+        ///     Indicates whether a <see cref="IEnumerable{String}"/> contains a given string case-invariantly.
         /// </summary>
         /// <param name="haystack">
         ///     The collection of strings.

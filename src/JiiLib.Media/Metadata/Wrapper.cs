@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿//using System;
+//using System.Collections.Generic;
+//using System.Linq;
+//using System.Threading.Tasks;
 
-namespace JiiLib.Media.Metadata
-{
-    internal class Wrapper<T>
-    {
-        internal T Value { get; }
+//namespace JiiLib.Media.Metadata
+//{
+//    internal class Wrapper<T>
+//    {
+//        internal T Value { get; }
 
-        internal Wrapper(T item)
-        {
-            Value = item;
-        }
-    }
-}
+//        internal Wrapper(T item)
+//        {
+//            Value = item;
+//        }
+//    }
+//}
