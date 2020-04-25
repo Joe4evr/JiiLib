@@ -54,6 +54,10 @@ namespace JiiLib.Media.Metadata.Flac
         private void ReadComments(FlacFile file)
         {
             var dataBlock = GetDataBlock(file);
+            if (dataBlock.Length == 0)
+                throw new ArgumentException("No VorbisComment metadata block found.");
+
+
             using var ms = new MemoryStream(dataBlock, writable: false);
             using var reader = new BinaryReader(ms);
 
@@ -98,13 +102,13 @@ namespace JiiLib.Media.Metadata.Flac
                 do
                 {
                     var blh = reader.ReadByte();
-                    var blockType = blh % 128;
-                    lastBlock = blh >= 128;
+                    var blockType = (FlacMetadataBlockType)(blh % 128);
+                    lastBlock = blh >= 128; // highest bit set = last block
                     var length = reader.ReadInt24();
                     var metadataBlock = new byte[length];
                     reader.Read(metadataBlock);
 
-                    if (blockType == 4)
+                    if (blockType == FlacMetadataBlockType.VorbisComment)
                         return metadataBlock;
                 }
                 while (!lastBlock);

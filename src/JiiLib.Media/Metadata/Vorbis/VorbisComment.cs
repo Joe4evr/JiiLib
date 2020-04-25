@@ -144,6 +144,7 @@ namespace JiiLib.Media.Metadata.Vorbis
         //        _artists = artists;
         //    }
         //}
+
         protected void AssignFields(string field, string value)
         {
             switch (field.ToUpperInvariant())
