@@ -8,71 +8,71 @@ namespace JiiLib.Media
     /// <summary>
     /// 
     /// </summary>
-    public abstract class MediaTag
+    public interface IMediaTag
     {
         /// <summary>
         ///     Value of the Title tag
         /// </summary>
-        public abstract string Title { get; protected set; }
+        string? Title { get; }
 
         /// <summary>
         ///     Value of the Artist tag
         /// </summary>
-        public abstract string Artist { get; protected set; }
+        string? Artist { get; }
 
         /// <summary>
         ///     Value of the Year tag
         /// </summary>
-        public abstract int? Year { get; protected set; }
+        int? Year { get; }
 
         /// <summary>
         ///     Value of the Genre tag
         /// </summary>
-        public abstract string Genre { get; protected set; }
+        string? Genre { get; }
 
         /// <summary>
         ///     Value of the Album tag
         /// </summary>
-        public abstract string Album { get; protected set; }
+        string? Album { get; }
 
         /// <summary>
         ///     Value of the AlbumArtist tag
         /// </summary>
-        public abstract string AlbumArtist { get; protected set; }
+        string? AlbumArtist { get; }
 
         /// <summary>
         ///     Value of the TrackNumber tag
         /// </summary>
-        public abstract int? TrackNumber { get; protected set; }
+        int? TrackNumber { get; }
 
         /// <summary>
         ///     Value of the TotalTracks tag
         /// </summary>
-        public abstract int? TotalTracks { get; protected set; }
+        int? TotalTracks { get; }
 
         /// <summary>
         ///     Value of the DiscNumber tag
         /// </summary>
-        public abstract int? DiscNumber { get; protected set; }
+        int? DiscNumber { get; }
 
         /// <summary>
         ///     Value of the TotalDiscs tag
         /// </summary>
-        public abstract int? TotalDiscs { get; protected set; }
+        int? TotalDiscs { get; }
 
         /// <summary>
         ///     Value of the Comment tag
         /// </summary>
-        public abstract string Comment { get; protected set; }
+        string? Comment { get; }
 
-        internal MediaTag() { }
+        //internal IMediaTag() { }
 
-        public static MediaTag Parse(string path)
+        public static IMediaTag Parse(string path)
         {
             return GetTagFromFile(MediaFile.Parse(path));
         }
 
-        public static MediaTag GetTagFromFile(MediaFile file)
+        public static IMediaTag GetTagFromFile(MediaFile file)
         {
             if (file is null) throw new ArgumentNullException(nameof(file));
 
@@ -91,10 +91,10 @@ namespace JiiLib.Media
     /// </summary>
     /// <typeparam name="TFile">
     /// </typeparam>
-    public abstract class MediaTag<TFile> : MediaTag
+    public interface IMediaTag<TFile> : IMediaTag
         where TFile : MediaFile
     {
-        internal MediaTag() { }
+        TFile? File { get; }
 
         //public static implicit operator Wrapper<MediaTag<TFile>>()
         //public abstract void WriteTo(TFile file);

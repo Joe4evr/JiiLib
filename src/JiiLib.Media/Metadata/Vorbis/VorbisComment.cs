@@ -1,20 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
 namespace JiiLib.Media.Metadata.Vorbis
 {
-    public abstract class VorbisComment<TFile> : MediaTag<TFile>
+    public abstract class VorbisComment<TFile> : IMediaTag<TFile>
         where TFile : VorbisFile
     {
         protected static readonly Encoding Enc = Encoding.UTF8;
 
+        public TFile? File { get; }
+
+        protected VorbisComment(TFile? file)
+        {
+            File = file;
+        }
+
         protected IList<string> Artists { get; private set; } = new List<string>();
 
-        public override string Title { get; protected set; }
+        public string? Title { get; protected set; }
 
-        public override string Artist
+        public string? Artist
         {
             get => String.Join(", ", Artists);
             protected set
@@ -29,23 +35,23 @@ namespace JiiLib.Media.Metadata.Vorbis
             }
         }
 
-        public override int? Year { get; protected set; }
+        public int? Year { get; protected set; }
 
-        public override string Genre { get; protected set; }
+        public string? Genre { get; protected set; }
 
-        public override string Album { get; protected set; }
+        public string? Album { get; protected set; }
 
-        public override string AlbumArtist { get; protected set; }
+        public string? AlbumArtist { get; protected set; }
 
-        public override int? TrackNumber { get; protected set; }
+        public int? TrackNumber { get; protected set; }
 
-        public override int? TotalTracks { get; protected set; }
+        public int? TotalTracks { get; protected set; }
 
-        public override int? DiscNumber { get; protected set; }
+        public int? DiscNumber { get; protected set; }
 
-        public override int? TotalDiscs { get; protected set; }
+        public int? TotalDiscs { get; protected set; }
 
-        public override string Comment { get; protected set; }
+        public string? Comment { get; protected set; }
 
         //protected void ReadComments(VorbisFile file, byte[] targetHeader)
         //{
@@ -176,9 +182,10 @@ namespace JiiLib.Media.Metadata.Vorbis
                     if (discs.Length >= 2)
                         TotalDiscs = discs[1];
                     break;
-                //case "TOTALDISCS":
-                //    TotalDiscs = TryParseInt(value);
-                //    break;
+                case "TOTALDISCS":
+                case "DISCTOTAL":
+                    TotalDiscs = TryParseInt(value);
+                    break;
                 case "COMMENT":
                     Comment = value;
                     break;
@@ -199,11 +206,5 @@ namespace JiiLib.Media.Metadata.Vorbis
                 return vals;
             }
         }
-    }
-
-    public abstract class VorbisFile : MediaFile
-    {
-        protected VorbisFile(FileInfo fileInfo) : base(fileInfo) { }
-        protected VorbisFile(string path) : base(path) { }
     }
 }

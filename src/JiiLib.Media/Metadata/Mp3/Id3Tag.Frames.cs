@@ -5,72 +5,72 @@ using JiiLib.Media.Internal;
 
 namespace JiiLib.Media.Metadata.Mp3
 {
-    public sealed partial class Id3Tag : MediaTag<Mp3File>
+    public sealed partial class Id3Tag : IMediaTag<Mp3File>
     {
-        public override string Title
+        public string? Title
         {
             get => GetStringFrame(HeaderIds.TIT2);
-            protected set => SetStringFrame(HeaderIds.TIT2, value);
+            private set => SetStringFrame(HeaderIds.TIT2, value);
         }
-        public override string Artist
+        public string? Artist
         {
             get => GetStringFrame(HeaderIds.TPE1);
-            protected set => SetStringFrame(HeaderIds.TPE1, value);
+            private set => SetStringFrame(HeaderIds.TPE1, value);
         }
-        public override int? Year
+        public int? Year
         {
             get => GetSingleIntFrame(HeaderIds.TYER);
-            protected set => SetSingleIntFrame(HeaderIds.TYER, value);
+            private set => SetSingleIntFrame(HeaderIds.TYER, value);
         }
-        public override string Genre
+        public string? Genre
         {
             get => GetStringFrame(HeaderIds.TCON);
-            protected set => SetStringFrame(HeaderIds.TCON, value);
+            private set => SetStringFrame(HeaderIds.TCON, value);
         }
-        public override string Album
+        public string? Album
         {
             get => GetStringFrame(HeaderIds.TALB);
-            protected set => SetStringFrame(HeaderIds.TALB, value);
+            private set => SetStringFrame(HeaderIds.TALB, value);
         }
-        public override string AlbumArtist
+        public string? AlbumArtist
         {
             get => GetStringFrame(HeaderIds.TPE2);
-            protected set => SetStringFrame(HeaderIds.TPE2, value);
+            private set => SetStringFrame(HeaderIds.TPE2, value);
         }
-        public override int? TrackNumber
+        public int? TrackNumber
         {
-            get => GetMultiIntFrame(HeaderIds.TRCK)[0];
-            protected set => SetMultiIntFrame(HeaderIds.TRCK, new Optional<int?>(value), default);
+            get => GetMultiIntFrame(HeaderIds.TRCK)?[0];
+            private set => SetMultiIntFrame(HeaderIds.TRCK, new Optional<int?>(value), default);
         }
-        public override int? TotalTracks
+        public int? TotalTracks
         {
-            get => GetMultiIntFrame(HeaderIds.TRCK)[1];
-            protected set => SetMultiIntFrame(HeaderIds.TRCK, default, new Optional<int?>(value));
+            get => GetMultiIntFrame(HeaderIds.TRCK)?[1];
+            private set => SetMultiIntFrame(HeaderIds.TRCK, default, new Optional<int?>(value));
         }
-        public override int? DiscNumber
+        public int? DiscNumber
         {
-            get => GetMultiIntFrame(HeaderIds.TPOS)[0];
-            protected set => SetMultiIntFrame(HeaderIds.TPOS, new Optional<int?>(value), default);
+            get => GetMultiIntFrame(HeaderIds.TPOS)?[0];
+            private set => SetMultiIntFrame(HeaderIds.TPOS, new Optional<int?>(value), default);
         }
-        public override int? TotalDiscs
+        public int? TotalDiscs
         {
-            get => GetMultiIntFrame(HeaderIds.TPOS)[1];
-            protected set => SetMultiIntFrame(HeaderIds.TPOS, default, new Optional<int?>(value));
+            get => GetMultiIntFrame(HeaderIds.TPOS)?[1];
+            private set => SetMultiIntFrame(HeaderIds.TPOS, default, new Optional<int?>(value));
         }
-        public override string Comment
+        public string? Comment
         {
             get => GetStringFrame(HeaderIds.COMM);
-            protected set => SetStringFrame(HeaderIds.COMM, value);
+            private set => SetStringFrame(HeaderIds.COMM, value);
         }
 
-        private string GetStringFrame(string frameId)
+        private string? GetStringFrame(string frameId)
             => Frames.GetValueOrDefault(frameId)?.AsString();
         private int? GetSingleIntFrame(string frameId)
             => Frames.GetValueOrDefault(frameId)?.AsSingleInt();
-        private int?[] GetMultiIntFrame(string frameId)
+        private int?[]? GetMultiIntFrame(string frameId)
             => Frames.GetValueOrDefault(frameId)?.AsMultiInt();
 
-        private void SetStringFrame(string frameId, string value)
+        private void SetStringFrame(string frameId, string? value)
         {
             if (value is null)
             {

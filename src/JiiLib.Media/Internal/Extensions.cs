@@ -37,6 +37,9 @@ namespace JiiLib.Media.Internal
             return result;
         }
 
+        /// <summary>
+        ///     ¯\_(ツ)_/¯
+        /// </summary>
         public static int ReadInt24(this BinaryReader reader)
         {
             Span<byte> buffer = stackalloc byte[3];

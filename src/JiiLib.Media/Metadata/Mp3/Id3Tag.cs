@@ -11,6 +11,7 @@ namespace JiiLib.Media.Metadata.Mp3
     /// </summary>
     public sealed partial class Id3Tag
     {
+        public Mp3File? File { get; }
         public Id3Header Header { get; }
         public Dictionary<string, Id3Frame> Frames { get; }
 
@@ -27,6 +28,8 @@ namespace JiiLib.Media.Metadata.Mp3
         /// </param>
         public Id3Tag(Mp3File file)
         {
+            File = file ?? throw new ArgumentNullException(nameof(file));
+
             Header = ReadHeader(file);
             Frames = (Header.Size > 0)
                 ? ReadFrames(file, Header)
@@ -35,7 +38,6 @@ namespace JiiLib.Media.Metadata.Mp3
 
         private Id3Tag()
         {
-            //_backCompat = backCompat;
             Frames = new Dictionary<string, Id3Frame>();
         }
 
@@ -44,7 +46,7 @@ namespace JiiLib.Media.Metadata.Mp3
         ///     copies the most common properties from it to this instance.
         /// </summary>
         /// <param name="tag">
-        ///     An existing <see cref="MediaTag{TFile}"/>.
+        ///     An existing <see cref="IMediaTag{TFile}"/>.
         /// </param>
         /// <param name="backCompat">
         ///     Specify whether or not to set this instance
@@ -53,7 +55,7 @@ namespace JiiLib.Media.Metadata.Mp3
         /// <returns>
         ///     An <see cref="Id3Tag"/> tag with several properties set.
         /// </returns>
-        public static Id3Tag FromTag(MediaTag tag)
+        public static Id3Tag FromTag(IMediaTag tag)
             => new Id3Tag()
                 {
                     Title = tag.Title,
@@ -139,7 +141,7 @@ namespace JiiLib.Media.Metadata.Mp3
         {
             if (file == null) throw new ArgumentNullException(nameof(file));
 
-            using var fs = file.File.OpenRead();
+            using var fs = file.FileInfo.OpenRead();
             using var reader = new BinaryReader(fs);
 
             Span<byte> head = stackalloc byte[3];
@@ -161,7 +163,7 @@ namespace JiiLib.Media.Metadata.Mp3
             var frames = new Dictionary<string, Id3Frame>();
             var buffer = new byte[header.Size];
 
-            using (var fs = file.File.OpenRead())
+            using (var fs = file.FileInfo.OpenRead())
             {
                 fs.Position = 10;
                 fs.Read(buffer);
@@ -188,11 +190,5 @@ namespace JiiLib.Media.Metadata.Mp3
 
             return frames;
         }
-    }
-
-    public sealed class Mp3File : MediaFile
-    {
-        public Mp3File(FileInfo fileInfo) : base(fileInfo) { }
-        public Mp3File(string path) : base(path) { }
     }
 }

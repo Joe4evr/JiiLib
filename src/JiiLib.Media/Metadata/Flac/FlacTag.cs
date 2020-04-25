@@ -12,20 +12,23 @@ namespace JiiLib.Media.Metadata.Flac
     public sealed class FlacTag : VorbisComment<FlacFile>
     {
         public FlacTag(FlacFile file)
+            : base(file)
         {
             ReadComments(file);
         }
 
-        private FlacTag() { }
+        private FlacTag()
+            : base(null) { }
 
-        private string _reference;
+        private string? _reference;
+        private int _tags;
 
         /// <summary>
         ///     Creates a <see cref="FlacTag"/> tag from an existing tag.
         /// </summary>
         /// <param name="tag"></param>
         /// <returns></returns>
-        public static FlacTag FromTag(MediaTag tag)
+        public static FlacTag FromTag(IMediaTag tag)
         {
             return new FlacTag
             {
@@ -56,23 +59,23 @@ namespace JiiLib.Media.Metadata.Flac
 
             while (ms.Position < ms.Length)
             {
-                int l = reader.ReadInt32();
+                int length = reader.ReadInt32();
 
-                Span<byte> tag = (l <= 64)
-                    ? stackalloc byte[l]
-                    : new byte[l];
+                Span<byte> tag = (length <= 64)
+                    ? stackalloc byte[length]
+                    : new byte[length];
 
                 reader.Read(tag);
-                var s = Enc.GetString(tag);
+                var tagString = Enc.GetString(tag);
 
-                if (s.StartsWith("reference", StringComparison.OrdinalIgnoreCase))
+                if (tagString.StartsWith("reference", StringComparison.OrdinalIgnoreCase))
                 {
-                    _reference = s;
-                    reader.ReadBytes(4); //need to advance 4 extra bytes for some reason ¯\_(ツ)_/¯
+                    _reference = tagString;
+                    _tags = reader.ReadInt32();
                     continue;
                 }
 
-                var tagParts = s.Split('=');
+                var tagParts = tagString.Split('=');
                 if (tagParts.Length == 2)
                 {
                     AssignFields(tagParts[0], tagParts[1]);
@@ -81,7 +84,7 @@ namespace JiiLib.Media.Metadata.Flac
 
             static byte[] GetDataBlock(FlacFile file)
             {
-                using var fs = file.File.OpenRead();
+                using var fs = file.FileInfo.OpenRead();
                 using var reader = new BinaryReader(fs);
 
                 Span<byte> head = stackalloc byte[4];
@@ -106,14 +109,8 @@ namespace JiiLib.Media.Metadata.Flac
                 }
                 while (!lastBlock);
 
-                return Array.Empty<byte>();
+                return Array.Empty<byte>(); // ¯\_(ツ)_/¯
             }
         }
-    }
-
-    public sealed class FlacFile : VorbisFile
-    {
-        public FlacFile(FileInfo fileInfo) : base(fileInfo) { }
-        public FlacFile(string path) : base(path) { }
     }
 }

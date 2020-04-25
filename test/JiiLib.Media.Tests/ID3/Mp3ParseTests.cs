@@ -20,7 +20,7 @@ namespace JiiLib.Media.Tests.Mp3
             Assert.NotNull(mediaFile);
             Assert.IsType<Mp3File>(mediaFile);
 
-            var tags = MediaTag.GetTagFromFile(mediaFile);
+            var tags = IMediaTag.GetTagFromFile(mediaFile);
 
             Assert.NotNull(tags);
             Assert.IsType<Id3Tag>(tags);

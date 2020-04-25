@@ -20,7 +20,7 @@ namespace JiiLib.Media.Tests.Flac
             Assert.NotNull(mediaFile);
             Assert.IsType<FlacFile>(mediaFile);
 
-            var tags = MediaTag.GetTagFromFile(mediaFile);
+            var tags = IMediaTag.GetTagFromFile(mediaFile);
 
             Assert.NotNull(tags);
             Assert.IsType<FlacTag>(tags);

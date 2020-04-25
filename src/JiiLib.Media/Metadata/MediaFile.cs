@@ -8,11 +8,11 @@ namespace JiiLib.Media
 {
     public abstract class MediaFile
     {
-        public FileInfo File { get; }
+        public FileInfo FileInfo { get; }
 
         protected MediaFile(FileInfo file)
         {
-            File = file ?? throw new ArgumentNullException(nameof(file));
+            FileInfo = file ?? throw new ArgumentNullException(nameof(file));
         }
 
         protected MediaFile(string path)
@@ -20,7 +20,7 @@ namespace JiiLib.Media
             if (path == null) throw new ArgumentNullException(nameof(path));
             if (!System.IO.File.Exists(path)) throw new ArgumentException("File does not exist or was an invalid path.", nameof(path));
 
-            File = new FileInfo(path);
+            FileInfo = new FileInfo(path);
         }
 
         public static MediaFile Parse(FileInfo file)
