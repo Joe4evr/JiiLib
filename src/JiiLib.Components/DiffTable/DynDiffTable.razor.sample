@@ -1,0 +1,29 @@
+﻿@*@namespace JiiLib.Components.Diff
+@using JiiLib.Collections
+
+@inject IDiffListRepository<string> Repo
+
+@if (_diffList is null) { }
+else
+{
+    <DiffTable Title="@Title" DiffList="@_diffList" />
+}
+
+@code
+{
+    [Parameter] public string Title { private get; set; } = "";
+    [Parameter] public string? ListId { private get; set; }
+
+    private KeyedDiffList<string>? _diffList;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_diffList is { })
+            return;
+
+        if (ListId is { } id)
+        {
+            _diffList = await Repo.GetListAsync(id);
+        }
+    }
+}*@

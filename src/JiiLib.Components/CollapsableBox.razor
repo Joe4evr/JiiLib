@@ -1,0 +1,34 @@
+﻿<div class="collapsable-box w-50">
+    <div class="title p-2" @onclick="ToggleCollapse">
+        <span class="oi @ArrowStatus iconic-sm chev" aria-hidden="true"></span>
+        <span>@Title @ClickStatus</span>
+    </div>
+    <div class="content @DisplayStatus pr-3">
+        @ChildContent
+    </div>
+</div>
+
+@code
+{
+    /// <summary>
+    ///     Sets the title to appear in the top of the box.
+    /// </summary>
+    [Parameter] public string Title { private get; set; } = String.Empty;
+
+    /// <summary>
+    ///     Sets wether or not to start this box as collapsed.
+    ///     Default is <see cref="false"/>.
+    /// </summary>
+    [Parameter] public bool StartCollapsed { set => _isCollapsed = value; }
+
+    /// <summary>
+    ///     Sets the content to render inside the box.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { private get; set; }
+
+    private bool _isCollapsed = false;
+    private void ToggleCollapse() => _isCollapsed = !_isCollapsed;
+    private string? DisplayStatus => _isCollapsed ? "collapse" : null;
+    private string ClickStatus => _isCollapsed ? "(Click to reveal)" : "(Click to collapse)";
+    private string ArrowStatus => _isCollapsed ? "oi-chevron-right" : "oi-chevron-bottom";
+}

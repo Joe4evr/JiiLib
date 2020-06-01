@@ -1,0 +1,24 @@
+﻿@namespace JiiLib.Components.Diff
+@using JiiLib.Collections
+
+@if (DValue is null) { }
+else if (DValue.IsSingleValue)
+{
+    <div>
+        @DValue.Value
+    </div>
+}
+else
+{
+    @foreach (var subValue in DValue.Values)
+    {
+        <div>
+            @subValue
+        </div>
+    }
+}
+
+@code
+{
+    [Parameter] public DiffValue? DValue { private get; set; }
+}
