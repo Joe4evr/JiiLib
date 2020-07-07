@@ -15,13 +15,11 @@ namespace JiiLib.Media.Tests.Mp3
 
             Assert.True(fileInfo.Exists);
 
-            var mediaFile = MediaFile.Parse(fileInfo);
-
+            Assert.True(MediaFile.TryParse(fileInfo, out var mediaFile));
             Assert.NotNull(mediaFile);
             Assert.IsType<Mp3File>(mediaFile);
 
-            var tags = IMediaTag.GetTagFromFile(mediaFile);
-
+            Assert.True(MediaTag.TryReadTagFromFile(mediaFile, out var tags));
             Assert.NotNull(tags);
             Assert.IsType<Id3Tag>(tags);
 

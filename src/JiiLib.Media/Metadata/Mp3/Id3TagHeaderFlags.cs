@@ -2,6 +2,9 @@
 
 namespace JiiLib.Media.Metadata.Mp3
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [Flags]
     public enum Id3TagHeaderFlags : byte
     {

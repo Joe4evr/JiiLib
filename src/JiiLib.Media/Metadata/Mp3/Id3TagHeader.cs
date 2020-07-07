@@ -2,31 +2,34 @@
 
 namespace JiiLib.Media.Metadata.Mp3
 {
+    /// <summary>
+    ///     Represents the header of an ID3 tag.
+    /// </summary>
     public readonly struct Id3Header
     {
         /// <summary>
-        ///     The Major version of this ID3v2 tag
+        ///     The Major version of this ID3 tag
         /// </summary>
         public byte MajorVersion { get; }
 
         /// <summary>
-        ///     The Minor version of this ID3v2 tag
+        ///     The Minor version of this ID3 tag
         /// </summary>
         public byte MinorVersion { get; }
 
         /// <summary>
-        ///     The flags that are set on this ID3v2 tag
+        ///     The flags that are set on this ID3 tag
         /// </summary>
         public Id3TagHeaderFlags Flags { get; }
 
         /// <summary>
-        ///     The total size of the entire ID3v2 tag, excluding the header.
+        ///     The total size of the entire ID3 tag, excluding the header.
         ///     This is represented as the actual size converted from the "synchsafe" format.
         /// </summary>
         public int Size { get; }
         
         /// <summary>
-        ///     Instantiates an object that represents an ID3v2 header.
+        ///     Instantiates an object that represents an ID3 header.
         /// </summary>
         /// <param name="major">
         ///     The major verson.

@@ -2,6 +2,9 @@
 
 namespace JiiLib.Media.Metadata.Mp3
 {
+    /// <summary>
+    ///     S
+    /// </summary>
     [Flags]
     public enum Id3FrameFlags : ushort
     {

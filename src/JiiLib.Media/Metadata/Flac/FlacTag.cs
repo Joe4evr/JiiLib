@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -21,7 +22,7 @@ namespace JiiLib.Media.Metadata.Flac
             : base(null) { }
 
         private string? _reference;
-        private int _tags;
+        private int _tagsNum;
 
         /// <summary>
         ///     Creates a <see cref="FlacTag"/> tag from an existing tag.
@@ -61,29 +62,33 @@ namespace JiiLib.Media.Metadata.Flac
             using var ms = new MemoryStream(dataBlock, writable: false);
             using var reader = new BinaryReader(ms);
 
+            Span<byte> stackBuffer = stackalloc byte[64];
+
             while (ms.Position < ms.Length)
             {
                 int length = reader.ReadInt32();
 
-                Span<byte> tag = (length <= 64)
-                    ? stackalloc byte[length]
+                var tagBuffer = ((uint)length <= 64)
+                    ? stackBuffer[..length]
                     : new byte[length];
 
-                reader.Read(tag);
-                var tagString = Enc.GetString(tag);
+                reader.Read(tagBuffer);
+                var tagString = Enc.GetString(tagBuffer);
 
                 if (tagString.StartsWith("reference", StringComparison.OrdinalIgnoreCase))
                 {
                     _reference = tagString;
-                    _tags = reader.ReadInt32();
+                    _tagsNum = reader.ReadInt32();
                     continue;
                 }
 
-                var tagParts = tagString.Split('=');
+                var tagParts = tagString.Split('=', count: 2);
                 if (tagParts.Length == 2)
                 {
                     AssignFields(tagParts[0], tagParts[1]);
                 }
+
+                stackBuffer.Clear();
             }
 
             static byte[] GetDataBlock(FlacFile file)
@@ -99,22 +104,33 @@ namespace JiiLib.Media.Metadata.Flac
                     throw new InvalidDataException("Data not a Flac tag.");
 
                 bool lastBlock = false;
-                do
+                while (!lastBlock || (reader.BaseStream.Position < reader.BaseStream.Length))
                 {
                     var blh = reader.ReadByte();
                     var blockType = (FlacMetadataBlockType)(blh % 128);
                     lastBlock = blh >= 128; // highest bit set = last block
                     var length = reader.ReadInt24();
-                    var metadataBlock = new byte[length];
-                    reader.Read(metadataBlock);
 
                     if (blockType == FlacMetadataBlockType.VorbisComment)
+                    {
+                        var metadataBlock = new byte[length];
+                        reader.Read(metadataBlock);
                         return metadataBlock;
+                    }
+                    else
+                    {
+                        reader.BaseStream.Position += length;
+                    }
                 }
-                while (!lastBlock);
 
                 return Array.Empty<byte>(); // ¯\_(ツ)_/¯
             }
+        }
+
+        internal static bool Create(FlacFile file, [NotNullWhen(true)] out IMediaTag mediaTag)
+        {
+            mediaTag = new FlacTag(file);
+            return true;
         }
     }
 }

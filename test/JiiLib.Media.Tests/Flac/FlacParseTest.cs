@@ -15,13 +15,11 @@ namespace JiiLib.Media.Tests.Flac
 
             Assert.True(fileInfo.Exists);
 
-            var mediaFile = MediaFile.Parse(fileInfo);
-
+            Assert.True(MediaFile.TryParse(fileInfo, out var mediaFile));
             Assert.NotNull(mediaFile);
             Assert.IsType<FlacFile>(mediaFile);
 
-            var tags = IMediaTag.GetTagFromFile(mediaFile);
-
+            Assert.True(MediaTag.TryReadTagFromFile(mediaFile, out var tags));
             Assert.NotNull(tags);
             Assert.IsType<FlacTag>(tags);
 

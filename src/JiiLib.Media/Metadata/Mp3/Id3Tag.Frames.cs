@@ -64,27 +64,27 @@ namespace JiiLib.Media.Metadata.Mp3
         }
 
         private string? GetStringFrame(string frameId)
-            => Frames.GetValueOrDefault(frameId)?.AsString();
+            => _frames.GetValueOrDefault(frameId)?.AsString();
         private int? GetSingleIntFrame(string frameId)
-            => Frames.GetValueOrDefault(frameId)?.AsSingleInt();
+            => _frames.GetValueOrDefault(frameId)?.AsSingleInt();
         private int?[]? GetMultiIntFrame(string frameId)
-            => Frames.GetValueOrDefault(frameId)?.AsMultiInt();
+            => _frames.GetValueOrDefault(frameId)?.AsMultiInt();
 
         private void SetStringFrame(string frameId, string? value)
         {
             if (value is null)
             {
-                Frames.Remove(frameId);
+                _frames.Remove(frameId);
                 return;
             }
 
-            Frames[frameId] = Id3Frame.FromString(Id3FrameId.Create(frameId), value);
+            _frames[frameId] = Id3Frame.FromString(Id3FrameId.Create(frameId), value);
         }
         private void SetSingleIntFrame(string frameId, int? value)
         {
             if (value is null)
             {
-                Frames.Remove(frameId);
+                _frames.Remove(frameId);
                 return;
             }
 
@@ -94,12 +94,12 @@ namespace JiiLib.Media.Metadata.Mp3
         {
             if (values.All(v => !v.IsSpecified(out _)))
             {
-                Frames.Remove(frameId);
+                _frames.Remove(frameId);
                 return;
             }
 
             string result;
-            if (Frames.TryGetValue(frameId, out var frame))
+            if (_frames.TryGetValue(frameId, out var frame))
             {
                 var parts = frame.AsString().Split('/');
                 if (parts.Length == values.Length)
@@ -137,7 +137,7 @@ namespace JiiLib.Media.Metadata.Mp3
                 result = String.Join('/', values.Select(opt => opt.IsSpecified(out var v) ? ToString(v) : String.Empty));
             }
 
-            Frames[frameId] = Id3Frame.FromString(Id3FrameId.Create(frameId), result);
+            _frames[frameId] = Id3Frame.FromString(Id3FrameId.Create(frameId), result);
 
             static string ToString(int? i)
                 => i?.ToString() ?? String.Empty;

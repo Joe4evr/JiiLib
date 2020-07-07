@@ -6,13 +6,23 @@ using JiiLib.Media.Internal;
 
 namespace JiiLib.Media.Metadata.Mp3
 {
+    /// <summary>
+    ///     Represents a frame of an ID3 tag.
+    /// </summary>
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public partial class Id3Frame
     {
+        /// <summary>
+        ///     The header data corresponding to this frame.
+        /// </summary>
         public Id3FrameHeader Header { get; }
 
-        private readonly byte[] _content;
+        /// <summary>
+        ///     The long definition of the corresponding header.
+        /// </summary>
         public string HeaderDefinition { get; }
+
+        private readonly byte[] _content;
 
         private Id3Frame(Id3FrameHeader header, byte[] content)
         {
@@ -99,7 +109,7 @@ namespace JiiLib.Media.Metadata.Mp3
         internal static Id3Frame FromContent(Id3FrameId frameId, byte[] content, Id3FrameFlags flags = Id3FrameFlags.None)
         {
             var header = new Id3FrameHeader(frameId, content.Length, flags);
-            return (frameId.IdString == HeaderIds.COMM)
+            return (frameId == HeaderIds.COMM)
                 ? new Id3CommentFrame(header, content)
                 : new Id3Frame(header, content);
         }

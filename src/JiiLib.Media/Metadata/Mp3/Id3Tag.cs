@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using JiiLib.Media.Internal;
@@ -12,8 +14,20 @@ namespace JiiLib.Media.Metadata.Mp3
     public sealed partial class Id3Tag
     {
         public Mp3File? File { get; }
+
+        /// <summary>
+        ///     Gets the header info of this tag.
+        /// </summary>
         public Id3Header Header { get; }
-        public Dictionary<string, Id3Frame> Frames { get; }
+
+        /// <summary>
+        ///     Lists all of this tag's frames,
+        ///     keyed by the frame ID.
+        /// </summary>
+        public IReadOnlyDictionary<string, Id3Frame> Frames
+            => new ReadOnlyDictionary<string, Id3Frame>(_frames);
+
+        private readonly Dictionary<string, Id3Frame> _frames;
 
         /// <summary>
         ///     Instantiates a new <see cref="Id3Tag"/> object to
@@ -24,21 +38,21 @@ namespace JiiLib.Media.Metadata.Mp3
         /// </param>
         /// <param name="backCompat">
         ///     Specify whether or not to set this instance
-        ///     to ID3v2.3 standards. Defaults to false.
+        ///     to ID3 standards. Defaults to false.
         /// </param>
         public Id3Tag(Mp3File file)
         {
             File = file ?? throw new ArgumentNullException(nameof(file));
 
             Header = ReadHeader(file);
-            Frames = (Header.Size > 0)
+            _frames = (Header.Size > 0)
                 ? ReadFrames(file, Header)
                 : new Dictionary<string, Id3Frame>();
         }
 
         private Id3Tag()
         {
-            Frames = new Dictionary<string, Id3Frame>();
+            _frames = new Dictionary<string, Id3Frame>();
         }
 
         /// <summary>
@@ -47,10 +61,6 @@ namespace JiiLib.Media.Metadata.Mp3
         /// </summary>
         /// <param name="tag">
         ///     An existing <see cref="IMediaTag{TFile}"/>.
-        /// </param>
-        /// <param name="backCompat">
-        ///     Specify whether or not to set this instance
-        ///     to ID3v2.3 standards. Defaults to false.
         /// </param>
         /// <returns>
         ///     An <see cref="Id3Tag"/> tag with several properties set.
@@ -81,14 +91,14 @@ namespace JiiLib.Media.Metadata.Mp3
         //}
 
         ///// <summary>
-        /////     Write the ID3v2 tag to an <see cref="Mp3File"/>.
+        /////     Write the ID3 tag to an <see cref="Mp3File"/>.
         ///// </summary>
         ///// <param name="file">
         /////     The MP3 file to write to.
         ///// </param>
         ///// <remarks>
         /////     If the "backCompat" flag when creating this instance
-        /////     was set to "true", will write an ID3v2.3 tag.
+        /////     was set to "true", will write an ID3 tag.
         ///// </remarks>
         //public override void WriteTo(Mp3File file)
         //{
@@ -189,6 +199,12 @@ namespace JiiLib.Media.Metadata.Mp3
             }
 
             return frames;
+        }
+
+        internal static bool Create(Mp3File file, [NotNullWhen(true)] out IMediaTag mediaTag)
+        {
+            mediaTag = new Id3Tag(file);
+            return true;
         }
     }
 }

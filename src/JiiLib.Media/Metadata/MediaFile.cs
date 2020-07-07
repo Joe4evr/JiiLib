@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using JiiLib.Media.Internal;
 using JiiLib.Media.Metadata.Flac;
 using JiiLib.Media.Metadata.Mp3;
 //using JiiLib.Media.Metadata.Ogg;
@@ -23,25 +25,20 @@ namespace JiiLib.Media
             FileInfo = new FileInfo(path);
         }
 
-        public static MediaFile Parse(FileInfo file)
-        {
-            if (file == null) throw new ArgumentNullException(nameof(file));
+        public static bool TryParse(FileInfo file, [NotNullWhen(true)] out MediaFile mediaFile)
+            => (file is null || !file.Exists)
+                ? Extensions.FalseOut(out mediaFile)
+                : file.Extension.ToLowerInvariant() switch
+                {
+                    ".mp3" => Mp3File.Create(file, out mediaFile),
+                    //".ogg" => new OggFile(file),
+                    ".flac" => FlacFile.Create(file, out mediaFile),
+                    _ => Extensions.FalseOut(out mediaFile)
+                };
 
-            return file.Extension.ToLowerInvariant() switch
-            {
-                ".mp3" => new Mp3File(file),
-                //".ogg" => new OggFile(file),
-                ".flac" => new FlacFile(file),
-                _ => throw new NotSupportedException("Unsupported file given")
-            };
-        }
-
-        public static MediaFile Parse(string path)
-        {
-            if (path == null) throw new ArgumentNullException(nameof(path));
-            if (!System.IO.File.Exists(path)) throw new ArgumentException("File does not exist or was an invalid path.", nameof(path));
-
-            return Parse(new FileInfo(path));
-        }
+        public static bool TryParse(string path, [NotNullWhen(true)] out MediaFile mediaFile)
+            => (path is null || !File.Exists(path))
+                ? Extensions.FalseOut(out mediaFile)
+                : TryParse(new FileInfo(path), out mediaFile);
     }
 }

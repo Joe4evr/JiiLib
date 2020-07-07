@@ -52,5 +52,11 @@ namespace JiiLib.Media.Internal
 
             return result;
         }
+
+        internal static bool FalseOut<T>(out T obj)
+        {
+            obj = default!;
+            return false;
+        }
     }
 }

@@ -1,7 +1,4 @@
 ﻿using System;
-using JiiLib.Media.Metadata.Flac;
-using JiiLib.Media.Metadata.Mp3;
-//using JiiLib.Media.Metadata.Ogg;
 
 namespace JiiLib.Media
 {
@@ -10,6 +7,11 @@ namespace JiiLib.Media
     /// </summary>
     public interface IMediaTag
     {
+        /// <summary>
+        ///     Info about the file associated with this tag.
+        /// </summary>
+        MediaFile? File { get; }
+
         /// <summary>
         ///     Value of the Title tag
         /// </summary>
@@ -64,26 +66,6 @@ namespace JiiLib.Media
         ///     Value of the Comment tag
         /// </summary>
         string? Comment { get; }
-
-        //internal IMediaTag() { }
-
-        public static IMediaTag Parse(string path)
-        {
-            return GetTagFromFile(MediaFile.Parse(path));
-        }
-
-        public static IMediaTag GetTagFromFile(MediaFile file)
-        {
-            if (file is null) throw new ArgumentNullException(nameof(file));
-
-            return file switch
-            {
-                Mp3File mp3 => new Id3Tag(mp3),
-                //OggFile ogg => new OggTag(ogg),
-                FlacFile flac => new FlacTag(flac),
-                _ => throw new NotSupportedException("Unsupported file given")
-            };
-        }
     }
 
     /// <summary>
@@ -94,9 +76,11 @@ namespace JiiLib.Media
     public interface IMediaTag<TFile> : IMediaTag
         where TFile : MediaFile
     {
-        TFile? File { get; }
+        /// <summary>
+        ///     Info about the file associated with this tag.
+        /// </summary>
+        new TFile? File { get; }
 
-        //public static implicit operator Wrapper<MediaTag<TFile>>()
-        //public abstract void WriteTo(TFile file);
+        MediaFile? IMediaTag.File => File;
     }
 }
