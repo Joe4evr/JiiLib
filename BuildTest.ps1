@@ -46,6 +46,9 @@ if ($args.Length -eq 0)
 }
 
 $projects = @{
+    "Collections" = [ProjectRef]::new("src\JiiLib.Collections\JiiLib.Collections.csproj", "test\JiiLib.Collections.Tests\JiiLib.Collections.Tests.csproj");
+    "Components"  = [ProjectRef]::new("src\JiiLib.Components\JiiLib.Components.csproj", [String]::Empty);
+    "Constraints" = [ProjectRef]::new("src\JiiLib.Constraints\JiiLib.Constraints.csproj", "test\JiiLib.Constraints.Tests\JiiLib.Constraints.Tests.csproj");
     "Media" = [ProjectRef]::new("src\JiiLib.Media\JiiLib.Media.csproj", "test\JiiLib.Media.Tests\JiiLib.Media.Tests.csproj");
 };
 
