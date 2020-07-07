@@ -1,10 +1,11 @@
 ﻿@namespace JiiLib.Components.Diff
-@using JiiLib.Collections
+@using JiiLib.Collections.DiffList
 
+@{ var style = Style ?? IDiffTableStyle.Default;}
 @if (DValue is null) { }
 else if (DValue.IsSingleValue)
 {
-    <div>
+    <div class="diff-value @style.DiffValueClass">
         @DValue.Value
     </div>
 }
@@ -12,7 +13,7 @@ else
 {
     @foreach (var subValue in DValue.Values)
     {
-        <div>
+        <div class="diff-value @style.DiffValueClass">
             @subValue
         </div>
     }
@@ -21,4 +22,6 @@ else
 @code
 {
     [Parameter] public DiffValue? DValue { private get; set; }
+
+    [CascadingParameter] public IDiffTableStyle? Style { private get; set; }
 }

@@ -1,38 +1,30 @@
 @namespace JiiLib.Components
-@using JiiLib.Collections
+@using JiiLib.Collections.DiffList
 @using JiiLib.Components.Diff
 
-@if (DiffList is null)
-{
-
-    @*<div class="spinner-border-sm" role="status">
-        <span class="sr-only">Loading...</span>
-        <span>No table loaded (id: @ListId)</span>
-    </div>*@
-
-}
+@if (DiffList is null) { }
 else
 {
-    <table class="table-bordered border-dark rounded">
+    var style = Provider?.GetStyle<IDiffTableStyle>() ?? IDiffTableStyle.Default;
+    <table class="diff-table @style.TableClass">
         <thead>
-            <tr class="border-bottom">
+            <tr class="diff-table-title @style.TitleClass">
                 <th colspan="3" style="text-align: center">@Title</th>
             </tr>
         </thead>
-        <tbody class="diff-list">
-            @foreach (var (key, o, n) in DiffList)
+        <tbody class="diff-table-content @style.TableContentClass">
+            @foreach (var (key, o, n, ds) in DiffList)
             {
-                var ds = DiffValue.GetDiffState(o, n);
                 if (ds != DiffState.NonExistent)
                 {
                     <tr class="@GetDiffClass(ds)">
-                        <td class="item-type">
-                            <strong>@key</strong>
+                        <td class="item-key @style.ItemKeyClass">
+                            @key
                         </td>
-                        <td class="old-item">
+                        <td class="old-item @style.OldEntryClass">
                             <DiffValueCell DValue="o"/>
                         </td>
-                        <td class="new-item">
+                        <td class="new-item @style.NewEntryClass">
                             <DiffValueCell DValue="n"/>
                         </td>
                     </tr>
@@ -44,8 +36,17 @@ else
 
 @code
 {
+    /// <summary>
+    ///     Sets the list of content that this table is to display
+    /// </summary>
     [Parameter] public KeyedDiffList<string>? DiffList { private get; set; }
+
+    /// <summary>
+    ///     Sets the title to display in the table header.
+    /// </summary>
     [Parameter] public string Title { private get; set; } = "";
+
+    [CascadingParameter] public StyleProvider? Provider { private get; set; }
 
     private static string GetDiffClass(DiffState diffState)
         => diffState switch

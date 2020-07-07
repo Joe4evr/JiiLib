@@ -4,8 +4,18 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 
-namespace JiiLib.Collections
+namespace JiiLib.Collections.DiffList
 {
+    /// <summary>
+    ///     Represents one or more <see cref="String"/>
+    ///     values that can be tracked for changes.
+    /// </summary>
+    /// <remarks>
+    ///     <note type="info">
+    ///         All strings are compared for equality using
+    ///         <see cref="StringComparer.OrdinalIgnoreCase"/>.
+    ///     </note>
+    /// </remarks>
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public sealed class DiffValue
     {
@@ -14,19 +24,30 @@ namespace JiiLib.Collections
         /// <summary>
         ///     Indicates if this instance contains only a single value.
         /// </summary>
-        public bool IsSingleValue => Values.Length == 0;
+        public bool IsSingleValue => _values.Length == 0;
 
         /// <summary>
         ///     The single value this instance tracks
         ///     if <see cref="IsSingleValue"/> returns <see langword="true"/>.
         /// </summary>
-        public string Value { get; } = String.Empty;
+        /// <exception cref="InvalidOperationException">
+        ///     <see cref="IsSingleValue"/> was <see langword="false"/>.
+        /// </exception>
+        public string Value => IsSingleValue ? _value
+            : throw new InvalidOperationException("DiffValue instance was not single-value.");
 
         /// <summary>
         ///     The set of values this instance tracks
         ///     if <see cref="IsSingleValue"/> returns <see langword="false"/>.
         /// </summary>
-        public ImmutableArray<string> Values { get; } = ImmutableArray<string>.Empty;
+        /// <exception cref="InvalidOperationException">
+        ///     <see cref="IsSingleValue"/> was <see langword="true"/>.
+        /// </exception>
+        public ImmutableArray<string> Values => !IsSingleValue ? _values
+            : throw new InvalidOperationException("DiffValue instance was not multi-value.");
+
+        private readonly string _value = String.Empty;
+        private readonly ImmutableArray<string> _values = ImmutableArray<string>.Empty;
 
         /// <summary>
         ///     Initializes a new <see cref="DiffValue"/>
@@ -35,9 +56,21 @@ namespace JiiLib.Collections
         /// <param name="value">
         ///     The value to track.
         /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="value"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///     <paramref name="value"/> is the empty string.
+        /// </exception>
         public DiffValue(string value)
         {
-            Value = value ?? throw new ArgumentNullException(nameof(value));
+            if (value is null)
+                throw new ArgumentNullException(paramName: nameof(value));
+            if (value == String.Empty)
+                throw new ArgumentException(paramName: nameof(value),
+                    message: "Value may not be empty string.");
+
+            _value = value;
         }
 
         /// <summary>
@@ -47,9 +80,32 @@ namespace JiiLib.Collections
         /// <param name="values">
         ///     The values to track.
         /// </param>
+        /// <remarks>
+        ///     This constructor will filter out
+        ///     <see langword="null"/>s and empty strings.
+        /// </remarks>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="values"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///     <paramref name="values"/> did not contain
+        ///     any values after filtering.
+        /// </exception>
         public DiffValue(IEnumerable<string> values)
         {
-            Values = values.ToImmutableArray();
+            if (values is null)
+                throw new ArgumentNullException(paramName: nameof(values));
+
+            var vs = values.Where(v => !String.IsNullOrEmpty(v))
+                .ToImmutableArray();
+
+            if (vs.Length == 0)
+                throw new ArgumentException(paramName: nameof(values),
+                    message: "Values may not be empty.");
+            else if (vs.Length == 1)
+                _value = vs[0];
+            else
+                _values = vs;
         }
 
         /// <summary>
@@ -59,10 +115,21 @@ namespace JiiLib.Collections
         /// <param name="value">
         ///     The value to add.
         /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="value"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///     <paramref name="value"/> is the empty string.
+        /// </exception>
         public DiffValue Add(string value)
-            => IsSingleValue
+        {
+            if (String.IsNullOrEmpty(value))
+                return this;
+
+            return IsSingleValue
                 ? new DiffValue(new[] { Value, value })
                 : new DiffValue(Values.Append(value));
+        }
 
         /// <summary>
         ///     Creates a new <see cref="DiffValue"/> with the provided
@@ -71,10 +138,30 @@ namespace JiiLib.Collections
         /// <param name="values">
         ///     The values to add.
         /// </param>
+        /// <remarks>
+        ///     <para>
+        ///         This method will filter out
+        ///         <see langword="null"/>s and empty strings.
+        ///     </para>
+        ///     <para>
+        ///         
+        ///     </para>
+        /// </remarks>
         public DiffValue Add(IEnumerable<string> values)
-            => IsSingleValue
-                ? new DiffValue(new[] { Value }.Concat(values))
-                : new DiffValue(Values.Concat(values));
+        {
+            if (values is null)
+                throw new ArgumentNullException(paramName: nameof(values));
+
+            var vs = values.Where(v => !String.IsNullOrEmpty(v))
+                .ToArray();
+
+            if (vs.Length == 0)
+                return this;
+            else 
+                return IsSingleValue
+                    ? new DiffValue(new[] { Value }.Concat(vs))
+                    : new DiffValue(Values.Concat(vs));
+        }
 
         /// <summary>
         ///     Creates a new <see cref="DiffValue"/> with the provided
@@ -83,13 +170,19 @@ namespace JiiLib.Collections
         /// <param name="value">
         ///     The value to remove.
         /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="value"/> is <see langword="null"/>.
+        /// </exception>
         /// <exception cref="InvalidOperationException">
         ///     This instance only carries a single value.
         /// </exception>
         public DiffValue Remove(string value)
         {
+            if (value is null)
+                throw new ArgumentNullException(paramName: nameof(value));
+
             if (IsSingleValue)
-                throw new InvalidOperationException("Cannot remove from a single-value instance");
+                throw new InvalidOperationException("Cannot remove from a single-value DiffValue instance.");
 
             if (!Values.Contains(value, _comparer))
                 return this;
@@ -107,15 +200,21 @@ namespace JiiLib.Collections
         /// <param name="values">
         ///     The values to remove.
         /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="values"/> is <see langword="null"/>.
+        /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     This instance only carries a single value
-        ///     - OR -
-        ///     All the values from this instance were taken.
+        ///     This instance only carries a single value.
+        ///     <br/>-OR-<br/>
+        ///     All the values from this instance were removed.
         /// </exception>
         public DiffValue Remove(IEnumerable<string> values)
         {
+            if (values is null)
+                throw new ArgumentNullException(paramName: nameof(values));
+
             if (IsSingleValue)
-                throw new InvalidOperationException("Cannot remove from a single-value instance");
+                throw new InvalidOperationException("Cannot remove from a single-value DiffValue instance.");
 
             var builder = Values.ToBuilder();
             foreach (var val in values)
@@ -127,7 +226,7 @@ namespace JiiLib.Collections
                 builder.RemoveAt(index);
 
                 if (builder.Count == 0)
-                    throw new InvalidOperationException("Cannot remove all values from an instance.");
+                    throw new InvalidOperationException("Cannot remove all values from a DiffValue instance.");
             }
 
             return new DiffValue(builder);
@@ -143,6 +242,9 @@ namespace JiiLib.Collections
         /// <param name="newValue">
         ///     The new value.
         /// </param>
+        /// <returns>
+        ///     The <see cref="DiffState"/> of the two values.
+        /// </returns>
         public static DiffState GetDiffState(DiffValue? oldValue, DiffValue? newValue)
         {
             return (oldValue, newValue) switch
@@ -156,7 +258,7 @@ namespace JiiLib.Collections
                     (true, true) => (_comparer.Equals(o.Value, n.Value)
                         ? DiffState.Unchanged : DiffState.Changed),
 
-                    (false, false) when o.Values.SequenceEqual(n.Values)
+                    (false, false) when o.Values.SequenceEqual(n.Values, _comparer)
                         => DiffState.Unchanged,
 
                     _ => DiffState.Changed
@@ -166,10 +268,10 @@ namespace JiiLib.Collections
 
         private DiffValue(ImmutableArray<string>.Builder builder)
         {
-            if (builder.Count > 1)
-                Values = builder.ToImmutable();
+            if (builder.Count == 1)
+                _value = builder[0];
             else
-                Value = builder[0];
+                _values = builder.ToImmutable();
         }
 
         private string DebuggerDisplay => IsSingleValue

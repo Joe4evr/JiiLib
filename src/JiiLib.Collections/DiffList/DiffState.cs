@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace JiiLib.Collections
+namespace JiiLib.Collections.DiffList
 {
     /// <summary>
     ///     Indicates the state that two instances

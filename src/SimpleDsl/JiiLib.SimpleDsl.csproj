@@ -3,19 +3,13 @@
         <AssemblyName>JiiLib.SimpleDsl</AssemblyName>
         <VersionPrefix>1.0.0</VersionPrefix>
         <VersionSuffix>beta2</VersionSuffix>
-        <LangVersion>8</LangVersion>
-        <Nullable>Enable</Nullable>
         <TargetFramework>netcoreapp3.0</TargetFramework>
-        <Authors>Joe4evr</Authors>
-        <PackageLicenseUrl>http://opensource.org/licenses/MIT</PackageLicenseUrl>
-        <RepositoryType>git</RepositoryType>
-        <PackageProjectUrl>https://github.com/Joe4evr/JiiLib/blob/master/src/SimpleDsl/</PackageProjectUrl>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <!--<PropertyGroup Condition="'$(Configuration)'=='Release'">
         <DocumentationFile>C:\projects\JiiLib\src\SimpleDsl\JiiLib.SimpleDsl.xml</DocumentationFile>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
         <PackageReference Include="System.Memory" Version="4.5.1" />
-    </ItemGroup>
+    </ItemGroup>-->
 </Project>

@@ -1,9 +1,14 @@
-﻿<div class="collapsable-box w-50">
-    <div class="title p-2" @onclick="ToggleCollapse">
-        <span class="oi @ArrowStatus iconic-sm chev" aria-hidden="true"></span>
+﻿@namespace JiiLib.Components
+
+@{
+var style = Provider?.GetStyle<ICollapsableBoxStyle>() ?? ICollapsableBoxStyle.Default;
+}
+<div class="collapsable-box @style.OuterBoxClass">
+    <div class="title @style.TitleClass" @onclick="ToggleCollapse">
+        <span class="chev oi @ArrowStatus iconic-sm" aria-hidden="true"></span>
         <span>@Title @ClickStatus</span>
     </div>
-    <div class="content @DisplayStatus pr-3">
+    <div class="content @DisplayStatus @style.ContentClass" @ref="_content">
         @ChildContent
     </div>
 </div>
@@ -17,7 +22,7 @@
 
     /// <summary>
     ///     Sets wether or not to start this box as collapsed.
-    ///     Default is <see cref="false"/>.
+    ///     Default is <see langword="false"/>.
     /// </summary>
     [Parameter] public bool StartCollapsed { set => _isCollapsed = value; }
 
@@ -26,9 +31,17 @@
     /// </summary>
     [Parameter] public RenderFragment? ChildContent { private get; set; }
 
+    [CascadingParameter] public StyleProvider? Provider { private get; set; }
+
+
+    private ElementReference _content;
     private bool _isCollapsed = false;
-    private void ToggleCollapse() => _isCollapsed = !_isCollapsed;
     private string? DisplayStatus => _isCollapsed ? "collapse" : null;
     private string ClickStatus => _isCollapsed ? "(Click to reveal)" : "(Click to collapse)";
     private string ArrowStatus => _isCollapsed ? "oi-chevron-right" : "oi-chevron-bottom";
+    
+    private void ToggleCollapse()
+    {
+        _isCollapsed = !_isCollapsed;
+    }
 }

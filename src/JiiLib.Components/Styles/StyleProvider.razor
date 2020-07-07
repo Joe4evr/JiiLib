@@ -1,0 +1,31 @@
+﻿@namespace JiiLib.Components
+@using System.Linq
+
+<CascadingValue Value="this">
+    @ChildContent
+</CascadingValue>
+
+@code
+{
+#nullable disable warnings
+    [Parameter] public object[] Styles
+    {
+        set => _styles = value
+            .Where(obj => !(obj is null))
+            .ToDictionary(obj => obj.GetType());
+    }
+
+    [Parameter] public RenderFragment ChildContent { private get; set; }
+
+    private Dictionary<Type, object>? _styles;
+#nullable restore
+
+    public TStyle? GetStyle<TStyle>()
+        where TStyle : class
+    {
+        if (_styles is null)
+            return null;
+
+        return (TStyle)_styles.GetValueOrDefault(typeof(TStyle));
+    }
+}
