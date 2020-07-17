@@ -2,8 +2,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <VersionPrefix>1.0.0</VersionPrefix>
-    <VersionSuffix>rc1</VersionSuffix>
-    <!--<IncludeBuildOutput>false</IncludeBuildOutput>
+    <VersionSuffix>rc2</VersionSuffix>
+    <!--<IncludeBuildOutput>False</IncludeBuildOutput>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>-->
     <Description>A small set of attributes and accompanying analyzers to more tightly constrain your type parameters at design-time.</Description>
     <PackageTags>generics;constraints;analyzer</PackageTags>
@@ -15,7 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="True" PackagePath="tools" />
-    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="True" PackagePath="analyzers/dotnet/cs" Visible="False" />
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />

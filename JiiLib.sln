@@ -10,8 +10,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 		BuildTest.ps1 = BuildTest.ps1
 		src\Directory.Build.props = src\Directory.Build.props
+		test\Directory.Build.props = test\Directory.Build.props
 		global.json = global.json
 		LICENSE = LICENSE
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JiiLib", "src\JiiLib\JiiLib.csproj", "{45746AAA-C725-48D5-8957-161D5E68CFC7}"
@@ -34,7 +36,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JiiLib.Collections.Tests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JiiLib.Constraints", "src\JiiLib.Constraints\JiiLib.Constraints.csproj", "{644E2B65-DFCC-43FB-9B65-C31774907606}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JiiLib.Constraints.Tests", "test\JiiLib.Constraints.Tests\JiiLib.Constraints.Tests.csproj", "{C2D3B791-8100-4EE8-B95A-C2286B546CFE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JiiLib.Constraints.Tests", "test\JiiLib.Constraints.Tests\JiiLib.Constraints.Tests.csproj", "{C2D3B791-8100-4EE8-B95A-C2286B546CFE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
