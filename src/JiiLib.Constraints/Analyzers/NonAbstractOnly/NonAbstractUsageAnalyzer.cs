@@ -11,7 +11,7 @@ namespace JiiLib.Constraints.Analyzers
     {
         private const string DiagnosticId = "JLC0002U";
         private const string Title = "Use of the NonAbstractOnly attribute is ineffective.";
-        private const string MessageFormat = "Use of the NonAbstract attribute on '{1}' in '{0}' is ineffective.";
+        private const string MessageFormat = "Use of the NonAbstract attribute on '{0}' in '{1}' is ineffective.";
         private const string Description = "Invalid use of constraint attribute.";
         private const string Category = "API Usage";
 

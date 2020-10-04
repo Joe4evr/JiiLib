@@ -54,6 +54,24 @@ namespace N
             VerifyCSharpDiagnostic(source, expected);
         }
 
+        [Fact]
+        public void Test()
+        {
+            var source = @"using System;
+using JiiLib.Constraints;
+
+namespace N
+{
+    public class C<T, U>
+        where T : U, IFormattable
+    {
+    }
+}
+";
+
+            VerifyCSharpDiagnostic(source);
+        }
+
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
             => (Activator.CreateInstance(
                 assemblyName: "JiiLib.Constraints",

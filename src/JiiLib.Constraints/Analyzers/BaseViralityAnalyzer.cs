@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,11 +11,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace JiiLib.Constraints.Analyzers
 {
-    internal abstract class BaseConstraintAnalyzer : DiagnosticAnalyzer
+    internal abstract class BaseViralityAnalyzer : DiagnosticAnalyzer
     {
         private Type CheckedAttribute { get; }
 
-        private protected BaseConstraintAnalyzer(Type attribute)
+        private protected BaseViralityAnalyzer(Type attribute)
         {
             CheckedAttribute = attribute;
         }
@@ -22,7 +25,6 @@ namespace JiiLib.Constraints.Analyzers
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
             context.RegisterSyntaxNodeAction(AnalyzeTypeArgumentList, SyntaxKind.TypeArgumentList);
-            
         }
 
         private void AnalyzeTypeArgumentList(SyntaxNodeAnalysisContext context)
@@ -33,13 +35,24 @@ namespace JiiLib.Constraints.Analyzers
             if (!ShouldAnalyze(typeArgumentList))
                 return;
 
-            var declarationSymbol = context.SemanticModel.GetSymbolInfo(typeArgumentList.Parent!).Symbol!;
+            if (!(typeArgumentList.Parent is { } parent))
+                return;
+
+            var declarationSymbol = context.SemanticModel.GetSymbolInfo(parent).Symbol!;
             var originalSymbol = declarationSymbol.OriginalDefinition;
 
-            _ = (originalSymbol, declarationSymbol) switch
+            //var parentName = parent switch
+            //{
+            //    MethodDeclarationSyntax method => method.Identifier.ValueText,
+            //    BaseTypeDeclarationSyntax type => type.Identifier.ValueText,
+            //    DelegateDeclarationSyntax del => del.Identifier.ValueText,
+            //    _ => String.Empty
+            //};
+
+            _ = originalSymbol switch
             {
-                (INamedTypeSymbol os, INamedTypeSymbol _) => CheckTypeParameters(os.TypeParameters, typeArgumentList.Arguments, context),
-                (IMethodSymbol os, IMethodSymbol _) => CheckTypeParameters(os.TypeParameters, typeArgumentList.Arguments, context),
+                INamedTypeSymbol os => CheckTypeParameters(os.TypeParameters, typeArgumentList.Arguments, os.Name, context),
+                IMethodSymbol os => CheckTypeParameters(os.TypeParameters, typeArgumentList.Arguments, os.Name, context),
                 _ => false
             };
         }
@@ -47,6 +60,7 @@ namespace JiiLib.Constraints.Analyzers
         private bool CheckTypeParameters(
             ImmutableArray<ITypeParameterSymbol> typeParams,
             SeparatedSyntaxList<TypeSyntax> typeArgs,
+            string calleeId,
             SyntaxNodeAnalysisContext context)
         {
             if (typeParams.Length != typeArgs.Count)
@@ -56,10 +70,18 @@ namespace JiiLib.Constraints.Analyzers
             {
                 var attrs = typeParam.GetAttributes();
                 if (attrs.Any(a => a?.AttributeClass?.Name == CheckedAttribute.Name)
-                    && context.SemanticModel.GetSymbolInfo(typeArg).Symbol is ITypeSymbol typeSymbol
-                    && !CompliesWithConstraint(typeArg, context.SemanticModel, typeSymbol))
+                    && context.SemanticModel.GetSymbolInfo(typeArg).Symbol is ITypeParameterSymbol typeSymbol
+                    && typeSymbol.GetAttributes().None(a => a?.AttributeClass?.Name == CheckedAttribute.Name))
                 {
-                    var diagnostic = Diagnostic.Create(GetDiagnosticDescriptor(), typeArg.GetLocation(), typeSymbol.Name);
+                    var declaringSymbolId = typeSymbol switch
+                    {
+                        { DeclaringMethod: { } method } => method.Name,
+                        { DeclaringType: { } type } => type.Name,
+                        _ => String.Empty
+                    };
+
+                    var diagnostic = Diagnostic.Create(GetDiagnosticDescriptor(), typeArg.GetLocation(),
+                        typeSymbol.Name, declaringSymbolId, calleeId);
                     context.ReportDiagnostic(diagnostic);
                 }
             }
@@ -67,11 +89,8 @@ namespace JiiLib.Constraints.Analyzers
             return true;
         }
 
+        [DebuggerStepThrough]
         private protected virtual bool ShouldAnalyze(TypeArgumentListSyntax typeArgumentList) => true;
-        private protected virtual bool CompliesWithConstraint(
-            TypeSyntax typeSyntaxNode, SemanticModel semanticModel, ITypeSymbol typeSymbol)
-            => CompliesWithConstraint(typeSymbol);
-        private protected abstract bool CompliesWithConstraint(ITypeSymbol typeSymbol);
         private protected abstract DiagnosticDescriptor GetDiagnosticDescriptor();
     }
 }

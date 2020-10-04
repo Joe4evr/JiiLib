@@ -33,7 +33,13 @@ namespace N
     }
 
     public delegate void D<[InterfacesOnly] TError>()
-        where TError : new()
+        where TError : new();
+
+    public class C2<T, [InterfacesOnly] TError>
+        where T : new()
+        where TError : T
+    {
+    }
 }
 ";
 
@@ -77,6 +83,16 @@ namespace N
                     Locations= new[]
                     {
                         new DiagnosticResultLocation("Test0.cs", line: 22, column: 29)
+                    }
+                },
+                new DiagnosticResult
+                {
+                    Id = "JLC0001U",
+                    Message = "Type Parameter 'TError' in 'C2' is constrained to another type parameter with an incompatible constraint.",
+                    Severity = DiagnosticSeverity.Error,
+                    Locations= new[]
+                    {
+                        new DiagnosticResultLocation("Test0.cs", line: 25, column: 25)
                     }
                 }
             };

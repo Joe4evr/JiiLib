@@ -136,6 +136,34 @@ namespace N
             VerifyCSharpDiagnostic(source, expected);
         }
 
+        [Fact]
+        public void VerifyDiagnosticOnImplicitUse()
+        {
+            var source = @"using System;
+using JiiLib.Constraints;
+
+namespace N
+{
+    public class C
+    {
+        public C M<[InterfacesOnly] T>(T param) => this;
+    }
+
+    public class X { }
+
+    static class P
+    {
+        static void M()
+        {
+            var err = new C().M(new X());
+        }
+    }
+}
+";
+
+            VerifyCSharpDiagnostic(source);
+        }
+
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
             => (Activator.CreateInstance(
                 assemblyName: "JiiLib.Constraints",

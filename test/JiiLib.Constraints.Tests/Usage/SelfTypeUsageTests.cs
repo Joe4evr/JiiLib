@@ -28,7 +28,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0003U",
-                    Message = "Use of the SelfType attribute in generic method 'ValidButIneffective' is ineffective.",
+                    Message = "Use of the SelfType attribute on 'T' in generic method 'ValidButIneffective' is ineffective.",
                     Severity = DiagnosticSeverity.Info,
                     Locations = new[]
                     {

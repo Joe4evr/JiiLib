@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace JiiLib.Constraints
 {
@@ -17,6 +18,14 @@ namespace JiiLib.Constraints
             {
                 yield return (e1.Current, e2.Current);
             }
+        }
+
+        public static bool None<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        {
+            if (source is null) throw new ArgumentNullException(nameof(source));
+            if (predicate is null) throw new ArgumentNullException(nameof(predicate));
+
+            return source.All(item => !predicate(item));
         }
     }
 }

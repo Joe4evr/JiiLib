@@ -18,7 +18,6 @@ namespace JiiLib.Constraints.Analyzers
             CheckedAttribute = checkedAttribute;
         }
 
-        /// <inheritdoc/>
         public sealed override void Initialize(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
@@ -42,6 +41,9 @@ namespace JiiLib.Constraints.Analyzers
                 if (attribute != null)
                 {
                     var choice = GetDiagnosticChoice(typeParamSymbol);
+                    
+                    // Do not hoist! The JIT will inline this
+                    // full expression to the same asm as 'a == b'
                     if (EqualityComparer<TChoice>.Default.Equals(choice, default))
                         continue;
 
@@ -51,10 +53,10 @@ namespace JiiLib.Constraints.Analyzers
                         MethodDeclarationSyntax method => method.Identifier.ValueText,
                         BaseTypeDeclarationSyntax type => type.Identifier.ValueText,
                         DelegateDeclarationSyntax del => del.Identifier.ValueText,
-                        _ => String.Empty
+                        _ => "(unknown)" // ¯\_(ツ)_/¯
                     };
 
-                    var diagnostic = Diagnostic.Create(GetDiagnosticDescriptor(choice), location, id, typeParamNode.Identifier.ValueText);
+                    var diagnostic = Diagnostic.Create(GetDiagnosticDescriptor(choice), location, typeParamNode.Identifier.ValueText, id);
                     context.ReportDiagnostic(diagnostic);
                 }
             }
