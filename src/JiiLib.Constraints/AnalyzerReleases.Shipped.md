@@ -12,4 +12,6 @@ JLC0002V | API Usage | Error    | Constraint must be viral.
 JLC0003  | API Usage | Error    | Type argument must be the implementing type.
 JLC0003U | API Usage | Info     | Use of the `SelfType` attribute is ineffective.
 JLC0003V | API Usage | Error    | Constraint must be viral.
+JLC0004  | API Usage | Error    | Type argument may not be an interface.
+JLC0004V | API Usage | Error    | Constraint must be viral.
 

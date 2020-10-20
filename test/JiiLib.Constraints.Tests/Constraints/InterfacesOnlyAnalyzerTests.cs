@@ -16,9 +16,9 @@ using JiiLib.Constraints;
 
 namespace N
 {
-    public class C<[InterfacesOnly] T> { }
+    public class Test<[InterfacesOnly] T> { }
 
-    public class X { }
+    public class C { }
     public struct S { }
     public delegate void D();
 
@@ -26,9 +26,9 @@ namespace N
     {
         static void M()
         {
-            var err1 = new C<X>();
-            var err2 = new C<S>();
-            var err3 = new C<D>();
+            var err1 = new Test<C>();
+            var err2 = new Test<S>();
+            var err3 = new Test<D>();
         }
     }
 }
@@ -39,11 +39,11 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0001",
-                    Message = "Type argument 'X' must be an interface type.",
+                    Message = "Type argument 'C' must be an interface type.",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new[]
                     {
-                        new DiagnosticResultLocation("Test0.cs", line: 16, column: 30)
+                        new DiagnosticResultLocation("Test0.cs", line: 16, column: 33)
                     }
                 },
                 new DiagnosticResult
@@ -53,7 +53,7 @@ namespace N
                     Severity = DiagnosticSeverity.Error,
                     Locations = new[]
                     {
-                        new DiagnosticResultLocation("Test0.cs", line: 17, column: 30)
+                        new DiagnosticResultLocation("Test0.cs", line: 17, column: 33)
                     }
                 },
                 new DiagnosticResult
@@ -63,7 +63,7 @@ namespace N
                     Severity = DiagnosticSeverity.Error,
                     Locations = new[]
                     {
-                        new DiagnosticResultLocation("Test0.cs", line: 18, column: 30)
+                        new DiagnosticResultLocation("Test0.cs", line: 18, column: 33)
                     }
                 }
             };

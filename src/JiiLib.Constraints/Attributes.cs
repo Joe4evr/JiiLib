@@ -24,4 +24,11 @@ namespace JiiLib.Constraints
     /// </summary>
     [AttributeUsage(AttributeTargets.GenericParameter, AllowMultiple = false, Inherited = true)]
     public sealed class SelfTypeAttribute : Attribute { }
+
+    /// <summary>
+    ///     Indicates that this type parameter accepts only types
+    ///     that are not interfaces.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.GenericParameter, AllowMultiple = false, Inherited = true)]
+    public sealed class NoInterfacesAttribute : Attribute { }
 }
