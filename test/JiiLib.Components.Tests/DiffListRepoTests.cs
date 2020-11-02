@@ -28,15 +28,23 @@ namespace JiiLib.Components.Tests
         [Fact]
         public async Task VerifyListsCanRoundTrip()
         {
-            var testList = KeyedDiffList.CreateWithEntries(
-                oldValues: new[]
+            var testList = KeyedDiffList.CreateWithDualEntries(
+                values: new[]
                 {
                     KeyValuePair.Create("CPU", new DiffValue("AMD Ryzen 3200G")),
-                    KeyValuePair.Create("GPU", new DiffValue("Gigabyte GTX 1070"))
-                },
-                newValues: new[]
+                    KeyValuePair.Create("RAM", new DiffValue("4x 16GB G.Skill Sniper X F4-3600C19Q-64GSXKB")),
+                    KeyValuePair.Create("GPU", new DiffValue("Gigabyte GeForce GTX 1070")),
+                    KeyValuePair.Create("Storage", new DiffValue(new[]
+                    {
+                        "Samsung NVMe 970 EVO Plus (250GB)",
+                        "Samsung SATA 860 EVO (500GB)"
+                    }))
+                })
+                .SetEntry("CPU", "AMD Ryzen 5600")
+                .AddTo("Storage", new[]
                 {
-                    KeyValuePair.Create("CPU", new DiffValue("AMD Ryzen 5600"))
+                    "Seagate Barracuda Compute (6TB)",
+                    "Crucial BX500 (2TB)"
                 });
 
             using var scope = _services.CreateScope();
