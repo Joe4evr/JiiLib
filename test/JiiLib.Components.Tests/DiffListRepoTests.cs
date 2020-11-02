@@ -53,6 +53,7 @@ namespace JiiLib.Components.Tests
 
             var roundTripped = await repo.GetListAsync(id);
 
+            Assert.NotNull(roundTripped);
             Assert.Equal(expected: testList, actual: roundTripped,
                 comparer: DiffListComparer<string>.Instance);
         }

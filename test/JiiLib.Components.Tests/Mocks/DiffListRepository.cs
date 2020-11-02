@@ -30,14 +30,17 @@ namespace JiiLib.Components.Tests
                 var oe = ov switch
                 {
                     null => Array.Empty<DiffListEntry>(),
-                    { IsSingleValue: true  } s => new[] { new DiffListEntry
+                    { IsSingleValue: true  } s => new[]
                     {
-                        Id = Guid.NewGuid().ToString(),
-                        ListId = listId,
-                        EntryKey = key,
-                        IsOldValue = true,
-                        Value = s.Value
-                    } },
+                        new DiffListEntry
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            ListId = listId,
+                            EntryKey = key,
+                            IsOldValue = true,
+                            Value = s.Value
+                        }
+                    },
                     { IsSingleValue: false } m => m.Values.Select(v => new DiffListEntry
                     {
                         Id = Guid.NewGuid().ToString(),
@@ -56,14 +59,17 @@ namespace JiiLib.Components.Tests
                 var ne = nv switch
                 {
                     null => Array.Empty<DiffListEntry>(),
-                    { IsSingleValue: true  } s => new[] { new DiffListEntry
+                    { IsSingleValue: true  } s => new[]
                     {
-                        Id = Guid.NewGuid().ToString(),
-                        ListId = listId,
-                        EntryKey = key,
-                        IsOldValue = false,
-                        Value = s.Value
-                    } },
+                        new DiffListEntry
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            ListId = listId,
+                            EntryKey = key,
+                            IsOldValue = false,
+                            Value = s.Value
+                        }
+                    },
                     { IsSingleValue: false } m => m.Values.Select(v => new DiffListEntry
                     {
                         Id = Guid.NewGuid().ToString(),
@@ -90,7 +96,7 @@ namespace JiiLib.Components.Tests
                 .Where(l => l.ListId == id)
                 .ToArrayAsync();
 
-            if (entries is null)
+            if (entries.Length == 0)
                 return null;
 
             var split = entries.ToLookup(e => e.IsOldValue);

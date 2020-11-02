@@ -12,7 +12,7 @@ namespace JiiLib.Components.Tests
         public static DiffListComparer<TKey> Instance { get; } = new DiffListComparer<TKey>();
 
 
-        public bool Equals([AllowNull] KeyedDiffList<TKey> x, [AllowNull] KeyedDiffList<TKey> y)
+        public bool Equals(KeyedDiffList<TKey>? x, KeyedDiffList<TKey>? y)
         {
             return (x, y) switch
             {
