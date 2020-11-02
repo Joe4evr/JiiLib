@@ -14,7 +14,7 @@ namespace JiiLib.Collections.Tests
             {
                 IEnumerable<KeyValuePair<string, DiffValue>> vs = null!;
 
-                var ex = Assert.Throws<ArgumentNullException>(() => KeyedDiffList.CreateWithEntries(values: vs));
+                var ex = Assert.Throws<ArgumentNullException>(() => KeyedDiffList.CreateWithDualEntries(values: vs));
                 Assert.Equal(expected: "values", actual: ex.ParamName);
             }
         }

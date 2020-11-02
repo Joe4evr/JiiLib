@@ -271,6 +271,24 @@ namespace JiiLib.Collections.DiffList
             };
         }
 
+        public static bool Equals(DiffValue? oldValue, DiffValue? newValue)
+        {
+            return (oldValue, newValue) switch
+            {
+                (null, null) => true,
+                (null, _) => false,
+                (_, null) => false,
+
+                var (o, n) when ReferenceEquals(o, n) => true,
+                var (o, n) => (o.IsSingleValue, n.IsSingleValue) switch
+                {
+                    (true, true) => _comparer.Equals(o.Value, n.Value),
+                    (false, false) => o.Values.SequenceEqual(n.Values, _comparer),
+                    _ => false
+                }
+            };
+        }
+
         private DiffValue(ImmutableArray<string>.Builder builder)
         {
             if (builder.Count == 1)

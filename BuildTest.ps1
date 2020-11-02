@@ -99,13 +99,13 @@ else
 }
 
 
-# if ($LastExitCode -eq 0)
-# {
-#     Write-Host "Building docs";
-#     docfx "docs\docfx.json" | Write-Host -ForegroundColor DarkGray;
-#     if ($LastExitCode -ne 0)
-#     {
-#         Write-Host "Docs building failed" -ForegroundColor Red;
-#         return;
-#     }
-# }
+if ($LastExitCode -eq 0)
+{
+    Write-Host "Building docs";
+    docfx "docs\docfx.json" | Write-Host -ForegroundColor DarkGray;
+    if ($LastExitCode -ne 0)
+    {
+        Write-Host "Docs building failed" -ForegroundColor Red;
+        return;
+    }
+}

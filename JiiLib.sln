@@ -30,13 +30,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JiiLib.Collections", "src\J
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JiiLib.Components", "src\JiiLib.Components\JiiLib.Components.csproj", "{5F0DBF28-9F09-4C0A-BCF6-3EB41A822025}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JiiLib.Components.Dynamic", "src\JiiLib.Components.Dynamic\JiiLib.Components.Dynamic.csproj", "{5C27EA52-E5F0-4444-A090-C2BE146BBFFD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JiiLib.Components.Dynamic", "src\JiiLib.Components.Dynamic\JiiLib.Components.Dynamic.csproj", "{5C27EA52-E5F0-4444-A090-C2BE146BBFFD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JiiLib.Collections.Tests", "test\JiiLib.Collections.Tests\JiiLib.Collections.Tests.csproj", "{B70ED5AD-A7E1-43EA-9BFC-5EDE1F7E4781}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JiiLib.Constraints", "src\JiiLib.Constraints\JiiLib.Constraints.csproj", "{644E2B65-DFCC-43FB-9B65-C31774907606}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JiiLib.Constraints.Tests", "test\JiiLib.Constraints.Tests\JiiLib.Constraints.Tests.csproj", "{C2D3B791-8100-4EE8-B95A-C2286B546CFE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JiiLib.Components.Tests", "test\JiiLib.Components.Tests\JiiLib.Components.Tests.csproj", "{7E4207F8-6FC0-49D2-A6F6-363A87F0ADB6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -84,6 +86,10 @@ Global
 		{C2D3B791-8100-4EE8-B95A-C2286B546CFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2D3B791-8100-4EE8-B95A-C2286B546CFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2D3B791-8100-4EE8-B95A-C2286B546CFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E4207F8-6FC0-49D2-A6F6-363A87F0ADB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E4207F8-6FC0-49D2-A6F6-363A87F0ADB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E4207F8-6FC0-49D2-A6F6-363A87F0ADB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E4207F8-6FC0-49D2-A6F6-363A87F0ADB6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -99,6 +105,7 @@ Global
 		{B70ED5AD-A7E1-43EA-9BFC-5EDE1F7E4781} = {EC91EE0B-4C1F-476F-8452-746E264E50DE}
 		{644E2B65-DFCC-43FB-9B65-C31774907606} = {ED86E6F6-871B-450C-B191-FF35A2619754}
 		{C2D3B791-8100-4EE8-B95A-C2286B546CFE} = {EC91EE0B-4C1F-476F-8452-746E264E50DE}
+		{7E4207F8-6FC0-49D2-A6F6-363A87F0ADB6} = {EC91EE0B-4C1F-476F-8452-746E264E50DE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {ACD9B62C-5D79-4F2F-98EC-AB359247996E}

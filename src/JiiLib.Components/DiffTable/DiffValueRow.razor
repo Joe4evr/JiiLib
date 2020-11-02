@@ -1,0 +1,77 @@
+﻿@namespace JiiLib.Components.Diff
+@using System.Collections.Immutable
+@using JiiLib.Collections.DiffList
+
+@if (_state != DiffState.NonExistent)
+{
+    <tr class="@GetDiffClass(_state)">
+        <td class="item-key">
+            @_key
+        </td>
+        <td class="old-item">
+            @foreach (var subValue in _old!.Values)
+            {
+                <div class="diff-value @GetDiffClass(GetPartialDiffState(subValue, _new))">
+                    @subValue
+                </div>
+            }
+        </td>
+        <td class="new-item">
+            @foreach (var subValue in _new!.Values)
+            {
+                <div class="diff-value @GetDiffClass(GetPartialDiffState(_old, subValue))">
+                    @subValue
+                </div>
+            }
+        </td>
+    </tr>
+}
+
+@code
+{
+    [Parameter] public DiffValuePair<string> Pair { private get; set; }
+
+    private string? _key;
+    private DiffValue? _old;
+    private DiffValue? _new;
+    private DiffState _state = DiffState.NonExistent;
+
+    protected override void OnParametersSet()
+        => (_key, _old, _new, _state) = Pair;
+
+    private static string GetDiffClass(DiffState diffState)
+        => diffState switch
+        {
+            DiffState.New     => "diff-new",
+            DiffState.Changed => "diff-changed",
+            DiffState.Removed => "diff-removed",
+            _ => "diff-unchanged"
+        };
+
+
+
+    private static DiffState GetPartialDiffState(string oldValue, DiffValue? newValue)
+    {
+        return newValue switch
+        {
+            null => DiffState.Removed,
+            { IsSingleValue: true }  when !StringComparer.OrdinalIgnoreCase.Equals(oldValue, newValue.Value)
+                 => DiffState.Changed,
+            { IsSingleValue: false } when !newValue.Values.Contains(oldValue, StringComparer.OrdinalIgnoreCase)
+                 => DiffState.Removed,
+            _ => DiffState.Unchanged
+        };
+    }
+    private static DiffState GetPartialDiffState(DiffValue? oldValue, string newValue)
+    {
+        return oldValue switch
+        {
+            null => DiffState.New,
+            { IsSingleValue: true }  when !StringComparer.OrdinalIgnoreCase.Equals(newValue, oldValue.Value)
+                 => DiffState.Changed,
+            { IsSingleValue: false } when !oldValue.Values.Contains(newValue, StringComparer.OrdinalIgnoreCase)
+                 => DiffState.New,
+            _ => DiffState.Unchanged
+        };
+    }
+}

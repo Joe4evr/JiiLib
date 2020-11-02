@@ -5,30 +5,16 @@
 @if (DiffList is null) { }
 else
 {
-    var style = Provider?.GetStyle<IDiffTableStyle>() ?? IDiffTableStyle.Default;
-    <table class="diff-table @style.TableClass">
+    <table class="diff-table table-bordered border-dark rounded">
         <thead>
-            <tr class="diff-table-title @style.TitleClass">
+            <tr class="diff-table-title border-bottom">
                 <th colspan="3" style="text-align: center">@Title</th>
             </tr>
         </thead>
-        <tbody class="diff-table-content @style.TableContentClass">
-            @foreach (var (key, o, n, ds) in DiffList)
+        <tbody class="diff-table-content">
+            @foreach (var pair in DiffList)
             {
-                if (ds != DiffState.NonExistent)
-                {
-                    <tr class="@GetDiffClass(ds)">
-                        <td class="item-key @style.ItemKeyClass">
-                            @key
-                        </td>
-                        <td class="old-item @style.OldEntryClass">
-                            <DiffValueCell DValue="o"/>
-                        </td>
-                        <td class="new-item @style.NewEntryClass">
-                            <DiffValueCell DValue="n"/>
-                        </td>
-                    </tr>
-                }
+                <DiffValueRow Pair="pair"/>
             }
         </tbody>
     </table>
@@ -45,15 +31,4 @@ else
     ///     Sets the title to display in the table header.
     /// </summary>
     [Parameter] public string Title { private get; set; } = "";
-
-    [CascadingParameter] public StyleProvider? Provider { private get; set; }
-
-    private static string GetDiffClass(DiffState diffState)
-        => diffState switch
-        {
-            DiffState.New     => "diff-new",
-            DiffState.Changed => "diff-changed",
-            DiffState.Removed => "diff-removed",
-            _ => "diff-unchanged"
-        };
 }

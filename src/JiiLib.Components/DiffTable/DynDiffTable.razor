@@ -1,7 +1,7 @@
-﻿@*@namespace JiiLib.Components.Diff
-@using JiiLib.Collections
+﻿@namespace JiiLib.Components.Diff
+@using JiiLib.Collections.DiffList
 
-@inject IDiffListRepository<string> Repo
+@inject IDiffListRepository Repo
 
 @if (_diffList is null) { }
 else
@@ -13,6 +13,7 @@ else
 {
     [Parameter] public string Title { private get; set; } = "";
     [Parameter] public string? ListId { private get; set; }
+    //[Parameter] public Comparison<string>? Comparison { private get; set; }
 
     private KeyedDiffList<string>? _diffList;
 
@@ -26,4 +27,4 @@ else
             _diffList = await Repo.GetListAsync(id);
         }
     }
-}*@
+}
