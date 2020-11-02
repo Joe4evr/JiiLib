@@ -17,7 +17,7 @@ namespace JiiLib.Collections.DiffList
     ///     </note>
     /// </remarks>
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    public sealed class DiffValue
+    public sealed partial class DiffValue
     {
         private static readonly IEqualityComparer<string> _comparer = StringComparer.OrdinalIgnoreCase;
 
@@ -25,6 +25,7 @@ namespace JiiLib.Collections.DiffList
         ///     Indicates if this instance contains only a single value.
         /// </summary>
         public bool IsSingleValue => _values.Length == 0;
+
 
         /// <summary>
         ///     The single value this instance tracks
@@ -81,8 +82,10 @@ namespace JiiLib.Collections.DiffList
         ///     The values to track.
         /// </param>
         /// <remarks>
-        ///     This constructor will filter out
-        ///     <see langword="null"/>s and empty strings.
+        ///     <note type="info">
+        ///         This constructor will filter out
+        ///         <see langword="null"/>s and empty strings.
+        ///     </note>
         /// </remarks>
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="values"/> is <see langword="null"/>.
@@ -253,10 +256,12 @@ namespace JiiLib.Collections.DiffList
                 (null, _)    => DiffState.New,
                 (_, null)    => DiffState.Removed,
 
+                var (o, n) when ReferenceEquals(o, n) => DiffState.Unchanged,
                 var (o, n) => (o.IsSingleValue, n.IsSingleValue) switch
                 {
-                    (true, true) => (_comparer.Equals(o.Value, n.Value)
-                        ? DiffState.Unchanged : DiffState.Changed),
+                    (true, true) => _comparer.Equals(o.Value, n.Value)
+                        ? DiffState.Unchanged
+                        : DiffState.Changed,
 
                     (false, false) when o.Values.SequenceEqual(n.Values, _comparer)
                         => DiffState.Unchanged,

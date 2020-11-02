@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using JiiLib.Collections.DiffList;
 
 namespace JiiLib.Collections
@@ -18,6 +19,10 @@ namespace JiiLib.Collections
         /// <param name="values">
         ///     The values to pre-fill in.
         /// </param>
+        /// <param name="equalityComparer">
+        ///     An optional equality comparer to pass
+        ///     into the <see cref="KeyedDiffList{TKey}"/>.
+        /// </param>
         /// <param name="comparison">
         ///     An optional Comparison function to pass
         ///     into the <see cref="KeyedDiffList{TKey}"/>.
@@ -31,15 +36,19 @@ namespace JiiLib.Collections
         /// </exception>
         public static KeyedDiffList<TKey> CreateWithEntries<TKey>(
             IEnumerable<KeyValuePair<TKey, DiffValue>> values,
+            IEqualityComparer<TKey>? equalityComparer = null,
             Comparison<TKey>? comparison = null)
             where TKey : notnull
         {
             if (values is null)
                 throw new ArgumentNullException(paramName: nameof(values));
 
+            equalityComparer ??= EqualityComparer<TKey>.Default;
+
             return new KeyedDiffList<TKey>(
-                oldEntries: new Dictionary<TKey, DiffValue>(values),
-                newEntries: new Dictionary<TKey, DiffValue>(values),
+                oldEntries: new ReadOnlyDictionary<TKey, DiffValue>(
+                    new Dictionary<TKey, DiffValue>(values, equalityComparer)),
+                newEntries: new Dictionary<TKey, DiffValue>(values, equalityComparer),
                 comparison: comparison);
         }
 
@@ -50,6 +59,10 @@ namespace JiiLib.Collections
         /// </summary>
         /// <param name="values">
         ///     The values to pre-fill in.
+        /// </param>
+        /// <param name="equalityComparer">
+        ///     An optional equality comparer to pass
+        ///     into the <see cref="KeyedDiffList{TKey}"/>.
         /// </param>
         /// <param name="comparison">
         ///     An optional Comparison function to pass
@@ -64,15 +77,19 @@ namespace JiiLib.Collections
         /// </exception>
         public static KeyedDiffList<TKey> CreateWithNewEntries<TKey>(
             IEnumerable<KeyValuePair<TKey, DiffValue>> values,
+            IEqualityComparer<TKey>? equalityComparer = null,
             Comparison<TKey>? comparison = null)
             where TKey : notnull
         {
             if (values is null)
                 throw new ArgumentNullException(paramName: nameof(values));
 
+            equalityComparer ??= EqualityComparer<TKey>.Default;
+
             return new KeyedDiffList<TKey>(
-                oldEntries: new Dictionary<TKey, DiffValue>(),
-                newEntries: new Dictionary<TKey, DiffValue>(values),
+                oldEntries: new ReadOnlyDictionary<TKey, DiffValue>(
+                    new Dictionary<TKey, DiffValue>(equalityComparer)),
+                newEntries: new Dictionary<TKey, DiffValue>(values, equalityComparer),
                 comparison: comparison);
         }
     }

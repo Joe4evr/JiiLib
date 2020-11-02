@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.ObjectModel;
+using System.Threading;
 
 namespace JiiLib.Collections.DiffList
 {
@@ -13,32 +14,40 @@ namespace JiiLib.Collections.DiffList
     ///     The key type.
     /// </typeparam>
     /// 
-    public sealed class KeyedDiffList<TKey> : IEnumerable<DiffValuePair<TKey>>
+    public sealed partial class KeyedDiffList<TKey> : IEnumerable<DiffValuePair<TKey>>
         where TKey : notnull
     {
-        private readonly Dictionary<TKey, DiffValue> _oldEntries;
+        private readonly ReadOnlyDictionary<TKey, DiffValue> _oldEntries;
         private readonly Dictionary<TKey, DiffValue> _newEntries;
         private readonly Comparison<TKey>? _comparison;
+
+        private int _version = 0;
 
         /// <summary>
         ///     Initializes a new <see cref="KeyedDiffList{TKey}"/>
         ///     with empty entries.
         /// </summary>
+        /// <param name="equalityComparer">
+        ///     An optional equality comparer to use for comparing keys.
+        ///     If not provided, a default comparer will be used.
+        /// </param>
         /// <param name="comparison">
         ///     An optional comparison function to sort
-        ///     the keys in a specific way.
-        ///     
-        ///     If not provided, a default comparison
-        ///     will be used.
+        ///     the keys in a specific way during enumeration.
+        ///     If not provided, a default comparison will be used.
         /// </param>
-        public KeyedDiffList(Comparison<TKey>? comparison = null)
-            : this(new Dictionary<TKey, DiffValue>(),
-                  new Dictionary<TKey, DiffValue>(), comparison)
+        public KeyedDiffList(
+            IEqualityComparer<TKey>? equalityComparer = null,
+            Comparison<TKey>? comparison = null)
+            : this(new ReadOnlyDictionary<TKey, DiffValue>(
+                    new Dictionary<TKey, DiffValue>(equalityComparer ??= EqualityComparer<TKey>.Default)),
+                  new Dictionary<TKey, DiffValue>(equalityComparer),
+                  comparison)
         {
         }
 
         internal KeyedDiffList(
-            Dictionary<TKey, DiffValue> oldEntries,
+            ReadOnlyDictionary<TKey, DiffValue> oldEntries,
             Dictionary<TKey, DiffValue> newEntries,
             Comparison<TKey>? comparison = null)
         {
@@ -56,6 +65,32 @@ namespace JiiLib.Collections.DiffList
         ///     Gets the amount of New entries currently stored.
         /// </summary>
         public int NewEntriesCount => _newEntries.Count;
+
+        /// <summary>
+        ///     Gets the values at a specified key.
+        /// </summary>
+        /// <param name="key">
+        ///     Key of the entries.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="DiffValuePair{TKey}"/> that
+        ///     represents the values at the specified key.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="key"/> was <see langword="null"/>.
+        /// </exception>
+        public DiffValuePair<TKey> this[TKey key]
+        {
+            get
+            {
+                if (key is null)
+                    throw new ArgumentNullException(nameof(key));
+
+                var old = _oldEntries.GetValueOrDefault(key);
+                var @new = _newEntries.GetValueOrDefault(key);
+                return new DiffValuePair<TKey>(key, old, @new);
+            }
+        }
 
         /// <summary>
         ///     Add or replace a single value in the New entries.
@@ -80,6 +115,8 @@ namespace JiiLib.Collections.DiffList
                 throw new ArgumentNullException(nameof(value));
 
             _newEntries[key] = new DiffValue(value);
+
+            Interlocked.Increment(ref _version);
             return this;
         }
 
@@ -106,6 +143,8 @@ namespace JiiLib.Collections.DiffList
                 throw new ArgumentNullException(nameof(values));
 
             _newEntries[key] = new DiffValue(values);
+
+            Interlocked.Increment(ref _version);
             return this;
         }
 
@@ -136,6 +175,8 @@ namespace JiiLib.Collections.DiffList
 
             var dv = _newEntries[key];
             _newEntries[key] = dv.Add(value);
+
+            Interlocked.Increment(ref _version);
             return this;
         }
 
@@ -152,10 +193,10 @@ namespace JiiLib.Collections.DiffList
         ///     This instance to allow chaining calls.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="key"/> was <see langword="null"/>.
+        ///     <paramref name="key"/> or <paramref name="values"/> was <see langword="null"/>.
         /// </exception>
         /// <exception cref="KeyNotFoundException">
-        ///     <paramref name="key"/> or <paramref name="values"/> did not exist in the set of New entries.
+        ///     <paramref name="key"/> did not exist in the set of New entries.
         /// </exception>
         public KeyedDiffList<TKey> AddTo(TKey key, IEnumerable<string> values)
         {
@@ -166,6 +207,8 @@ namespace JiiLib.Collections.DiffList
 
             var dv = _newEntries[key];
             _newEntries[key] = dv.Add(values);
+
+            Interlocked.Increment(ref _version);
             return this;
         }
 
@@ -187,6 +230,8 @@ namespace JiiLib.Collections.DiffList
                 throw new ArgumentNullException(nameof(key));
 
             _newEntries.Remove(key);
+
+            Interlocked.Increment(ref _version);
             return this;
         }
 
@@ -220,6 +265,8 @@ namespace JiiLib.Collections.DiffList
 
             var dv = _newEntries[key];
             _newEntries[key] = dv.Remove(value);
+
+            Interlocked.Increment(ref _version);
             return this;
         }
 
@@ -231,7 +278,8 @@ namespace JiiLib.Collections.DiffList
         ///     A new <see cref="KeyedDiffList{TKey}"/>.
         /// </returns>
         public KeyedDiffList<TKey> Shift() => new KeyedDiffList<TKey>(
-            new Dictionary<TKey, DiffValue>(_newEntries),
+            new ReadOnlyDictionary<TKey, DiffValue>(
+                new Dictionary<TKey, DiffValue>(_newEntries)),
             new Dictionary<TKey, DiffValue>(_newEntries), _comparison);
 
         /// <summary>
@@ -239,59 +287,9 @@ namespace JiiLib.Collections.DiffList
         /// </summary>
         public Enumerator GetEnumerator() => new Enumerator(this);
 
-        ///// <inheritdoc cref="IEnumerable{T}.GetEnumerator" />
+        /// <inheritdoc cref="IEnumerable{T}.GetEnumerator" />
         IEnumerator<DiffValuePair<TKey>> IEnumerable<DiffValuePair<TKey>>.GetEnumerator() => GetEnumerator();
-        ///// <inheritdoc cref="IEnumerable.GetEnumerator" />
+        /// <inheritdoc cref="IEnumerable.GetEnumerator" />
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        /// <summary>
-        ///     Provides the enumerator for a
-        ///     <see cref="KeyedDiffList{TKey}"/>.
-        /// </summary>
-        public struct Enumerator : IEnumerator<DiffValuePair<TKey>>
-        {
-            /// <inheritdoc cref="IEnumerator{T}.Current" />
-            public DiffValuePair<TKey> Current { get; private set; }
-
-            private readonly KeyedDiffList<TKey> _list;
-            private SortedSet<TKey>.Enumerator _keys;
-
-            internal Enumerator(KeyedDiffList<TKey> list)
-                : this()
-            {
-                _list = list;
-
-                var comp = (list._comparison is null)
-                    ? Comparer<TKey>.Default
-                    : Comparer<TKey>.Create(list._comparison);
-                _keys = new SortedSet<TKey>(list._oldEntries.Keys.Concat(list._newEntries.Keys), comp)
-                    .GetEnumerator();
-            }
-
-            /// <inheritdoc cref="IEnumerator.MoveNext" />
-            public bool MoveNext()
-            {
-                if (_keys.MoveNext())
-                {
-                    var key = _keys.Current;
-                    var old = _list._oldEntries.GetValueOrDefault(key);
-                    var @new = _list._newEntries.GetValueOrDefault(key);
-                    Current = new DiffValuePair<TKey>(key, old, @new);
-                    return true;
-                }
-
-                return false;
-            }
-
-            /// <summary>
-            ///     No-op.
-            /// </summary>
-            public void Dispose() { }
-
-            ///// <inheritdoc cref="IEnumerator.Current" />
-            object IEnumerator.Current => Current;
-            ///// <inheritdoc cref="IEnumerator.Reset" />
-            void IEnumerator.Reset() => throw new NotImplementedException();
-        }
     }
 }

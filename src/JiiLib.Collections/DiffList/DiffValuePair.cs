@@ -31,14 +31,6 @@ namespace JiiLib.Collections.DiffList
             NewValue = newValue;
         }
 
-        ///// <summary>
-        /////     Short-cut method for <see cref="DiffValue.GetDiffState(DiffValue?, DiffValue?)"/>
-        ///// </summary>
-        ///// <returns>
-        /////     The <see cref="DiffState"/> of the two values.
-        ///// </returns>
-        //private DiffState GetDiffState() => DiffValue.GetDiffState(OldValue, NewValue);
-
         /// <summary>
         ///     Deconstructs this instance to a tuple.
         /// </summary>

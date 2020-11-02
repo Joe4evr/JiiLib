@@ -202,5 +202,41 @@ namespace JiiLib.Collections.Tests
                 Assert.Equal(expected: DiffState.Removed, actual: state);
             }
         }
+
+        public class GetEnumerator
+        {
+            [Fact]
+            public void GetEnumeratorOnSingleValueIteratesOnlyOnce()
+            {
+                var dv = new DiffValue("Test");
+
+                Assert.True(dv.IsSingleValue);
+
+                int counter = 0;
+                foreach (var _ in dv)
+                {
+                    counter++;
+                }
+
+                Assert.Equal(expected: 1, actual: counter);
+            }
+
+
+            [Fact]
+            public void GetEnumeratorOnMultiValueIteratesForAllItems()
+            {
+                var dv = new DiffValue(new[] { "Test1", "Test2", "Test3" });
+
+                Assert.False(dv.IsSingleValue);
+
+                int counter = 0;
+                foreach (var _ in dv)
+                {
+                    counter++;
+                }
+
+                Assert.Equal(expected: 3, actual: counter);
+            }
+        }
     }
 }
