@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using TestHelper;
@@ -9,7 +10,7 @@ namespace JiiLib.Constraints.Tests
     public class NonAbstractAnalyzerTests : DiagnosticVerifier
     {
         [Fact]
-        public void VerifyDiagnosticsOnInterfaceAndAbstractClass()
+        public async Task VerifyDiagnosticsOnInterfaceAndAbstractClass()
         {
             string source = @"using System;
 using JiiLib.Constraints;
@@ -55,11 +56,11 @@ namespace N
                     }
                 }
             };
-            VerifyCSharpDiagnostic(source, expected);
+            await VerifyCSharpDiagnostic(source, expected);
         }
 
         [Fact]
-        public void VerifyNoDiagnosticOnConcreteType()
+        public async Task VerifyNoDiagnosticOnConcreteType()
         {
             string source = @"using System;
 using JiiLib.Constraints;
@@ -82,11 +83,11 @@ namespace N
 }
 ";
 
-            VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
+            await VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
         }
 
         [Fact]
-        public void VerifyDiagnosticOnMethodCall()
+        public async Task VerifyDiagnosticOnMethodCall()
         {
             var source = @"using System;
 using JiiLib.Constraints;
@@ -123,7 +124,7 @@ namespace N
                     }
                 }
             };
-            VerifyCSharpDiagnostic(source, expected);
+            await VerifyCSharpDiagnostic(source, expected);
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

@@ -1,10 +1,12 @@
-﻿//using Microsoft.CodeAnalysis;
-//using Microsoft.CodeAnalysis.CodeActions;
-//using Microsoft.CodeAnalysis.Formatting;
-//using Microsoft.CodeAnalysis.Simplification;
+﻿//using System;
 //using System.Collections.Generic;
 //using System.Linq;
 //using System.Threading;
+//using System.Threading.Tasks;
+//using Microsoft.CodeAnalysis;
+//using Microsoft.CodeAnalysis.CodeActions;
+//using Microsoft.CodeAnalysis.Formatting;
+//using Microsoft.CodeAnalysis.Simplification;
 
 //namespace TestHelper
 //{
@@ -25,7 +27,7 @@
 //        {
 //            var operations = codeAction.GetOperationsAsync(CancellationToken.None).Result;
 //            var solution = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
-//            return solution.GetDocument(document.Id);
+//            return solution.GetDocument(document.Id)!;
 //        }
 
 //        /// <summary>

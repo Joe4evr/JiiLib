@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using TestHelper;
@@ -59,7 +60,7 @@ namespace JiiLib.Constraints.Tests
         //        }
 
         [Fact]
-        public void VerifyDiagnosticOnMismatchType()
+        public async Task VerifyDiagnosticOnMismatchType()
         {
             string source = @"using System;
 using JiiLib.Constraints;
@@ -71,6 +72,7 @@ namespace N
     public class Error : IX<string> { }
 }
 ";
+
             var expected = new[]
             {
                 new DiagnosticResult
@@ -84,11 +86,11 @@ namespace N
                     }
                 }
             };
-            VerifyCSharpDiagnostic(source, expected);
+            await VerifyCSharpDiagnostic(source, expected);
         }
 
         [Fact]
-        public void VerifyNoDiagnosticOnMethodDeclaration()
+        public async Task VerifyNoDiagnosticOnMethodDeclaration()
         {
             var source = @"using System;
 using JiiLib.Constraints;
@@ -102,8 +104,8 @@ namespace N
 }
 ";
 
-            
-            VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
+
+            await VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

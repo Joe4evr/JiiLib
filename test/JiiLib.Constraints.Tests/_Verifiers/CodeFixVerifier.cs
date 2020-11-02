@@ -1,12 +1,14 @@
-﻿//using Microsoft.CodeAnalysis;
+﻿//using System;
+//using System.Collections.Generic;
+//using System.Linq;
+//using System.Threading;
+//using System.Threading.Tasks;
+//using Microsoft.CodeAnalysis;
 //using Microsoft.CodeAnalysis.CodeActions;
 //using Microsoft.CodeAnalysis.CodeFixes;
 //using Microsoft.CodeAnalysis.Diagnostics;
 //using Microsoft.CodeAnalysis.Formatting;
 ////using Microsoft.VisualStudio.TestTools.UnitTesting;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Threading;
 //using Xunit;
 
 //namespace TestHelper
@@ -23,7 +25,7 @@
 //        /// <returns>The CodeFixProvider to be used for CSharp code</returns>
 //        protected virtual CodeFixProvider GetCSharpCodeFixProvider()
 //        {
-//            return null;
+//            return null!;
 //        }
 
 //        /// <summary>
@@ -32,7 +34,7 @@
 //        /// <returns>The CodeFixProvider to be used for VisualBasic code</returns>
 //        protected virtual CodeFixProvider GetBasicCodeFixProvider()
 //        {
-//            return null;
+//            return null!;
 //        }
 
 //        /// <summary>
@@ -42,9 +44,9 @@
 //        /// <param name="newSource">A class in the form of a string after the CodeFix was applied to it</param>
 //        /// <param name="codeFixIndex">Index determining which codefix to apply if there are multiple</param>
 //        /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if the CodeFix introduces other warnings after being applied</param>
-//        protected void VerifyCSharpFix(string oldSource, string newSource, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false)
+//        protected Task VerifyCSharpFix(string oldSource, string newSource, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false)
 //        {
-//            VerifyFix(LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), GetCSharpCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics);
+//            return VerifyFix(LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), GetCSharpCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics);
 //        }
 
 //        /// <summary>
@@ -54,9 +56,9 @@
 //        /// <param name="newSource">A class in the form of a string after the CodeFix was applied to it</param>
 //        /// <param name="codeFixIndex">Index determining which codefix to apply if there are multiple</param>
 //        /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if the CodeFix introduces other warnings after being applied</param>
-//        protected void VerifyBasicFix(string oldSource, string newSource, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false)
+//        protected Task VerifyBasicFix(string oldSource, string newSource, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false)
 //        {
-//            VerifyFix(LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), GetBasicCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics);
+//            return VerifyFix(LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), GetBasicCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics);
 //        }
 
 //        /// <summary>
@@ -72,10 +74,10 @@
 //        /// <param name="newSource">A class in the form of a string after the CodeFix was applied to it</param>
 //        /// <param name="codeFixIndex">Index determining which codefix to apply if there are multiple</param>
 //        /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if the CodeFix introduces other warnings after being applied</param>
-//        private void VerifyFix(string language, DiagnosticAnalyzer analyzer, CodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
+//        private async Task VerifyFix(string language, DiagnosticAnalyzer analyzer, CodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
 //        {
 //            var document = CreateDocument(oldSource, language);
-//            var analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] { document });
+//            var analyzerDiagnostics = await GetSortedDiagnosticsFromDocuments(analyzer, new[] { document });
 //            var compilerDiagnostics = GetCompilerDiagnostics(document);
 //            var attempts = analyzerDiagnostics.Length;
 
@@ -97,7 +99,7 @@
 //                }
 
 //                document = ApplyFix(document, actions.ElementAt(0));
-//                analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] { document });
+//                analyzerDiagnostics = await GetSortedDiagnosticsFromDocuments(analyzer, new[] { document });
 
 //                var newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, GetCompilerDiagnostics(document));
 
@@ -105,12 +107,12 @@
 //                if (!allowNewCompilerDiagnostics && newCompilerDiagnostics.Any())
 //                {
 //                    // Format and get the compiler diagnostics again so that the locations make sense in the output
-//                    document = document.WithSyntaxRoot(Formatter.Format(document.GetSyntaxRootAsync().Result, Formatter.Annotation, document.Project.Solution.Workspace));
+//                    document = document.WithSyntaxRoot(Formatter.Format(await document.GetSyntaxRootAsync(), Formatter.Annotation, document.Project.Solution.Workspace));
 //                    newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, GetCompilerDiagnostics(document));
 
 //                    Assert.True(false,
-//                        string.Format("Fix introduced new compiler diagnostics:\r\n{0}\r\n\r\nNew document:\r\n{1}\r\n",
-//                            string.Join("\r\n", newCompilerDiagnostics.Select(d => d.ToString())),
+//                        String.Format("Fix introduced new compiler diagnostics:\r\n{0}\r\n\r\nNew document:\r\n{1}\r\n",
+//                            String.Join("\r\n", newCompilerDiagnostics.Select(d => d.ToString())),
 //                            document.GetSyntaxRootAsync().Result.ToFullString()));
 //                }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using TestHelper;
@@ -9,7 +10,7 @@ namespace JiiLib.Constraints.Tests
     public class InterfaceUsageTests : DiagnosticVerifier
     {
         [Fact]
-        public void VerifyDiagnosticOfInvalidCombinationOnTypes()
+        public async Task VerifyDiagnosticOfInvalidCombinationOnTypes()
         {
             var source = @"using System;
 using JiiLib.Constraints;
@@ -96,7 +97,7 @@ namespace N
                     }
                 }
             };
-            VerifyCSharpDiagnostic(source, expected);
+            await VerifyCSharpDiagnostic(source, expected);
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

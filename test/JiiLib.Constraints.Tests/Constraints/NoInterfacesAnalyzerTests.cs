@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using TestHelper;
@@ -9,7 +10,7 @@ namespace JiiLib.Constraints.Tests
     public sealed class NoInterfacesAnalyzerTests : DiagnosticVerifier
     {
         [Fact]
-        public void VerifyNoDiagnosticOnClassStructAndDelegate()
+        public async Task VerifyNoDiagnosticOnClassStructAndDelegate()
         {
             string source = @"using System;
 using JiiLib.Constraints;
@@ -34,11 +35,11 @@ namespace N
 }
 ";
 
-            VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
+            await VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
         }
 
         [Fact]
-        public void VerifyDiagnosticOnInterface()
+        public async Task VerifyDiagnosticOnInterface()
         {
             string source = @"using System;
 using JiiLib.Constraints;
@@ -72,7 +73,7 @@ namespace N
                     }
                 }
             };
-            VerifyCSharpDiagnostic(source, expected);
+            await VerifyCSharpDiagnostic(source, expected);
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

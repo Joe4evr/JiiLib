@@ -48,7 +48,7 @@ namespace JiiLib.Constraints.Analyzers
                         continue;
 
                     var location = Location.Create(context.Node.SyntaxTree, attribute.ApplicationSyntaxReference.Span);
-                    var id = typeParameterList.Parent switch
+                    var parentId = typeParameterList.Parent switch
                     {
                         MethodDeclarationSyntax method => method.Identifier.ValueText,
                         BaseTypeDeclarationSyntax type => type.Identifier.ValueText,
@@ -56,7 +56,7 @@ namespace JiiLib.Constraints.Analyzers
                         _ => "(unknown)" // ¯\_(ツ)_/¯
                     };
 
-                    var diagnostic = Diagnostic.Create(GetDiagnosticDescriptor(choice), location, typeParamNode.Identifier.ValueText, id);
+                    var diagnostic = Diagnostic.Create(GetDiagnosticDescriptor(choice), location, typeParamNode.Identifier.ValueText, parentId);
                     context.ReportDiagnostic(diagnostic);
                 }
             }

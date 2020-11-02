@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using TestHelper;
@@ -9,7 +10,7 @@ namespace JiiLib.Constraints.Tests
     public class InterfacesOnlyAnalyzerTests : DiagnosticVerifier
     {
         [Fact]
-        public void VerifyDiagnosticsOnClassStructAndDelegate()
+        public async Task VerifyDiagnosticsOnClassStructAndDelegate()
         {
             string source = @"using System;
 using JiiLib.Constraints;
@@ -67,11 +68,11 @@ namespace N
                     }
                 }
             };
-            VerifyCSharpDiagnostic(source, expected);
+            await VerifyCSharpDiagnostic(source, expected);
         }
 
         [Fact]
-        public void VerifyNoDiagnosticOnInterface()
+        public async Task VerifyNoDiagnosticOnInterface()
         {
             string source = @"using System;
 using JiiLib.Constraints;
@@ -92,11 +93,11 @@ namespace N
 }
 ";
 
-            VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
+            await VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
         }
 
         [Fact]
-        public void VerifyDiagnosticOnMethodCall()
+        public async Task VerifyDiagnosticOnMethodCall()
         {
             var source = @"using System;
 using JiiLib.Constraints;
@@ -133,11 +134,11 @@ namespace N
                     }
                 }
             };
-            VerifyCSharpDiagnostic(source, expected);
+            await VerifyCSharpDiagnostic(source, expected);
         }
 
         [Fact]
-        public void VerifyDiagnosticOnImplicitUse()
+        public async Task VerifyDiagnosticOnImplicitUse()
         {
             var source = @"using System;
 using JiiLib.Constraints;
@@ -161,7 +162,7 @@ namespace N
 }
 ";
 
-            VerifyCSharpDiagnostic(source);
+            await VerifyCSharpDiagnostic(source);
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

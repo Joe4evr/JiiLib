@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using TestHelper;
@@ -9,7 +10,7 @@ namespace JiiLib.Constraints.Tests
     public class SelfTypeUsageTests : DiagnosticVerifier
     {
         [Fact]
-        public void VerifyDiagnosticOnMethodDeclaration()
+        public async Task VerifyDiagnosticOnMethodDeclaration()
         {
             var source = @"using System;
 using JiiLib.Constraints;
@@ -36,11 +37,11 @@ namespace N
                     }
                 }
             };
-            VerifyCSharpDiagnostic(source, expected);
+            await VerifyCSharpDiagnostic(source, expected);
         }
 
         [Fact]
-        public void VerifyNoDiagnosticOnTypeDeclarations()
+        public async Task VerifyNoDiagnosticOnTypeDeclarations()
         {
             var source = @"using System;
 using JiiLib.Constraints;
@@ -54,7 +55,7 @@ namespace N
 }
 ";
 
-            VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
+            await VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

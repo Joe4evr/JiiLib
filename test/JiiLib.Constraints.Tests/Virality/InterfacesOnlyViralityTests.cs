@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using TestHelper;
@@ -9,7 +10,7 @@ namespace JiiLib.Constraints.Tests
     public class InterfacesOnlyViralityTests : DiagnosticVerifier
     {
         [Fact]
-        public void VerifyDiagnosticOnAbsence()
+        public async Task VerifyDiagnosticOnAbsence()
         {
             var source = @"using System;
 using JiiLib.Constraints;
@@ -42,8 +43,8 @@ namespace N
                     }
                 }
             };
-            VerifyCSharpDiagnostic(source, expected);
-        }
+            await VerifyCSharpDiagnostic(source, expected);
+        }   
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
             => (Activator.CreateInstance(
