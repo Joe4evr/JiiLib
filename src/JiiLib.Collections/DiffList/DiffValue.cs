@@ -255,38 +255,53 @@ namespace JiiLib.Collections.DiffList
                 (null, null) => DiffState.NonExistent,
                 (null, _)    => DiffState.New,
                 (_, null)    => DiffState.Removed,
-
-                var (o, n) when ReferenceEquals(o, n) => DiffState.Unchanged,
-                var (o, n) => (o.IsSingleValue, n.IsSingleValue) switch
-                {
-                    (true, true) => _comparer.Equals(o.Value, n.Value)
-                        ? DiffState.Unchanged
-                        : DiffState.Changed,
-
-                    (false, false) when o.Values.SequenceEqual(n.Values, _comparer)
-                        => DiffState.Unchanged,
-
-                    _ => DiffState.Changed
-                }
+                var (o, n) => EqualsCore(o, n) ? DiffState.Unchanged : DiffState.Changed
             };
         }
 
-        public static bool Equals(DiffValue? oldValue, DiffValue? newValue)
+        /// <inheritdoc/>
+        public override bool Equals(object obj)
         {
-            return (oldValue, newValue) switch
+            return obj switch
+            {
+                DiffValue dv => Equals(this, dv),
+                _ => false
+            };
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            var hash = new HashCode();
+
+            foreach (var val in this)
+            {
+                hash.Add(val, _comparer);
+            }
+
+            return hash.ToHashCode();
+        }
+
+        private static bool Equals(DiffValue? left, DiffValue? right)
+        {
+            return (left, right) switch
             {
                 (null, null) => true,
                 (null, _) => false,
                 (_, null) => false,
-
-                var (o, n) when ReferenceEquals(o, n) => true,
-                var (o, n) => (o.IsSingleValue, n.IsSingleValue) switch
-                {
-                    (true, true) => _comparer.Equals(o.Value, n.Value),
-                    (false, false) => o.Values.SequenceEqual(n.Values, _comparer),
-                    _ => false
-                }
+                var (o, n) => EqualsCore(o, n)
             };
+        }
+
+        private static bool EqualsCore(DiffValue left, DiffValue right)
+        {
+            return ReferenceEquals(left, right)
+                || ((left.IsSingleValue, right.IsSingleValue) switch
+                    {
+                        (true, true) => _comparer.Equals(left.Value, right.Value),
+                        (false, false) => left.Values.SequenceEqual(right.Values, _comparer),
+                        _ => false
+                    });
         }
 
         private DiffValue(ImmutableArray<string>.Builder builder)
@@ -300,5 +315,38 @@ namespace JiiLib.Collections.DiffList
         private string DebuggerDisplay => IsSingleValue
             ? $"Single: ({Value})"
             : $"Multi: [Count = {Values.Length}]";
+
+        /// <summary>
+        ///     Compares two <see cref="DiffValue"/>s for equality.
+        /// </summary>
+        /// <param name="left">
+        ///     The left value.
+        /// </param>
+        /// <param name="right">
+        ///     The right value.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true"/> if the two values are
+        ///     the same, or structurally equal;
+        ///     otherwise, <see langword="false"/>.
+        /// </returns>
+        public static bool operator ==(DiffValue? left, DiffValue? right) => Equals(left, right);
+
+
+        /// <summary>
+        ///     Compares two <see cref="DiffValue"/>s for inequality.
+        /// </summary>
+        /// <param name="left">
+        ///     The left value.
+        /// </param>
+        /// <param name="right">
+        ///     The right value.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true"/> if the two
+        ///     values are structurally unequal;
+        ///     otherwise, <see langword="false"/>.
+        /// </returns>
+        public static bool operator !=(DiffValue? left, DiffValue? right) => !Equals(left, right);
     }
 }

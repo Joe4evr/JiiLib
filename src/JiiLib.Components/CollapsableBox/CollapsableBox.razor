@@ -1,14 +1,11 @@
 ﻿@namespace JiiLib.Components
 
-@{
-var style = Provider?.GetStyle<ICollapsableBoxStyle>() ?? ICollapsableBoxStyle.Default;
-}
-<div class="collapsable-box @style.OuterBoxClass">
-    <div class="title @style.TitleClass" @onclick="ToggleCollapse">
+<div class="collapsable-box">
+    <div class="title" @onclick="ToggleCollapse">
         <span class="chev oi @ArrowStatus iconic-sm" aria-hidden="true"></span>
         <span>@Title @ClickStatus</span>
     </div>
-    <div class="content @DisplayStatus @style.ContentClass" @ref="_content">
+    <div class="content @DisplayStatus" @ref="_content">
         @ChildContent
     </div>
 </div>
@@ -30,8 +27,6 @@ var style = Provider?.GetStyle<ICollapsableBoxStyle>() ?? ICollapsableBoxStyle.D
     ///     Sets the content to render inside the box.
     /// </summary>
     [Parameter] public RenderFragment? ChildContent { private get; set; }
-
-    [CascadingParameter] public StyleProvider? Provider { private get; set; }
 
 
     private ElementReference _content;

@@ -33,14 +33,14 @@ namespace JiiLib.Components.Tests
                 {
                     KeyValuePair.Create("CPU", new DiffValue("AMD Ryzen 3200G")),
                     KeyValuePair.Create("RAM", new DiffValue("4x 16GB G.Skill Sniper X F4-3600C19Q-64GSXKB")),
-                    KeyValuePair.Create("GPU", new DiffValue("Gigabyte GeForce GTX 1070")),
                     KeyValuePair.Create("Storage", new DiffValue(new[]
                     {
                         "Samsung NVMe 970 EVO Plus (250GB)",
                         "Samsung SATA 860 EVO (500GB)"
                     }))
                 })
-                .SetEntry("CPU", "AMD Ryzen 5600")
+                .SetEntry("CPU", "AMD Ryzen 5600X")
+                .SetEntry("GPU", "Gigabyte GeForce GTX 1070")
                 .AddTo("Storage", new[]
                 {
                     "Seagate Barracuda Compute (6TB)",

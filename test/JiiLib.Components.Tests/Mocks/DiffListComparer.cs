@@ -24,6 +24,11 @@ namespace JiiLib.Components.Tests
 
             static bool EqualsCore(KeyedDiffList<TKey> left, KeyedDiffList<TKey> right)
             {
+                if (ReferenceEquals(left, right))
+                {
+                    return true;
+                }
+
                 if ((left.OldEntriesCount != right.OldEntriesCount)
                     || (left.NewEntriesCount != right.NewEntriesCount))
                 {
@@ -38,8 +43,8 @@ namespace JiiLib.Components.Tests
 
                 foreach (var (lpair, rpair) in joined)
                 {
-                    if ((!DiffValue.Equals(lpair.OldValue, rpair.OldValue))
-                        || (!DiffValue.Equals(lpair.NewValue, rpair.NewValue)))
+                    if ((lpair.OldValue != rpair.OldValue)
+                        || (lpair.NewValue != rpair.NewValue))
                     {
                         return false;
                     }
@@ -56,21 +61,8 @@ namespace JiiLib.Components.Tests
             foreach (var (key, ov, nv) in obj)
             {
                 hash.Add(key);
-
-                if (ov != null)
-                {
-                    foreach (var val in ov)
-                    {
-                        hash.Add(val);
-                    }
-                }
-                if (nv != null)
-                {
-                    foreach (var val in nv)
-                    {
-                        hash.Add(val);
-                    }
-                }
+                hash.Add(ov);
+                hash.Add(nv);
             }
 
             return hash.ToHashCode();

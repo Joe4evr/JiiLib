@@ -7,6 +7,10 @@ namespace JiiLib.Collections.Tests
 {
     public class DiffListTests
     {
+        private static KeyedDiffList<T> EmptyTestList<T>()
+            where T : notnull
+            => KeyedDiffList.CreateWithDualEntries(Array.Empty<KeyValuePair<T, DiffValue>>());
+
         public class Factory
         {
             [Fact]
@@ -22,6 +26,18 @@ namespace JiiLib.Collections.Tests
         public class Ctor
         {
 
+        }
+
+        public class Indexer
+        {
+            [Fact]
+            public void ThrowsOnNullKey()
+            {
+                var list = EmptyTestList<string>();
+
+                var ex = Assert.Throws<ArgumentNullException>(() => list[key: null!]);
+                Assert.Equal(expected: "key", actual: ex.ParamName);
+            }
         }
     }
 }

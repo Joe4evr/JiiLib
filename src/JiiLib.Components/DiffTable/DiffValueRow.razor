@@ -9,19 +9,25 @@
             @_key
         </td>
         <td class="old-item">
-            @foreach (var subValue in _old!.Values)
+            @if (_old is { })
             {
-                <div class="diff-value @GetDiffClass(GetPartialDiffState(subValue, _new))">
-                    @subValue
-                </div>
+                @foreach (var subValue in _old)
+                {
+                    <div class="diff-value @GetDiffClass(GetPartialDiffState(subValue, _new))">
+                        @subValue
+                    </div>
+                }
             }
         </td>
         <td class="new-item">
-            @foreach (var subValue in _new!.Values)
+            @if (_new is { })
             {
-                <div class="diff-value @GetDiffClass(GetPartialDiffState(_old, subValue))">
-                    @subValue
-                </div>
+                @foreach (var subValue in _new)
+                {
+                    <div class="diff-value @GetDiffClass(GetPartialDiffState(_old, subValue))">
+                        @subValue
+                    </div>
+                }
             }
         </td>
     </tr>

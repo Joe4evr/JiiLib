@@ -67,7 +67,7 @@ namespace JiiLib.Collections.DiffList
         public int NewEntriesCount => _newEntries.Count;
 
         /// <summary>
-        ///     Gets the values at a specified key.
+        ///     Gets the value-pair at a specified key.
         /// </summary>
         /// <param name="key">
         ///     Key of the entries.
@@ -76,6 +76,14 @@ namespace JiiLib.Collections.DiffList
         ///     A <see cref="DiffValuePair{TKey}"/> that
         ///     represents the values at the specified key.
         /// </returns>
+        /// <remarks>
+        ///     If neither Old nor New entries contained a value
+        ///     at the specified key, this property will
+        ///     return a <see cref="DiffValuePair{TKey}"/>
+        ///     where <see cref="DiffValuePair{TKey}.OldValue"/>
+        ///     and <see cref="DiffValuePair{TKey}.NewValue"/>
+        ///     are <see langword="null"/>.
+        /// </remarks>
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="key"/> was <see langword="null"/>.
         /// </exception>
@@ -93,7 +101,24 @@ namespace JiiLib.Collections.DiffList
         }
 
         /// <summary>
-        ///     Add or replace a single value in the New entries.
+        ///     Determines whether a specified key exists
+        ///     in at least one of the Old and New entries.
+        /// </summary>
+        /// <param name="key">
+        ///     The key to locate.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true"/> if either Old or New
+        ///     entries contains an element that has the
+        ///     specified key; otherwise, <see langword="false"/>.
+        /// </returns>
+        public bool ContainsKey(TKey key)
+        {
+            return _oldEntries.ContainsKey(key) || _newEntries.ContainsKey(key);
+        }
+
+        /// <summary>
+        ///     Create or replace a single value in the New entries.
         /// </summary>
         /// <param name="key">
         ///     Key of the entry.
@@ -121,7 +146,7 @@ namespace JiiLib.Collections.DiffList
         }
 
         /// <summary>
-        ///     Add or replace a set of values in the New entries.
+        ///     Create or replace a set of values in the New entries.
         /// </summary>
         /// <param name="key">
         ///     Key of the entry.
@@ -287,9 +312,9 @@ namespace JiiLib.Collections.DiffList
         /// </summary>
         public Enumerator GetEnumerator() => new Enumerator(this);
 
-        /// <inheritdoc cref="IEnumerable{T}.GetEnumerator" />
+        ///// <inheritdoc cref="IEnumerable{T}.GetEnumerator" />
         IEnumerator<DiffValuePair<TKey>> IEnumerable<DiffValuePair<TKey>>.GetEnumerator() => GetEnumerator();
-        /// <inheritdoc cref="IEnumerable.GetEnumerator" />
+        ///// <inheritdoc cref="IEnumerable.GetEnumerator" />
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
