@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 namespace JiiLib.Collections.DiffList
 {
@@ -17,21 +19,19 @@ namespace JiiLib.Collections.DiffList
         {
             private readonly DiffValue _dv;
             private ImmutableArray<string>.Enumerator _enum;
+            private string? _current;
 
             /// <summary>
             /// 
             /// </summary>
-            public string Current { get; private set; }
+            public string Current => _current!;
 
             internal Enumerator(DiffValue dv)
                 : this()
             {
-                if (dv is { IsSingleValue: false })
-                {
-                    _enum = dv.Values.GetEnumerator();
-                }
-
+                _enum = dv._values.GetEnumerator();
                 _dv = dv;
+                _current = null;
             }
 
             /// <summary>
@@ -39,24 +39,19 @@ namespace JiiLib.Collections.DiffList
             /// </summary>
             /// <returns>
             /// </returns>
+#if NET5_0
+            [MemberNotNullWhen(true, nameof(Current))]
+#endif
             public bool MoveNext()
             {
-                if (_dv is { IsSingleValue: true }
-                    && Current is null)
+                return _dv switch
                 {
-                    Current = _dv.Value;
-                    return true;
-                }
-                else if (_dv is { IsSingleValue: false }
-                    && _enum.MoveNext())
-                {
-                    Current = _enum.Current;
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                    { IsSingleValue: true }
+                        when Interlocked.CompareExchange(ref _current, _dv.Value, null) is null => true,
+                    { IsSingleValue: false } when _enum.MoveNext()
+                        => (_current = _enum.Current) is { },
+                    _ => false
+                };
             }
         }
     }

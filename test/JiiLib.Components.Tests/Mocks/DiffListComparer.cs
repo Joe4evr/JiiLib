@@ -17,8 +17,7 @@ namespace JiiLib.Components.Tests
             return (x, y) switch
             {
                 (null, null) => true,
-                (_, null) => false,
-                (null, _) => false,
+                (_, null) or (null, _) => false,
                 var (l, r) => EqualsCore(l, r)
             };
 

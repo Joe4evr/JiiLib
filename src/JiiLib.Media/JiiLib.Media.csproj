@@ -7,10 +7,10 @@
   <PropertyGroup>
     <!--<DefineConstants>$(DefineConstants);</DefineConstants>-->
   </PropertyGroup>
-  <ItemGroup>
+  <!--<ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
-  <!--<ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\JiiLib\JiiLib.csproj" />
   </ItemGroup>-->
 </Project>

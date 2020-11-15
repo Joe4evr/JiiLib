@@ -3,7 +3,7 @@
     <PackageId>$(AssemblyName)</PackageId>
     <RootNamespace>$(AssemblyName)</RootNamespace>
     <Title>$(AssemblyName)</Title>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <LangVersion>9.0</LangVersion>
     <Nullable>Enable</Nullable>
     <Authors>Joe4evr</Authors>

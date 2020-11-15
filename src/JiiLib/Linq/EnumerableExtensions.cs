@@ -85,5 +85,23 @@ namespace JiiLib.Linq
             return result;
         }
 
+        public static bool CountLessThan<T>(this IEnumerable<T> sequence, Func<T, bool> selector, int comparand)
+        {
+            int count = 0;
+            foreach (var item in sequence)
+            {
+                if (selector(item))
+                {
+                    count++;
+                }
+
+                if (count >= comparand)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

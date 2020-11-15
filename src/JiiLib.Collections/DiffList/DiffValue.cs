@@ -260,11 +260,11 @@ namespace JiiLib.Collections.DiffList
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj switch
             {
-                DiffValue dv => Equals(this, dv),
+                DiffValue dv => EqualsCore(this, dv),
                 _ => false
             };
         }
@@ -287,9 +287,8 @@ namespace JiiLib.Collections.DiffList
             return (left, right) switch
             {
                 (null, null) => true,
-                (null, _) => false,
-                (_, null) => false,
-                var (o, n) => EqualsCore(o, n)
+                (null, _) or (_, null) => false,
+                var (l, r) => EqualsCore(l, r)
             };
         }
 

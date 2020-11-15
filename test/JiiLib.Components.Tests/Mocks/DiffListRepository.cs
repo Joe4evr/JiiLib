@@ -25,94 +25,89 @@ namespace JiiLib.Components.Tests
 
 
             var listId = Guid.NewGuid().ToString();
+            var listEnt = new DiffList
+            {
+                Id = listId,
+                //KeyComparison = ,
+                Entries = new List<DiffListEntryKey>()
+            };
+            var index = 1;
             foreach (var (key, ov, nv) in list)
             {
-                var oe = ov switch
+                var keyEnt = new DiffListEntryKey
                 {
-                    null => Array.Empty<DiffListEntry>(),
-                    { IsSingleValue: true  } s => new[]
-                    {
-                        new DiffListEntry
-                        {
-                            Id = Guid.NewGuid().ToString(),
-                            ListId = listId,
-                            EntryKey = key,
-                            IsOldValue = true,
-                            Value = s.Value
-                        }
-                    },
-                    { IsSingleValue: false } m => m.Values.Select(v => new DiffListEntry
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        ListId = listId,
-                        EntryKey = key,
-                        IsOldValue = true,
-                        Value = v
-                    }).ToArray()
+                    Id = Guid.NewGuid().ToString(),
+                    KeyName = key,
+                    Index = index++,
+                    EntryValues = ToDiffListEntries(ov, true, key, listId)
+                        .Concat(ToDiffListEntries(nv, false, key, listId))
+                        .ToArray()
                 };
-                if (oe.Length > 0)
-                {
-                    await _context.DiffListEntries.AddRangeAsync(oe);
-                }
 
-
-                var ne = nv switch
-                {
-                    null => Array.Empty<DiffListEntry>(),
-                    { IsSingleValue: true  } s => new[]
-                    {
-                        new DiffListEntry
-                        {
-                            Id = Guid.NewGuid().ToString(),
-                            ListId = listId,
-                            EntryKey = key,
-                            IsOldValue = false,
-                            Value = s.Value
-                        }
-                    },
-                    { IsSingleValue: false } m => m.Values.Select(v => new DiffListEntry
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        ListId = listId,
-                        EntryKey = key,
-                        IsOldValue = false,
-                        Value = v
-                    }).ToArray()
-                };
-                if (ne.Length > 0)
-                {
-                    await _context.DiffListEntries.AddRangeAsync(ne);
-                }
+                listEnt.Entries.Add(keyEnt);
             }
+
+            _context.DiffLists.Add(listEnt);
 
             await _context.SaveChangesAsync();
 
             return listId;
+
+            static DiffListEntry[] ToDiffListEntries(DiffValue? dv, bool isOld, string key, string listId)
+            {
+                return dv switch
+                {
+                    null => Array.Empty<DiffListEntry>(),
+                    { IsSingleValue: true } s => new[]
+                    {
+                        new DiffListEntry
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            IsOldValue = isOld,
+                            Value = s.Value
+                        }
+                    },
+                    { IsSingleValue: false } m => m.Values.Select(v => new DiffListEntry
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        IsOldValue = isOld,
+                        Value = v
+                    }).ToArray()
+                };
+            }
         }
 
-        public async Task<KeyedDiffList<string>?> GetListAsync(string id, Comparison<string>? comparison = null)
+        public async Task<KeyedDiffList<string>?> GetListAsync(string listId)
         {
-            var entries = await _context.DiffListEntries
-                .Where(l => l.ListId == id)
-                .ToArrayAsync();
-
-            if (entries.Length == 0)
+            if (listId is null)
                 return null;
 
-            var split = entries.ToLookup(e => e.IsOldValue);
+            var list = await _context.DiffLists
+                .Include(d => d.Entries)
+                    .ThenInclude(e => e.EntryValues)
+                .FirstOrDefaultAsync(d => d.Id == listId);
+
+            if (list is null || list.Entries.Count == 0)
+                return null;
+
+            var keys = new List<string>(4);
             var olds = new List<KeyValuePair<string, DiffValue>>(4);
             var news = new List<KeyValuePair<string, DiffValue>>(4);
 
-            foreach (var entry in split[true].GroupBy(e => e.EntryKey))
+            foreach (var key in list.Entries.OrderBy(e => e.Index))
             {
-                olds.Add(KeyValuePair.Create(entry.Key, new DiffValue(entry.Select(e => e.Value))));
-            }
-            foreach (var entry in split[false].GroupBy(e => e.EntryKey))
-            {
-                news.Add(KeyValuePair.Create(entry.Key, new DiffValue(entry.Select(e => e.Value))));
+                keys.Add(key.KeyName);
+                foreach (var val in key.EntryValues.GroupBy(e => e.IsOldValue))
+                {
+                    var dv = new DiffValue(val.Select(v => v.Value));
+                    (val.Key ? olds : news).Add(KeyValuePair.Create(key.KeyName, dv));
+                }
             }
 
-            return KeyedDiffList.CreateWithEntries(olds, news, StringComparer.OrdinalIgnoreCase);
+            return KeyedDiffList.CreateWithEntries(olds, news,
+                comparison: (x, y) => keys.IndexOf(x).CompareTo(keys.IndexOf(y)));
         }
+
+        public async Task<int> GetCountAsync() => await _context.DiffLists.CountAsync();
     }
 }

@@ -48,7 +48,7 @@ namespace JiiLib.Collections.DiffList
                     var old = _list._oldEntries.GetValueOrDefault(key);
                     var @new = _list._newEntries.GetValueOrDefault(key);
 
-                    VersionCheck();
+                    //VersionCheck();
 
                     Current = new DiffValuePair<TKey>(key, old, @new);
                     return true;

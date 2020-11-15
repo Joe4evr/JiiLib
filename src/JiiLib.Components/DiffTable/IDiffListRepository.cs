@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using JiiLib.Collections.DiffList;
 
@@ -27,12 +28,22 @@ namespace JiiLib.Components
         /// <param name="id">
         /// 
         /// </param>
+        /// <param name="comparer">
+        /// 
+        /// </param>
         /// <param name="comparison">
         /// 
         /// </param>
         /// <returns>
         /// 
         /// </returns>
-        Task<KeyedDiffList<string>?> GetListAsync(string id, Comparison<string>? comparison = null);
+        Task<KeyedDiffList<string>?> GetListAsync(string listId);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>
+        /// </returns>
+        Task<int> GetCountAsync();
     }
 }
