@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace JiiLib.Collections.DiffList
@@ -198,8 +200,16 @@ namespace JiiLib.Collections.DiffList
             if (value is null)
                 throw new ArgumentNullException(nameof(value));
 
+#if NET6_0_OR_GREATER
+            ref var dv = ref CollectionsMarshal.GetValueRefOrNullRef(_newEntries, key);
+            if (Unsafe.IsNullRef(ref dv))
+                throw new KeyNotFoundException();
+
+            dv = dv.Add(value);
+#else
             var dv = _newEntries[key];
             _newEntries[key] = dv.Add(value);
+#endif
 
             Interlocked.Increment(ref _version);
             return this;
@@ -230,9 +240,16 @@ namespace JiiLib.Collections.DiffList
             if (values is null)
                 throw new ArgumentNullException(nameof(values));
 
+#if NET6_0_OR_GREATER
+            ref var dv = ref CollectionsMarshal.GetValueRefOrNullRef(_newEntries, key);
+            if (Unsafe.IsNullRef(ref dv))
+                throw new KeyNotFoundException();
+
+            dv = dv.Add(values);
+#else
             var dv = _newEntries[key];
             _newEntries[key] = dv.Add(values);
-
+#endif
             Interlocked.Increment(ref _version);
             return this;
         }
@@ -302,7 +319,7 @@ namespace JiiLib.Collections.DiffList
         /// <returns>
         ///     A new <see cref="KeyedDiffList{TKey}"/>.
         /// </returns>
-        public KeyedDiffList<TKey> Shift() => new KeyedDiffList<TKey>(
+        public KeyedDiffList<TKey> Shift() => new(
             new ReadOnlyDictionary<TKey, DiffValue>(
                 new Dictionary<TKey, DiffValue>(_newEntries)),
             new Dictionary<TKey, DiffValue>(_newEntries), _comparison);
@@ -310,7 +327,7 @@ namespace JiiLib.Collections.DiffList
         /// <summary>
         ///     Gets the enumerator for this list.
         /// </summary>
-        public Enumerator GetEnumerator() => new Enumerator(this);
+        public Enumerator GetEnumerator() => new(this);
 
         ///// <inheritdoc cref="IEnumerable{T}.GetEnumerator" />
         IEnumerator<DiffValuePair<TKey>> IEnumerable<DiffValuePair<TKey>>.GetEnumerator() => GetEnumerator();
