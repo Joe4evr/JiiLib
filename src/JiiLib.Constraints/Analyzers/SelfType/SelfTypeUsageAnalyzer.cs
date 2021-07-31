@@ -16,7 +16,7 @@ namespace JiiLib.Constraints.Analyzers
         private const string Description = "Invalid use of constraint attribute.";
         private const string Category = "API Usage";
 
-        private static readonly DiagnosticDescriptor _rule = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor _rule = new(
             DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Info, isEnabledByDefault: true, description: Description,
             customTags: WellKnownDiagnosticTags.Unnecessary);
         private static readonly Type _attributeType = typeof(SelfTypeAttribute);

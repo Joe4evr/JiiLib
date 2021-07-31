@@ -29,7 +29,7 @@ namespace JiiLib.Constraints.Analyzers
 
         private void AnalyzeTypeArgumentList(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is TypeArgumentListSyntax typeArgumentList))
+            if (context.Node is not TypeArgumentListSyntax typeArgumentList)
                 return;
 
             if (!ShouldAnalyze(typeArgumentList))
@@ -71,7 +71,8 @@ namespace JiiLib.Constraints.Analyzers
                 var attrs = typeParam.GetAttributes();
                 if (attrs.Any(a => a?.AttributeClass?.Name == CheckedAttribute.Name)
                     && context.SemanticModel.GetSymbolInfo(typeArg).Symbol is ITypeParameterSymbol typeSymbol
-                    && typeSymbol.GetAttributes().None(a => a?.AttributeClass?.Name == CheckedAttribute.Name))
+                    && typeSymbol.GetAttributes().None(a => a?.AttributeClass?.Name == CheckedAttribute.Name)
+                    && !IsExempt(typeSymbol))
                 {
                     var declaringSymbolId = typeSymbol switch
                     {
@@ -91,6 +92,7 @@ namespace JiiLib.Constraints.Analyzers
 
         [DebuggerStepThrough]
         private protected virtual bool ShouldAnalyze(TypeArgumentListSyntax typeArgumentList) => true;
+        private protected virtual bool IsExempt(ITypeParameterSymbol typeParameterSymbol) => false;
         private protected abstract DiagnosticDescriptor GetDiagnosticDescriptor();
     }
 }

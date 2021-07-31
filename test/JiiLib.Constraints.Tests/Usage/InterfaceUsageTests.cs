@@ -12,7 +12,7 @@ namespace JiiLib.Constraints.Tests
         [Fact]
         public async Task VerifyDiagnosticOfInvalidCombinationOnTypes()
         {
-            var source = @"using System;
+            const string source = @"using System;
 using JiiLib.Constraints;
 
 namespace N

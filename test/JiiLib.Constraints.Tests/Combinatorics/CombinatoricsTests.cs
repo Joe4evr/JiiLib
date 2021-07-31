@@ -12,7 +12,7 @@ namespace JiiLib.Constraints.Tests
         [Fact]
         public async Task VerifyDiagnosticOnIOandNI()
         {
-            string source = @"using System;
+            const string source = @"using System;
 using JiiLib.Constraints;
 
 namespace N

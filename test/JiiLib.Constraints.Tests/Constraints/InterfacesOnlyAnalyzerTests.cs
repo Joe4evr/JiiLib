@@ -12,7 +12,7 @@ namespace JiiLib.Constraints.Tests
         [Fact]
         public async Task VerifyDiagnosticsOnClassStructAndDelegate()
         {
-            string source = @"using System;
+            const string source = @"using System;
 using JiiLib.Constraints;
 
 namespace N
@@ -74,7 +74,7 @@ namespace N
         [Fact]
         public async Task VerifyNoDiagnosticOnInterface()
         {
-            string source = @"using System;
+            const string source = @"using System;
 using JiiLib.Constraints;
 
 namespace N
@@ -99,7 +99,7 @@ namespace N
         [Fact]
         public async Task VerifyDiagnosticOnMethodCall()
         {
-            var source = @"using System;
+            const string source = @"using System;
 using JiiLib.Constraints;
 
 namespace N
@@ -140,7 +140,7 @@ namespace N
         [Fact]
         public async Task VerifyDiagnosticOnImplicitUse()
         {
-            var source = @"using System;
+            const string source = @"using System;
 using JiiLib.Constraints;
 
 namespace N

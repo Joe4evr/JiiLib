@@ -12,7 +12,7 @@ namespace JiiLib.Constraints.Tests
         [Fact]
         public async Task VerifyNoDiagnosticOnClassStructAndDelegate()
         {
-            string source = @"using System;
+            const string source = @"using System;
 using JiiLib.Constraints;
 
 namespace N
@@ -41,7 +41,7 @@ namespace N
         [Fact]
         public async Task VerifyDiagnosticOnInterface()
         {
-            string source = @"using System;
+            const string source = @"using System;
 using JiiLib.Constraints;
 
 namespace N

@@ -27,7 +27,7 @@ namespace JiiLib.Constraints.Analyzers
 
         private void AnalyzeTypeArgumentList(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is TypeArgumentListSyntax typeArgumentList))
+            if (context.Node is not TypeArgumentListSyntax typeArgumentList)
                 return;
 
             if (!ShouldAnalyze(typeArgumentList))

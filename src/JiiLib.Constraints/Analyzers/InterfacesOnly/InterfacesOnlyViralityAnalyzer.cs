@@ -14,7 +14,7 @@ namespace JiiLib.Constraints.Analyzers
         private const string Description = "Missing constraint attribute.";
         private const string Category = "API Usage";
 
-        private static readonly DiagnosticDescriptor _rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
+        private static readonly DiagnosticDescriptor _rule = new(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
         private static readonly Type _attributeType = typeof(InterfacesOnlyAttribute);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);

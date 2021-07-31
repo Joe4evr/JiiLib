@@ -15,7 +15,7 @@ namespace JiiLib.Constraints.Analyzers
         private const string Description = "Passing an invalid type argument.";
         private const string Category = "API Usage";
 
-        private static readonly DiagnosticDescriptor _rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
+        private static readonly DiagnosticDescriptor _rule = new(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
         private static readonly Type _attributeType = typeof(NonAbstractOnlyAttribute);
 
         /// <inheritdoc/>
@@ -27,7 +27,18 @@ namespace JiiLib.Constraints.Analyzers
         }
 
         private protected override bool CompliesWithConstraint(ITypeSymbol typeSymbol)
-            => typeSymbol.IsAbstract is false;
+        {
+            if (typeSymbol is ITypeParameterSymbol otherTypeParameter)
+            {
+                // The type argument is itself a Type Parameter from its parent scope.
+                // In this case, the 'struct' and 'new()' constraints are implicitly compliant.
+                return (otherTypeParameter.HasConstructorConstraint
+                    || otherTypeParameter.HasValueTypeConstraint);
+            }
+
+            return typeSymbol.IsAbstract is false;
+        }
+
         private protected override DiagnosticDescriptor GetDiagnosticDescriptor() => _rule;
     }
 }

@@ -27,7 +27,7 @@ namespace JiiLib.Constraints.Analyzers
 
         private void AnalyzeTypeParameterList(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is TypeParameterListSyntax typeParameterList))
+            if (context.Node is not TypeParameterListSyntax typeParameterList)
                 return;
 
             if (!ShouldAnalyze(typeParameterList))

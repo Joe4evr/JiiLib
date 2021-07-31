@@ -10,9 +10,9 @@ namespace JiiLib.Constraints.Tests
     public class NonAbstractUsageTests : DiagnosticVerifier
     {
         [Fact]
-        public async Task VerifyDiagnosticOnInvalidCombinations()
+        public async Task VerifyDiagnosticOnIneffectiveCombinations()
         {
-            var source = @"using System;
+            const string source = @"using System;
 using JiiLib.Constraints;
 
 namespace N

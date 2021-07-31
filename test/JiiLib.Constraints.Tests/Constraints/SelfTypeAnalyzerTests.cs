@@ -62,7 +62,7 @@ namespace JiiLib.Constraints.Tests
         [Fact]
         public async Task VerifyDiagnosticOnMismatchType()
         {
-            string source = @"using System;
+            const string source = @"using System;
 using JiiLib.Constraints;
 
 namespace N
@@ -92,7 +92,7 @@ namespace N
         [Fact]
         public async Task VerifyNoDiagnosticOnMethodDeclaration()
         {
-            var source = @"using System;
+            const string source = @"using System;
 using JiiLib.Constraints;
 
 namespace N
