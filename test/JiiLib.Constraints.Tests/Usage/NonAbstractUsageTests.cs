@@ -34,7 +34,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0002U",
-                    Message = "Use of the NonAbstract attribute on 'T' in 'C' is ineffective.",
+                    Message = "Use of the NonAbstract attribute on 'T' in 'C' is ineffective",
                     Severity = DiagnosticSeverity.Info,
                     Locations = new[]
                     {
@@ -44,7 +44,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0002U",
-                    Message = "Use of the NonAbstract attribute on 'T' in 'S' is ineffective.",
+                    Message = "Use of the NonAbstract attribute on 'T' in 'S' is ineffective",
                     Severity = DiagnosticSeverity.Info,
                     Locations = new[]
                     {

@@ -13,8 +13,8 @@ namespace JiiLib.Constraints.Analyzers
     internal sealed class InterfaceConstraintAnalyzer : BaseConstraintAnalyzer
     {
         private const string DiagnosticId = "JLC0001";
-        private const string Title = "Type argument must be an interface type.";
-        private const string MessageFormat = "Type argument '{0}' must be an interface type.";
+        private const string Title = "Type argument must be an interface type";
+        private const string MessageFormat = "Type argument '{0}' must be an interface type";
         private const string Description = "Passing an invalid type argument.";
         private const string Category = "API Usage";
 
@@ -31,6 +31,7 @@ namespace JiiLib.Constraints.Analyzers
 
         private protected override bool CompliesWithConstraint(ITypeSymbol typeSymbol)
             => typeSymbol.TypeKind == TypeKind.Interface;
+
         private protected override DiagnosticDescriptor GetDiagnosticDescriptor() => _rule;
     }
 }

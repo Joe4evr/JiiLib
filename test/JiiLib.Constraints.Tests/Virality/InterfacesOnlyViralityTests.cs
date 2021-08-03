@@ -35,7 +35,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0001V",
-                    Message = "Type parameter 'TError' in 'C' must be annotated with '[InterfacesOnly]' to use as a type argument for 'X'.",
+                    Message = "Type parameter 'TError' in 'C' must be annotated with '[InterfacesOnly]' to use as a type argument for 'X'",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new []
                     {

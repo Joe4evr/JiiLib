@@ -61,7 +61,8 @@ namespace TestHelper
             var diagnostics = new List<Diagnostic>();
             foreach (var project in projects)
             {
-                var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(ImmutableArray.Create(analyzer));
+                var compilationWithAnalyzers = (await project.GetCompilationAsync())!
+                    .WithAnalyzers(ImmutableArray.Create(analyzer));
                 var diags = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
                 foreach (var diag in diags)
                 {

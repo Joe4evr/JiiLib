@@ -49,7 +49,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0001U",
-                    Message = "The InterfacesOnly attribute on 'TError' in 'C' cannot be combined with the ValueType constraint.",
+                    Message = "The InterfacesOnly attribute on 'TError' in 'C' cannot be combined with the ValueType constraint",
                     Severity = DiagnosticSeverity.Error,
                     Locations= new[]
                     {
@@ -59,7 +59,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0001U",
-                    Message = "The InterfacesOnly attribute on 'TError' in 'S' cannot be combined with the ValueType constraint.",
+                    Message = "The InterfacesOnly attribute on 'TError' in 'S' cannot be combined with the ValueType constraint",
                     Severity = DiagnosticSeverity.Error,
                     Locations= new[]
                     {
@@ -69,7 +69,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0001U",
-                    Message = "The InterfacesOnly attribute on 'TError' in 'IX' cannot be combined with a Base Class constraint.",
+                    Message = "The InterfacesOnly attribute on 'TError' in 'IX' cannot be combined with a Base Class constraint",
                     Severity = DiagnosticSeverity.Error,
                     Locations= new[]
                     {
@@ -79,7 +79,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0001U",
-                    Message = "The InterfacesOnly attribute on 'TError' in 'D' cannot be combined with the new() constraint.",
+                    Message = "The InterfacesOnly attribute on 'TError' in 'D' cannot be combined with the new() constraint",
                     Severity = DiagnosticSeverity.Error,
                     Locations= new[]
                     {
@@ -89,7 +89,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0001U",
-                    Message = "Type Parameter 'TError' in 'C2' is constrained to another type parameter with an incompatible constraint.",
+                    Message = "Type Parameter 'TError' in 'C2' is constrained to another type parameter with an incompatible constraint",
                     Severity = DiagnosticSeverity.Error,
                     Locations= new[]
                     {

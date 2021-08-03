@@ -11,8 +11,8 @@ namespace JiiLib.Constraints.Analyzers
     internal sealed class CombinatoricAnalyzer : DiagnosticAnalyzer
     {
         private const string DiagnosticId = "JLC0001X";
-        private const string Title = "Invalid combination of constraint attributes.";
-        private const string MessageFormat = "Attribute '{0}' on '{1}' in '{2}' cannot be combined with '{3}'.";
+        private const string Title = "Invalid combination of constraint attributes";
+        private const string MessageFormat = "Attribute '{0}' on '{1}' in '{2}' cannot be combined with '{3}'";
         private const string Description = "Invalid use of constraint attribute.";
         private const string Category = "API Usage";
 
@@ -37,13 +37,15 @@ namespace JiiLib.Constraints.Analyzers
 
         private void AnalyzeTypeParameterList(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is TypeParameterListSyntax typeParameterList))
+            if (context.Node is not TypeParameterListSyntax typeParameterList)
                 return;
 
             foreach (var typeParamNode in typeParameterList.Parameters)
             {
                 var tracker = new CombinationTracker();
-                var typeParamSymbol = context.SemanticModel.GetDeclaredSymbol(typeParamNode);
+                if (context.SemanticModel.GetDeclaredSymbol(typeParamNode) is not { } typeParamSymbol)
+                    continue;
+
                 var attributes = typeParamSymbol.GetAttributes();
 
                 foreach (var attr1 in attributes)
@@ -53,9 +55,9 @@ namespace JiiLib.Constraints.Analyzers
                         if (ReferenceEquals(attr1, attr2))
                             continue;
 
-                        if (IsCombinationInvalid(attr1.AttributeClass, attr2.AttributeClass))
+                        if (IsCombinationInvalid(attr1.AttributeClass!, attr2.AttributeClass!))
                         {
-                            var location = Location.Create(context.Node.SyntaxTree, attr1.ApplicationSyntaxReference.Span);
+                            var location = Location.Create(context.Node.SyntaxTree, attr1.ApplicationSyntaxReference!.Span);
                             var parentId = typeParameterList.Parent switch
                             {
                                 MethodDeclarationSyntax method => method.Identifier.ValueText,
@@ -64,7 +66,7 @@ namespace JiiLib.Constraints.Analyzers
                                 _ => "(unknown)" // ¯\_(ツ)_/¯
                             };
 
-                            tracker.AddCombination(attr1.AttributeClass.Name, attr2.AttributeClass.Name,
+                            tracker.AddCombination(attr1.AttributeClass!.Name, attr2.AttributeClass!.Name,
                                 location, typeParamNode.Identifier.ValueText, parentId);
                         }
                     }

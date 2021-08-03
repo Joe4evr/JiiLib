@@ -12,8 +12,8 @@ namespace JiiLib.Constraints.Analyzers
     internal sealed class SelfTypeConstraintAnalyzer : BaseConstraintAnalyzer
     {
         private const string DiagnosticId = "JLC0003";
-        private const string Title = "Type argument must be the implementing type.";
-        private const string MessageFormat = "Type argument '{0}' must be the implementing type.";
+        private const string Title = "Type argument must be the implementing type";
+        private const string MessageFormat = "Type argument '{0}' must be the implementing type";
         private const string Description = "Passing an invalid type argument.";
         private const string Category = "API Usage";
 
@@ -36,7 +36,7 @@ namespace JiiLib.Constraints.Analyzers
             var implementingType = typeSyntaxNode.FirstAncestorOrSelf<ClassDeclarationSyntax>()!;
             var implTypeSymbol = semanticModel.GetDeclaredSymbol(implementingType);
 
-            return typeSymbol.Equals(implTypeSymbol);
+            return typeSymbol.Equals(implTypeSymbol, SymbolEqualityComparer.Default);
         }
 
         private protected override bool CompliesWithConstraint(ITypeSymbol typeSymbol)

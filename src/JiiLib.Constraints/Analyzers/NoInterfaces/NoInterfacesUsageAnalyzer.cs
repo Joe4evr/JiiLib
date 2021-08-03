@@ -14,8 +14,8 @@ namespace JiiLib.Constraints.Analyzers
     internal sealed class NoInterfacesUsageAnalyzer : BaseUsageAnalyzer<BasicDiagnosticChoice>
     {
         private const string DiagnosticId = "JLC0004U";
-        private const string Title = "Use of the NoInterfaces attribute is ineffective.";
-        private const string MessageFormat = "Use of the NoInterfaces attribute on '{0}' in generic method '{1}' is ineffective.";
+        private const string Title = "Use of the NoInterfaces attribute is ineffective";
+        private const string MessageFormat = "Use of the NoInterfaces attribute on '{0}' in generic method '{1}' is ineffective";
         private const string Description = "Invalid use of constraint attribute.";
         private const string Category = "API Usage";
 

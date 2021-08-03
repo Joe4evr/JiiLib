@@ -40,7 +40,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0001",
-                    Message = "Type argument 'C' must be an interface type.",
+                    Message = "Type argument 'C' must be an interface type",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new[]
                     {
@@ -50,7 +50,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0001",
-                    Message = "Type argument 'S' must be an interface type.",
+                    Message = "Type argument 'S' must be an interface type",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new[]
                     {
@@ -60,7 +60,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0001",
-                    Message = "Type argument 'D' must be an interface type.",
+                    Message = "Type argument 'D' must be an interface type",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new[]
                     {
@@ -126,7 +126,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0001",
-                    Message = "Type argument 'X' must be an interface type.",
+                    Message = "Type argument 'X' must be an interface type",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new[]
                     {
@@ -163,6 +163,29 @@ namespace N
 ";
 
             await VerifyCSharpDiagnostic(source);
+        }
+
+        [Fact]
+        public async Task VerifyNoDiagnosticOnSameAttributeTypeParam()
+        {
+            const string source = @"using System;
+using JiiLib.Constraints;
+
+namespace N
+{
+    public class C
+    {
+        public void M<[InterfacesOnly] T>()
+        {
+            var na = new InterfaceOnly<T>();
+        }
+    }
+
+    public class InterfaceOnly<[InterfacesOnly] T> { }
+}
+";
+
+            await VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

@@ -26,7 +26,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0001X",
-                    Message = "Attribute 'InterfacesOnlyAttribute' on 'T' in 'Test' cannot be combined with 'NoInterfacesAttribute'.",
+                    Message = "Attribute 'InterfacesOnlyAttribute' on 'T' in 'Test' cannot be combined with 'NoInterfacesAttribute'",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new[]
                     {

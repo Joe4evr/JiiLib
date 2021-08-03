@@ -35,7 +35,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0002V",
-                    Message = "Type parameter 'TError' in 'C' must be annotated with '[NonAbstractOnly]' to use as a type argument for 'X'.",
+                    Message = "Type parameter 'TError' in 'C' must be annotated with '[NonAbstractOnly]' to use as a type argument for 'X'",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new []
                     {
@@ -147,7 +147,7 @@ namespace N
                 new DiagnosticResult()
                 {
                     Id = "JLC0002V",
-                    Message = "Type parameter 'TError' in 'M1' must be annotated with '[NonAbstractOnly]' to use as a type argument for 'C'.",
+                    Message = "Type parameter 'TError' in 'M1' must be annotated with '[NonAbstractOnly]' to use as a type argument for 'C'",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new []
                     {
@@ -157,7 +157,7 @@ namespace N
                 new DiagnosticResult()
                 {
                     Id = "JLC0002V",
-                    Message = "Type parameter 'TError' in 'M2' must be annotated with '[NonAbstractOnly]' to use as a type argument for 'C'.",
+                    Message = "Type parameter 'TError' in 'M2' must be annotated with '[NonAbstractOnly]' to use as a type argument for 'C'",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new []
                     {
@@ -167,7 +167,7 @@ namespace N
                 new DiagnosticResult()
                 {
                     Id = "JLC0002V",
-                    Message = "Type parameter 'TError' in 'M3' must be annotated with '[NonAbstractOnly]' to use as a type argument for 'C'.",
+                    Message = "Type parameter 'TError' in 'M3' must be annotated with '[NonAbstractOnly]' to use as a type argument for 'C'",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new []
                     {
@@ -177,7 +177,7 @@ namespace N
                 new DiagnosticResult()
                 {
                     Id = "JLC0002V",
-                    Message = "Type parameter 'TError' in 'M4' must be annotated with '[NonAbstractOnly]' to use as a type argument for 'C'.",
+                    Message = "Type parameter 'TError' in 'M4' must be annotated with '[NonAbstractOnly]' to use as a type argument for 'C'",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new []
                     {

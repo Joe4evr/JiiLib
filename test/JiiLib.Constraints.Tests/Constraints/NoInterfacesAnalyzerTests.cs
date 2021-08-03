@@ -65,7 +65,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0004",
-                    Message = "Type argument 'IX' may not be an interface type.",
+                    Message = "Type argument 'IX' may not be an interface type",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new[]
                     {
@@ -74,6 +74,29 @@ namespace N
                 }
             };
             await VerifyCSharpDiagnostic(source, expected);
+        }
+
+        [Fact]
+        public async Task VerifyNoDiagnosticOnSameAttributeTypeParam()
+        {
+            const string source = @"using System;
+using JiiLib.Constraints;
+
+namespace N
+{
+    public class C
+    {
+        public void M<[NoInterfaces] T>()
+        {
+            var na = new NoInterface<T>();
+        }
+    }
+
+    public class NoInterface<[NoInterfaces] T> { }
+}
+";
+
+            await VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

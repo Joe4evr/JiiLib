@@ -54,23 +54,35 @@ namespace JiiLib.Constraints.Analyzers
 
             foreach (var (typeParam, typeArg) in typeParams.ZipT(typeArgs))
             {
-                var attrs = typeParam.GetAttributes();
-                if (attrs.Any(a => a?.AttributeClass?.Name == CheckedAttribute.Name)
-                    && context.SemanticModel.GetSymbolInfo(typeArg).Symbol is ITypeSymbol typeSymbol
-                    && !CompliesWithConstraint(typeArg, context.SemanticModel, typeSymbol))
+                if (HasAttribute(typeParam)
+                    && context.SemanticModel.GetSymbolInfo(typeArg).Symbol is ITypeSymbol typeSymbol)
                 {
-                    var diagnostic = Diagnostic.Create(GetDiagnosticDescriptor(), typeArg.GetLocation(), typeSymbol.Name);
-                    context.ReportDiagnostic(diagnostic);
+                    if ((typeSymbol is ITypeParameterSymbol otherTypeParam)
+                        && HasAttribute(otherTypeParam))
+                    {
+                        continue;
+                    }
+                    else if (!CompliesWithConstraint(typeArg, context.SemanticModel, typeSymbol))
+                    {
+                        var diagnostic = Diagnostic.Create(GetDiagnosticDescriptor(), typeArg.GetLocation(), typeSymbol.Name);
+                        context.ReportDiagnostic(diagnostic);
+                    }
                 }
             }
 
             return true;
         }
 
+        private bool HasAttribute(ITypeParameterSymbol typeParamSymbol)
+            => typeParamSymbol.GetAttributes().Any(attr => attr.AttributeClass?.Name == CheckedAttribute.Name);
+
         private protected virtual bool ShouldAnalyze(TypeArgumentListSyntax typeArgumentList) => true;
         private protected virtual bool CompliesWithConstraint(
             TypeSyntax typeSyntaxNode, SemanticModel semanticModel, ITypeSymbol typeSymbol)
-            => CompliesWithConstraint(typeSymbol);
+        {
+            return CompliesWithConstraint(typeSymbol);
+        }
+
         private protected abstract bool CompliesWithConstraint(ITypeSymbol typeSymbol);
         private protected abstract DiagnosticDescriptor GetDiagnosticDescriptor();
     }

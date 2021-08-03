@@ -38,7 +38,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0002",
-                    Message = "Type argument 'X' must be a non-abstract type.",
+                    Message = "Type argument 'X' must be a non-abstract type",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new[]
                     {
@@ -48,7 +48,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0002",
-                    Message = "Type argument 'IX' must be a non-abstract type.",
+                    Message = "Type argument 'IX' must be a non-abstract type",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new[]
                     {
@@ -116,7 +116,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0002",
-                    Message = "Type argument 'X' must be a non-abstract type.",
+                    Message = "Type argument 'X' must be a non-abstract type",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new[]
                     {
@@ -125,6 +125,30 @@ namespace N
                 }
             };
             await VerifyCSharpDiagnostic(source, expected);
+        }
+
+        [Fact]
+        public async Task VerifyNoDiagnosticOnSameAttributeTypeParam()
+        {
+            const string source = @"using System;
+using JiiLib.Constraints;
+
+namespace N
+{
+    public class C
+    {
+        public NoAbstract<T> M<[NonAbstractOnly] T>()
+            where T : IFormattable
+        {
+            return new NoAbstract<T>();
+        }
+    }
+
+    public class NoAbstract<[NonAbstractOnly] T> { }
+}
+";
+
+            await VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

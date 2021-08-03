@@ -35,9 +35,10 @@ namespace JiiLib.Constraints.Analyzers
 
             foreach (var typeParamNode in typeParameterList.Parameters)
             {
-                var typeParamSymbol = context.SemanticModel.GetDeclaredSymbol(typeParamNode);
-                var attribute = typeParamSymbol.GetAttributes().FirstOrDefault(a => a?.AttributeClass?.Name == CheckedAttribute.Name);
+                if (context.SemanticModel.GetDeclaredSymbol(typeParamNode) is not { } typeParamSymbol)
+                    continue;
 
+                var attribute = typeParamSymbol.GetAttributes().FirstOrDefault(a => a?.AttributeClass?.Name == CheckedAttribute.Name);
                 if (attribute != null)
                 {
                     var choice = GetDiagnosticChoice(typeParamSymbol);
@@ -47,7 +48,7 @@ namespace JiiLib.Constraints.Analyzers
                     if (EqualityComparer<TChoice>.Default.Equals(choice, default))
                         continue;
 
-                    var location = Location.Create(context.Node.SyntaxTree, attribute.ApplicationSyntaxReference.Span);
+                    var location = Location.Create(context.Node.SyntaxTree, attribute.ApplicationSyntaxReference!.Span);
                     var parentId = typeParameterList.Parent switch
                     {
                         MethodDeclarationSyntax method => method.Identifier.ValueText,

@@ -10,11 +10,11 @@ namespace JiiLib.Constraints.Analyzers
     internal sealed class InterfaceUsageAnalyzer : BaseUsageAnalyzer<InterfaceConstraintDiagnosticChoice>
     {
         private const string DiagnosticId = "JLC0001U";
-        private const string Title = "The InterfacesOnly attribute cannot be combined with an incompatible constraint.";
-        private const string MessageFormatVT = "The InterfacesOnly attribute on '{0}' in '{1}' cannot be combined with the ValueType constraint.";
-        private const string MessageFormatBC = "The InterfacesOnly attribute on '{0}' in '{1}' cannot be combined with a Base Class constraint.";
-        private const string MessageFormatCtor = "The InterfacesOnly attribute on '{0}' in '{1}' cannot be combined with the new() constraint.";
-        private const string MessageFormatTParam = "Type Parameter '{0}' in '{1}' is constrained to another type parameter with an incompatible constraint.";
+        private const string Title = "The InterfacesOnly attribute cannot be combined with an incompatible constraint";
+        private const string MessageFormatVT = "The InterfacesOnly attribute on '{0}' in '{1}' cannot be combined with the ValueType constraint";
+        private const string MessageFormatBC = "The InterfacesOnly attribute on '{0}' in '{1}' cannot be combined with a Base Class constraint";
+        private const string MessageFormatCtor = "The InterfacesOnly attribute on '{0}' in '{1}' cannot be combined with the new() constraint";
+        private const string MessageFormatTParam = "Type Parameter '{0}' in '{1}' is constrained to another type parameter with an incompatible constraint";
         private const string Description = "Invalid use of constraint attribute.";
         private const string Category = "API Usage";
 

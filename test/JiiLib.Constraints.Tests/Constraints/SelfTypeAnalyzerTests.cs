@@ -38,7 +38,7 @@ namespace JiiLib.Constraints.Tests
         //                new DiagnosticResult
         //                {
         //                    Id = "JLC0002",
-        //                    Message = "Type argument 'X' must be a non-abstract type.",
+        //                    Message = "Type argument 'X' must be a non-abstract type",
         //                    Severity = DiagnosticSeverity.Error,
         //                    Locations = new[]
         //                    {
@@ -48,7 +48,7 @@ namespace JiiLib.Constraints.Tests
         //                new DiagnosticResult
         //                {
         //                    Id = "JLC0002",
-        //                    Message = "Type argument 'IX' must be a non-abstract type.",
+        //                    Message = "Type argument 'IX' must be a non-abstract type",
         //                    Severity = DiagnosticSeverity.Error,
         //                    Locations = new[]
         //                    {
@@ -78,7 +78,7 @@ namespace N
                 new DiagnosticResult
                 {
                     Id = "JLC0003",
-                    Message = "Type argument 'String' must be the implementing type.",
+                    Message = "Type argument 'String' must be the implementing type",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new[]
                     {
@@ -104,6 +104,23 @@ namespace N
 }
 ";
 
+
+            await VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
+        }
+
+        [Fact]
+        public async Task VerifyNoDiagnosticOnSameAttributeTypeParam()
+        {
+            const string source = @"using System;
+using JiiLib.Constraints;
+
+namespace N
+{
+    public interface ISelfTypeFoo<[SelfType] T> { }
+
+    public abstract class SelfTypeBase<[SelfType] T> : ISelfTypeFoo<T> { }
+}
+";
 
             await VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
         }
