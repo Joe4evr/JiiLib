@@ -7,7 +7,7 @@ using Xunit;
 
 namespace JiiLib.Constraints.Tests
 {
-    public class InterfacesOnlyViralityTests : DiagnosticVerifier
+    public sealed class NoInterfacesViralityTests : DiagnosticVerifier
     {
         [Fact]
         public async Task VerifyDiagnosticOnAbsence()
@@ -25,7 +25,7 @@ namespace N
 
     public static class S
     {
-        public static void X<[InterfacesOnly] T>() { }
+        public static void X<[NoInterfaces] T>() { }
     }
 }
 ";
@@ -34,8 +34,8 @@ namespace N
             {
                 new DiagnosticResult
                 {
-                    Id = "JLC0001V",
-                    Message = "Type parameter 'TError' in 'C' must be annotated with '[InterfacesOnly]' to use as a type argument for 'X'",
+                    Id = "JLC0004V",
+                    Message = "Type parameter 'TError' in 'C' must be annotated with '[NoInterfaces]' to use as a type argument for 'X'",
                     Severity = DiagnosticSeverity.Error,
                     Locations = new []
                     {
@@ -49,6 +49,6 @@ namespace N
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
             => (Activator.CreateInstance(
                 assemblyName: "JiiLib.Constraints",
-                typeName: "JiiLib.Constraints.Analyzers.InterfacesOnlyViralityAnalyzer")?.Unwrap() as DiagnosticAnalyzer)!;
+                typeName: "JiiLib.Constraints.Analyzers.NoInterfacesViralityAnalyzer")?.Unwrap() as DiagnosticAnalyzer)!;
     }
 }

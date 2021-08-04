@@ -31,13 +31,8 @@ namespace JiiLib.Constraints.Analyzers
         private protected override bool ShouldAnalyze(TypeArgumentListSyntax typeArgumentList) 
             => typeArgumentList.Ancestors().Any(n => n.IsKind(SyntaxKind.BaseList));
         private protected override bool CompliesWithConstraint(
-            TypeSyntax typeSyntaxNode, SemanticModel semanticModel, ITypeSymbol typeSymbol)
-        {
-            var implementingType = typeSyntaxNode.FirstAncestorOrSelf<ClassDeclarationSyntax>()!;
-            var implTypeSymbol = semanticModel.GetDeclaredSymbol(implementingType);
-
-            return typeSymbol.Equals(implTypeSymbol, SymbolEqualityComparer.Default);
-        }
+            ITypeParameterSymbol typeParameterSymbol, SemanticModel semanticModel, ITypeSymbol typeSymbol)
+            => typeSymbol.Equals(typeParameterSymbol, SymbolEqualityComparer.Default);
 
         private protected override bool CompliesWithConstraint(ITypeSymbol typeSymbol)
             => throw new NotImplementedException();

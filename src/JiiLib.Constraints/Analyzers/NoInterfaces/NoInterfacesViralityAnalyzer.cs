@@ -5,9 +5,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace JiiLib.Constraints.Analyzers
 {
-    /// <summary>
-    /// 
-    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class NoInterfacesViralityAnalyzer : BaseViralityAnalyzer
     {

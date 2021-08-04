@@ -21,8 +21,36 @@ namespace JiiLib.Constraints.Analyzers
         {
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            context.RegisterSyntaxNodeAction(AnalyzeTypeParameterList, SyntaxKind.TypeParameterList);
             context.RegisterSyntaxNodeAction(AnalyzeTypeArgumentList, SyntaxKind.TypeArgumentList);
-            
+        }
+
+        private void AnalyzeTypeParameterList(SyntaxNodeAnalysisContext context)
+        {
+            if (context.Node is not TypeParameterListSyntax typeParameterList)
+                return;
+
+            if (typeParameterList.Parent is not MethodDeclarationSyntax methodDeclaration)
+                return;
+
+            if (context.SemanticModel.GetDeclaredSymbol(methodDeclaration) is not { } declarationSymbol)
+                return;
+
+            if (!declarationSymbol.ExplicitInterfaceImplementations.IsEmpty)
+                return; // Explicit implementations don't require the attribute
+
+            if (declarationSymbol.IsImplementationOfAnyImplicitInterfaceMember<IMethodSymbol>(out var interfaceMethod))
+            {
+                _ = CheckTypeParameters(interfaceMethod.TypeParameters, methodDeclaration.TypeParameterList!.Parameters, context);
+            }
+            if (declarationSymbol.IsOverride)
+            {
+                var baseMethod = declarationSymbol.OverriddenMethod!;
+                _ = CheckTypeParameters(baseMethod.TypeParameters, methodDeclaration.TypeParameterList!.Parameters, context);
+            }
+
+
+            //_ = CheckTypeParameters(interfaceMethod.TypeParameters, methodDeclaration.TypeParameterList!.Parameters, context);
         }
 
         private void AnalyzeTypeArgumentList(SyntaxNodeAnalysisContext context)
@@ -36,10 +64,10 @@ namespace JiiLib.Constraints.Analyzers
             var declarationSymbol = context.SemanticModel.GetSymbolInfo(typeArgumentList.Parent!).Symbol!;
             var originalSymbol = declarationSymbol.OriginalDefinition;
 
-            _ = (originalSymbol, declarationSymbol) switch
+            _ = originalSymbol switch
             {
-                (INamedTypeSymbol os, INamedTypeSymbol _) => CheckTypeParameters(os.TypeParameters, typeArgumentList.Arguments, context),
-                (IMethodSymbol os, IMethodSymbol _) => CheckTypeParameters(os.TypeParameters, typeArgumentList.Arguments, context),
+                INamedTypeSymbol os => CheckTypeParameters(os.TypeParameters, typeArgumentList.Arguments, context),
+                IMethodSymbol os => CheckTypeParameters(os.TypeParameters, typeArgumentList.Arguments, context),
                 _ => false
             };
         }
@@ -55,22 +83,51 @@ namespace JiiLib.Constraints.Analyzers
             foreach (var (typeParam, typeArg) in typeParams.ZipT(typeArgs))
             {
                 if (HasAttribute(typeParam)
-                    && context.SemanticModel.GetSymbolInfo(typeArg).Symbol is ITypeSymbol typeSymbol)
+                    && context.SemanticModel.GetSymbolInfo(typeArg).Symbol is ITypeSymbol typeArgSymbol)
                 {
-                    if ((typeSymbol is ITypeParameterSymbol otherTypeParam)
-                        && HasAttribute(otherTypeParam))
-                    {
-                        continue;
-                    }
-                    else if (!CompliesWithConstraint(typeArg, context.SemanticModel, typeSymbol))
-                    {
-                        var diagnostic = Diagnostic.Create(GetDiagnosticDescriptor(), typeArg.GetLocation(), typeSymbol.Name);
-                        context.ReportDiagnostic(diagnostic);
-                    }
+                    CheckArgToParam(typeParam, typeArgSymbol, typeArg, context);
                 }
             }
 
             return true;
+        }
+
+        private bool CheckTypeParameters(
+            ImmutableArray<ITypeParameterSymbol> typeParams,
+            SeparatedSyntaxList<TypeParameterSyntax> typeArgs,
+            SyntaxNodeAnalysisContext context)
+        {
+            if (typeParams.Length != typeArgs.Count)
+                return false;
+
+            foreach (var (typeParam, typeArg) in typeParams.ZipT(typeArgs))
+            {
+                if (HasAttribute(typeParam)
+                    && context.SemanticModel.GetDeclaredSymbol(typeArg) is ITypeSymbol typeArgSymbol)
+                {
+                    CheckArgToParam(typeParam, typeArgSymbol, typeArg, context);
+                }
+            }
+
+            return true;
+        }
+
+
+        private void CheckArgToParam(
+            ITypeParameterSymbol typeParameter,
+            ITypeSymbol typeArgument,
+            SyntaxNode typeArgNode,
+            SyntaxNodeAnalysisContext context)
+        {
+            if ((typeArgument is ITypeParameterSymbol otherTypeParam) && HasAttribute(otherTypeParam))
+            {
+                return;
+            }
+            else if (!CompliesWithConstraint(typeParameter, context.SemanticModel, typeArgument))
+            {
+                var diagnostic = Diagnostic.Create(GetDiagnosticDescriptor(), typeArgNode.GetLocation(), typeArgument.Name);
+                context.ReportDiagnostic(diagnostic);
+            }
         }
 
         private bool HasAttribute(ITypeParameterSymbol typeParamSymbol)
@@ -78,9 +135,9 @@ namespace JiiLib.Constraints.Analyzers
 
         private protected virtual bool ShouldAnalyze(TypeArgumentListSyntax typeArgumentList) => true;
         private protected virtual bool CompliesWithConstraint(
-            TypeSyntax typeSyntaxNode, SemanticModel semanticModel, ITypeSymbol typeSymbol)
+            ITypeParameterSymbol typeParameterSymbol, SemanticModel semanticModel, ITypeSymbol typeArgSymbol)
         {
-            return CompliesWithConstraint(typeSymbol);
+            return CompliesWithConstraint(typeArgSymbol);
         }
 
         private protected abstract bool CompliesWithConstraint(ITypeSymbol typeSymbol);

@@ -6,9 +6,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace JiiLib.Constraints.Analyzers
 {
-    /// <summary>
-    /// 
-    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class InterfaceConstraintAnalyzer : BaseConstraintAnalyzer
     {
@@ -21,7 +18,6 @@ namespace JiiLib.Constraints.Analyzers
         private static readonly DiagnosticDescriptor _rule = new(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
         private static readonly Type _attributeType = typeof(InterfacesOnlyAttribute);
 
-        /// <inheritdoc/>
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
 
         public InterfaceConstraintAnalyzer()

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace JiiLib.Constraints
 {
     internal static class Extensions
     {
+        [DebuggerStepThrough]
         public static IEnumerable<(T1, T2)> ZipT<T1, T2>(this IEnumerable<T1> source, IEnumerable<T2> second)
         {
             if (source is null) throw new ArgumentNullException(nameof(source));

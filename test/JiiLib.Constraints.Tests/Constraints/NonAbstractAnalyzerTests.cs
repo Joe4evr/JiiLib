@@ -151,6 +151,101 @@ namespace N
             await VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
         }
 
+        [Fact]
+        public async Task VerifyNoDiagnosticOnEIM()
+        {
+            const string source = @"using System;
+using JiiLib.Constraints;
+
+namespace N
+{
+    public interface I
+    {
+        void M<[NonAbstractOnly] T>();
+    }
+
+    public class C : I
+    {
+        void I.M<T>() { }
+    }
+}
+";
+
+            await VerifyCSharpDiagnostic(source, Array.Empty<DiagnosticResult>());
+        }
+
+        [Fact]
+        public async Task VerifyDiagnosticOnIIM()
+        {
+            const string source = @"using System;
+using JiiLib.Constraints;
+
+namespace N
+{
+    public interface I
+    {
+        void M<[NonAbstractOnly] T>();
+    }
+
+    public class C : I
+    {
+        public void M<T>() { }
+    }
+}
+";
+
+            var expected = new[]
+            {
+                new DiagnosticResult()
+                {
+                    Id = "JLC0002",
+                    Message = "Type argument 'T' must be a non-abstract type",
+                    Severity = DiagnosticSeverity.Error,
+                    Locations = new[]
+                    {
+                        new DiagnosticResultLocation("Test0.cs", line: 13, column: 23)
+                    }
+                }
+            };
+            await VerifyCSharpDiagnostic(source, expected);
+        }
+
+        [Fact]
+        public async Task VerifyDiagnosticOnOverride()
+        {
+            const string source = @"using System;
+using JiiLib.Constraints;
+
+namespace N
+{
+    public abstract class Base
+    {
+        public abstract void M<[NonAbstractOnly] T>();
+    }
+
+    public class C : Base
+    {
+        public override void M<T>() { }
+    }
+}
+";
+
+            var expected = new[]
+            {
+                new DiagnosticResult()
+                {
+                    Id = "JLC0002",
+                    Message = "Type argument 'T' must be a non-abstract type",
+                    Severity = DiagnosticSeverity.Error,
+                    Locations = new[]
+                    {
+                        new DiagnosticResultLocation("Test0.cs", line: 13, column: 32)
+                    }
+                }
+            };
+            await VerifyCSharpDiagnostic(source, expected);
+        }
+
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
             => (Activator.CreateInstance(
                 assemblyName: "JiiLib.Constraints",

@@ -7,7 +7,7 @@ using Xunit;
 
 namespace JiiLib.Constraints.Tests
 {
-    public class InterfaceUsageTests : DiagnosticVerifier
+    public class InterfacesOnlyUsageTests : DiagnosticVerifier
     {
         [Fact]
         public async Task VerifyDiagnosticOfInvalidCombinationOnTypes()

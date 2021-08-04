@@ -24,8 +24,39 @@ namespace JiiLib.Constraints.Analyzers
         {
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            //context.RegisterSyntaxNodeAction(AnalyzeTypeParameterList, SyntaxKind.TypeParameterList);
             context.RegisterSyntaxNodeAction(AnalyzeTypeArgumentList, SyntaxKind.TypeArgumentList);
         }
+
+        //private void AnalyzeTypeParameterList(SyntaxNodeAnalysisContext context)
+        //{
+        //    if (context.Node is not TypeParameterListSyntax typeParameterList)
+        //        return;
+
+        //    if (typeParameterList.Parent is not MethodDeclarationSyntax methodDeclaration)
+        //        return;
+
+        //    if (context.SemanticModel.GetDeclaredSymbol(methodDeclaration) is not { } declarationSymbol)
+        //        return;
+
+        //    if (!declarationSymbol.ExplicitInterfaceImplementations.IsEmpty)
+        //        return; // Explicit implementations don't require the attribute
+
+        //    var symbolId = declarationSymbol.OriginalDefinition.Name;
+        //    if (declarationSymbol.IsImplementationOfAnyImplicitInterfaceMember<IMethodSymbol>(out var interfaceMethod))
+        //    {
+        //        _ = CheckTypeParameters(interfaceMethod.TypeParameters,
+        //            methodDeclaration.TypeParameterList!.Parameters,
+        //            symbolId, context);
+        //    }
+        //    if (declarationSymbol.IsOverride)
+        //    {
+        //        var baseMethod = declarationSymbol.OverriddenMethod!;
+        //        _ = CheckTypeParameters(baseMethod.TypeParameters,
+        //            methodDeclaration.TypeParameterList!.Parameters,
+        //            symbolId, context);
+        //    }
+        //}
 
         private void AnalyzeTypeArgumentList(SyntaxNodeAnalysisContext context)
         {
@@ -40,14 +71,6 @@ namespace JiiLib.Constraints.Analyzers
 
             var declarationSymbol = context.SemanticModel.GetSymbolInfo(parent).Symbol!;
             var originalSymbol = declarationSymbol.OriginalDefinition;
-
-            //var parentName = parent switch
-            //{
-            //    MethodDeclarationSyntax method => method.Identifier.ValueText,
-            //    BaseTypeDeclarationSyntax type => type.Identifier.ValueText,
-            //    DelegateDeclarationSyntax del => del.Identifier.ValueText,
-            //    _ => String.Empty
-            //};
 
             _ = originalSymbol switch
             {
@@ -70,29 +93,67 @@ namespace JiiLib.Constraints.Analyzers
             {
                 var attrs = typeParam.GetAttributes();
                 if (attrs.Any(a => a?.AttributeClass?.Name == CheckedAttribute.Name)
-                    && context.SemanticModel.GetSymbolInfo(typeArg).Symbol is ITypeParameterSymbol typeSymbol
-                    && typeSymbol.GetAttributes().None(a => a?.AttributeClass?.Name == CheckedAttribute.Name)
-                    && !IsExempt(typeSymbol))
+                    && context.SemanticModel.GetSymbolInfo(typeArg).Symbol is ITypeParameterSymbol typeArgSymbol)
                 {
-                    var declaringSymbolId = typeSymbol switch
-                    {
-                        { DeclaringMethod: { } method } => method.Name,
-                        { DeclaringType: { } type } => type.Name,
-                        _ => String.Empty
-                    };
-
-                    var diagnostic = Diagnostic.Create(GetDiagnosticDescriptor(), typeArg.GetLocation(),
-                        typeSymbol.Name, declaringSymbolId, calleeId);
-                    context.ReportDiagnostic(diagnostic);
+                    CheckArgToParam(typeArgSymbol, typeArg, calleeId, context);
                 }
             }
 
             return true;
         }
 
+        //private bool CheckTypeParameters(
+        //    ImmutableArray<ITypeParameterSymbol> typeParams,
+        //    SeparatedSyntaxList<TypeParameterSyntax> typeArgs,
+        //    string calleeId,
+        //    SyntaxNodeAnalysisContext context)
+        //{
+        //    if (typeParams.Length != typeArgs.Count)
+        //        return false;
+
+        //    foreach (var (typeParam, typeArg) in typeParams.ZipT(typeArgs))
+        //    {
+        //        if (HasAttribute(typeParam)
+        //            && context.SemanticModel.GetDeclaredSymbol(typeArg) is ITypeParameterSymbol typeArgSymbol)
+        //        {
+        //            CheckArgToParam(typeParam, typeArgSymbol, typeArg, calleeId, context);
+        //        }
+        //    }
+
+        //    return true;
+        //}
+
+
+        private void CheckArgToParam(
+            ITypeParameterSymbol typeArgument,
+            SyntaxNode typeArgNode, string calleeId,
+            SyntaxNodeAnalysisContext context)
+        {
+            if ((typeArgument is ITypeParameterSymbol otherTypeParam) && HasAttribute(otherTypeParam))
+            {
+                return;
+            }
+            else if (!IsImplicitlyValid(typeArgument))
+            {
+                var declaringSymbolId = typeArgument switch
+                {
+                    { DeclaringMethod: { } method } => method.Name,
+                    { DeclaringType: { } type } => type.Name,
+                    _ => String.Empty
+                };
+
+                var diagnostic = Diagnostic.Create(GetDiagnosticDescriptor(), typeArgNode.GetLocation(),
+                    typeArgument.Name, declaringSymbolId, calleeId);
+                context.ReportDiagnostic(diagnostic);
+            }
+        }
+
+        private bool HasAttribute(ITypeParameterSymbol typeParamSymbol)
+            => typeParamSymbol.GetAttributes().Any(attr => attr.AttributeClass?.Name == CheckedAttribute.Name);
+
         [DebuggerStepThrough]
         private protected virtual bool ShouldAnalyze(TypeArgumentListSyntax typeArgumentList) => true;
-        private protected virtual bool IsExempt(ITypeParameterSymbol typeParameterSymbol) => false;
+        private protected virtual bool IsImplicitlyValid(ITypeParameterSymbol typeParameterSymbol) => false;
         private protected abstract DiagnosticDescriptor GetDiagnosticDescriptor();
     }
 }

@@ -24,7 +24,7 @@ namespace JiiLib.Constraints.Analyzers
         {
         }
 
-        private protected override bool IsExempt(ITypeParameterSymbol typeParameterSymbol)
+        private protected override bool IsImplicitlyValid(ITypeParameterSymbol typeParameterSymbol)
         {
             // The 'struct' and 'new()' constraints are implicitly compliant.
             return (typeParameterSymbol.HasConstructorConstraint

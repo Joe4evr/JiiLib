@@ -7,9 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace JiiLib.Constraints.Analyzers
 {
-    /// <summary>
-    /// 
-    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class NoInterfacesUsageAnalyzer : BaseUsageAnalyzer<BasicDiagnosticChoice>
     {
@@ -25,7 +22,6 @@ namespace JiiLib.Constraints.Analyzers
 
         private static readonly Type _attributeType = typeof(NoInterfacesAttribute);
 
-        /// <inheritdoc/>
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
 
         public NoInterfacesUsageAnalyzer()

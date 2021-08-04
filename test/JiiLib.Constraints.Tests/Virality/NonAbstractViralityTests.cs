@@ -188,6 +188,21 @@ namespace N
             await VerifyCSharpDiagnostic(source, expected);
         }
 
+        //[Fact]
+        //public async Task VerifyViralityThroughEIM()
+        //{
+        //    const string source = @"";
+
+        //    var expected = new[]
+        //    {
+        //        new DiagnosticResult()
+        //        {
+
+        //        }
+        //    };
+        //    await VerifyCSharpDiagnostic(source, expected);
+        //}
+
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
             => (Activator.CreateInstance(
                 assemblyName: "JiiLib.Constraints",
