@@ -1,3 +1,6 @@
 ﻿[
-  
+  {
+    "inputFile": "./DiffTable/DiffTable.razor.less",
+    "outputFile": "./DiffTable/DiffTable.razor.css"
+  }
 ]

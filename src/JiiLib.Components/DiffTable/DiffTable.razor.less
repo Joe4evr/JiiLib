@@ -1,18 +1,44 @@
 ﻿.diff-table {
     td {
         padding: 5px;
-        min-width: 10em;
+        min-width: 5em;
     }
 
-    .diff-new {
-        background-color: lightgreen;
-    }
+    ::deep tr {
+        .diff-new {
+            background-color: lightgreen;
 
-    .diff-changed {
-        background-color: sandybrown;
-    }
+            &:nth-child(even) {
+                .dark(lightgreen)
+            }
+        }
 
-    .diff-removed {
-        background-color: lightcoral;
+        .diff-changed {
+            background-color: sandybrown;
+
+            &:nth-child(even) {
+                .dark(sandybrown)
+            }
+        }
+
+        .diff-removed {
+            background-color: lightcoral;
+
+            &:nth-child(even) {
+                .dark(lightcoral)
+            }
+        }
+
+        .diff-unchanged {
+
+
+            &:nth-child(even) {
+                background-color: rgba(0,0,0, 10%);
+            }
+        }
+
+        .dark(@color) {
+            background-color: darken(@color, 10%);
+        }
     }
 }

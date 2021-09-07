@@ -7,7 +7,7 @@ namespace JiiLib.Collections.DiffList
     ///     along with the key they belong to.
     /// </summary>
     public readonly struct DiffValuePair<TKey>
-        where TKey : notnull
+        //where TKey : notnull
     {
         /// <summary>
         ///     The key that this pair of values belong to.

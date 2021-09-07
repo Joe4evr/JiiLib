@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -23,7 +24,10 @@ namespace JiiLib.Collections.DiffList
         private readonly Dictionary<TKey, DiffValue> _newEntries;
         private readonly Comparison<TKey>? _comparison;
 
+        private bool _isFrozen = false;
         private int _version = 0;
+        private IComparer<TKey>? _comparer;
+        private (int version, SortedSet<TKey>? keys) _keyCache;
 
         /// <summary>
         ///     Initializes a new <see cref="KeyedDiffList{TKey}"/>
@@ -67,6 +71,11 @@ namespace JiiLib.Collections.DiffList
         ///     Gets the amount of New entries currently stored.
         /// </summary>
         public int NewEntriesCount => _newEntries.Count;
+
+        /// <summary>
+        ///     Gets the total amount of distinct entries currently stored.
+        /// </summary>
+        public int Count => GetKeysCore().Count;
 
         /// <summary>
         ///     Gets the value-pair at a specified key.
@@ -114,8 +123,14 @@ namespace JiiLib.Collections.DiffList
         ///     entries contains an element that has the
         ///     specified key; otherwise, <see langword="false"/>.
         /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="key"/> was <see langword="null"/>.
+        /// </exception>
         public bool ContainsKey(TKey key)
         {
+            if (key is null)
+                throw new ArgumentNullException(nameof(key));
+
             return _oldEntries.ContainsKey(key) || _newEntries.ContainsKey(key);
         }
 
@@ -134,12 +149,16 @@ namespace JiiLib.Collections.DiffList
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="key"/> or <paramref name="value"/> was <see langword="null"/>.
         /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This list instance is frozen.
+        /// </exception>
         public KeyedDiffList<TKey> SetEntry(TKey key, string value)
         {
             if (key is null)
                 throw new ArgumentNullException(nameof(key));
             if (value is null)
                 throw new ArgumentNullException(nameof(value));
+            ThrowIfInstanceFrozen();
 
             _newEntries[key] = new DiffValue(value);
 
@@ -162,12 +181,16 @@ namespace JiiLib.Collections.DiffList
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="key"/> or <paramref name="values"/> was <see langword="null"/>.
         /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This list instance is frozen.
+        /// </exception>
         public KeyedDiffList<TKey> SetEntry(TKey key, IEnumerable<string> values)
         {
             if (key is null)
                 throw new ArgumentNullException(nameof(key));
             if (values is null)
                 throw new ArgumentNullException(nameof(values));
+            ThrowIfInstanceFrozen();
 
             _newEntries[key] = new DiffValue(values);
 
@@ -193,23 +216,19 @@ namespace JiiLib.Collections.DiffList
         /// <exception cref="KeyNotFoundException">
         ///     <paramref name="key"/> did not exist in the set of New entries.
         /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This list instance is frozen.
+        /// </exception>
         public KeyedDiffList<TKey> AddTo(TKey key, string value)
         {
             if (key is null)
                 throw new ArgumentNullException(nameof(key));
             if (value is null)
                 throw new ArgumentNullException(nameof(value));
+            ThrowIfInstanceFrozen();
 
-#if NET6_0_OR_GREATER
-            ref var dv = ref CollectionsMarshal.GetValueRefOrNullRef(_newEntries, key);
-            if (Unsafe.IsNullRef(ref dv))
-                throw new KeyNotFoundException();
-
-            dv = dv.Add(value);
-#else
             var dv = _newEntries[key];
             _newEntries[key] = dv.Add(value);
-#endif
 
             Interlocked.Increment(ref _version);
             return this;
@@ -233,23 +252,20 @@ namespace JiiLib.Collections.DiffList
         /// <exception cref="KeyNotFoundException">
         ///     <paramref name="key"/> did not exist in the set of New entries.
         /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This list instance is frozen.
+        /// </exception>
         public KeyedDiffList<TKey> AddTo(TKey key, IEnumerable<string> values)
         {
             if (key is null)
                 throw new ArgumentNullException(nameof(key));
             if (values is null)
                 throw new ArgumentNullException(nameof(values));
+            ThrowIfInstanceFrozen();
 
-#if NET6_0_OR_GREATER
-            ref var dv = ref CollectionsMarshal.GetValueRefOrNullRef(_newEntries, key);
-            if (Unsafe.IsNullRef(ref dv))
-                throw new KeyNotFoundException();
-
-            dv = dv.Add(values);
-#else
             var dv = _newEntries[key];
             _newEntries[key] = dv.Add(values);
-#endif
+
             Interlocked.Increment(ref _version);
             return this;
         }
@@ -266,10 +282,14 @@ namespace JiiLib.Collections.DiffList
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="key"/> was <see langword="null"/>.
         /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This list instance is frozen.
+        /// </exception>
         public KeyedDiffList<TKey> RemoveEntry(TKey key)
         {
             if (key is null)
                 throw new ArgumentNullException(nameof(key));
+            ThrowIfInstanceFrozen();
 
             _newEntries.Remove(key);
 
@@ -296,7 +316,9 @@ namespace JiiLib.Collections.DiffList
         ///     <paramref name="key"/> did not exist in the set of New entries.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     The entry had only a single value.
+        ///     The entry had only a single value.<br/>
+        ///     -OR-<br/>
+        ///     This list instance is frozen.
         /// </exception>
         public KeyedDiffList<TKey> RemoveFrom(TKey key, string value)
         {
@@ -304,6 +326,7 @@ namespace JiiLib.Collections.DiffList
                 throw new ArgumentNullException(nameof(key));
             if (value is null)
                 throw new ArgumentNullException(nameof(value));
+            ThrowIfInstanceFrozen();
 
             var dv = _newEntries[key];
             _newEntries[key] = dv.Remove(value);
@@ -319,19 +342,52 @@ namespace JiiLib.Collections.DiffList
         /// <returns>
         ///     A new <see cref="KeyedDiffList{TKey}"/>.
         /// </returns>
-        public KeyedDiffList<TKey> Shift() => new(
-            new ReadOnlyDictionary<TKey, DiffValue>(
-                new Dictionary<TKey, DiffValue>(_newEntries)),
-            new Dictionary<TKey, DiffValue>(_newEntries), _comparison);
+        public KeyedDiffList<TKey> Shift()
+        {
+            var newOldEntries = new Dictionary<TKey, DiffValue>(_newEntries);
+            newOldEntries.TrimExcess();
+            return new(
+                new ReadOnlyDictionary<TKey, DiffValue>(newOldEntries),
+                new Dictionary<TKey, DiffValue>(_newEntries),
+                _comparison);
+        }
+
+        internal void Freeze()
+        {
+            _newEntries.TrimExcess();
+            _isFrozen = true;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void ThrowIfInstanceFrozen()
+        {
+            if (_isFrozen)
+                throw new InvalidOperationException("This instance is frozen, no further modifications are allowed.");
+        }
+
+        private SortedSet<TKey> GetKeysCore()
+        {
+            var (version, keys) = _keyCache;
+            if (version > _version || keys is null)
+            {
+                var c = _comparer ??= (_comparison is null)
+                    ? Comparer<TKey>.Default
+                    : Comparer<TKey>.Create(_comparison);
+                keys = new SortedSet<TKey>(_oldEntries.Keys.Concat(_newEntries.Keys), c);
+                _keyCache = (_version, keys);
+            }
+
+            return keys;
+        }
 
         /// <summary>
         ///     Gets the enumerator for this list.
         /// </summary>
         public Enumerator GetEnumerator() => new(this);
 
-        ///// <inheritdoc cref="IEnumerable{T}.GetEnumerator" />
+        /// <inheritdoc cref="IEnumerable{T}.GetEnumerator" />
         IEnumerator<DiffValuePair<TKey>> IEnumerable<DiffValuePair<TKey>>.GetEnumerator() => GetEnumerator();
-        ///// <inheritdoc cref="IEnumerable.GetEnumerator" />
+        /// <inheritdoc cref="IEnumerable.GetEnumerator" />
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

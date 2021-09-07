@@ -52,9 +52,10 @@ namespace JiiLib.Collections
 
             equalityComparer ??= EqualityComparer<TKey>.Default;
 
+            var oldEntries = new Dictionary<TKey, DiffValue>(oldValues, equalityComparer);
+            oldEntries.TrimExcess();
             return new KeyedDiffList<TKey>(
-                oldEntries: new ReadOnlyDictionary<TKey, DiffValue>(
-                    new Dictionary<TKey, DiffValue>(oldValues, equalityComparer)),
+                oldEntries: new ReadOnlyDictionary<TKey, DiffValue>(oldEntries),
                 newEntries: new Dictionary<TKey, DiffValue>(newValues, equalityComparer),
                 comparison: comparison);
         }
@@ -93,9 +94,10 @@ namespace JiiLib.Collections
 
             equalityComparer ??= EqualityComparer<TKey>.Default;
 
+            var oldEntries = new Dictionary<TKey, DiffValue>(values, equalityComparer);
+            oldEntries.TrimExcess();
             return new KeyedDiffList<TKey>(
-                oldEntries: new ReadOnlyDictionary<TKey, DiffValue>(
-                    new Dictionary<TKey, DiffValue>(values, equalityComparer)),
+                oldEntries: new ReadOnlyDictionary<TKey, DiffValue>(oldEntries),
                 newEntries: new Dictionary<TKey, DiffValue>(values, equalityComparer),
                 comparison: comparison);
         }
@@ -136,7 +138,7 @@ namespace JiiLib.Collections
 
             return new KeyedDiffList<TKey>(
                 oldEntries: new ReadOnlyDictionary<TKey, DiffValue>(
-                    new Dictionary<TKey, DiffValue>(equalityComparer)),
+                    new Dictionary<TKey, DiffValue>(capacity: 0, equalityComparer)),
                 newEntries: new Dictionary<TKey, DiffValue>(values, equalityComparer),
                 comparison: comparison);
         }

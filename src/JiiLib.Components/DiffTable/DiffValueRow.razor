@@ -9,7 +9,7 @@
             @_key
         </td>
         <td class="old-item">
-            @if (_old is { })
+            @if (_old is not null)
             {
                 @foreach (var subValue in _old)
                 {
@@ -20,7 +20,7 @@
             }
         </td>
         <td class="new-item">
-            @if (_new is { })
+            @if (_new is not null)
             {
                 @foreach (var subValue in _new)
                 {
@@ -35,7 +35,7 @@
 
 @code
 {
-    [Parameter] public DiffValuePair<string> Pair { private get; set; }
+    [Parameter] public DiffValuePair<string> Pair { private get; init; }
 
     private string? _key;
     private DiffValue? _old;
@@ -53,8 +53,6 @@
             DiffState.Removed => "diff-removed",
             _ => "diff-unchanged"
         };
-
-
 
     private static DiffState GetPartialDiffState(string oldValue, DiffValue? newValue)
     {

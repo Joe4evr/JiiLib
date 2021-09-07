@@ -10,7 +10,7 @@ namespace JiiLib.Collections.DiffList
         /// <summary>
         /// 
         /// </summary>
-        public Enumerator GetEnumerator() => new Enumerator(this);
+        public Enumerator GetEnumerator() => new(this);
 
         /// <summary>
         /// 
@@ -39,7 +39,7 @@ namespace JiiLib.Collections.DiffList
             /// </summary>
             /// <returns>
             /// </returns>
-#if NET5_0
+#if NET5_0_OR_GREATER
             [MemberNotNullWhen(true, nameof(Current))]
 #endif
             public bool MoveNext()

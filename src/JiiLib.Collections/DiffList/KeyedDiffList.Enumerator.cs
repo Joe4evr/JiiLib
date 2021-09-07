@@ -30,11 +30,7 @@ namespace JiiLib.Collections.DiffList
                 _list = list;
                 _listVersion = list._version;
 
-                var comp = (list._comparison is null)
-                    ? Comparer<TKey>.Default
-                    : Comparer<TKey>.Create(list._comparison);
-                _keys = new SortedSet<TKey>(list._oldEntries.Keys.Concat(list._newEntries.Keys), comp)
-                    .GetEnumerator();
+                _keys = list.GetKeysCore().GetEnumerator();
             }
 
             /// <inheritdoc cref="IEnumerator.MoveNext" />
@@ -54,6 +50,7 @@ namespace JiiLib.Collections.DiffList
                     return true;
                 }
 
+                Current = default;
                 return false;
             }
 

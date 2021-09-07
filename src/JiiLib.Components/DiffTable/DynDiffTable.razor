@@ -3,19 +3,33 @@
 
 @inject IDiffListRepository Repo
 
-@if (_diffList is null) { }
+@if (_rendered)
+{
+    @if (_diffList is null)
+    {
+        <div class="error">
+            <span class="error-text">
+                Sorry, that list could not be found.
+            </span>
+        </div>
+    }
+    else
+    {
+        <DiffTable Title="@Title" DiffList="@_diffList" />
+    }
+}
 else
 {
-    <DiffTable Title="@Title" DiffList="@_diffList" />
+    <div class="spinner"/>
 }
 
 @code
 {
-    [Parameter] public string Title { private get; set; } = "";
-    [Parameter] public string? ListId { private get; set; }
-    //[Parameter] public Comparison<string>? Comparison { private get; set; }
+    [Parameter] public string Title { private get; init; } = "";
+    [Parameter] public string? ListId { private get; init; }
 
     private KeyedDiffList<string>? _diffList;
+    private bool _rendered;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -27,4 +41,7 @@ else
             _diffList = await Repo.GetListAsync(id);
         }
     }
+
+    protected override bool ShouldRender() => false;
+    protected override void OnAfterRender(bool firstRender) => _rendered = true;
 }

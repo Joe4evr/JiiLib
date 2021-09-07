@@ -2,8 +2,7 @@
 @using JiiLib.Collections.DiffList
 @using JiiLib.Components.Diff
 
-@if (DiffList is null) { }
-else
+@if (DiffList is not null)
 {
     <table class="diff-table">
         <thead>
@@ -14,7 +13,9 @@ else
         <tbody class="diff-table-content">
             @foreach (var pair in DiffList)
             {
-                <DiffValueRow Pair="pair"/>
+                @* There's pretty much no reason to *not* use '@key',
+                   just in case some behavior changes in the future. *@
+                <DiffValueRow Pair="pair" @key="pair.Key"/>
             }
         </tbody>
     </table>
@@ -25,10 +26,10 @@ else
     /// <summary>
     ///     Sets the list of content that this table is to display
     /// </summary>
-    [Parameter] public KeyedDiffList<string>? DiffList { private get; set; }
+    [Parameter] public KeyedDiffList<string>? DiffList { private get; init; }
 
     /// <summary>
     ///     Sets the title to display in the table header.
     /// </summary>
-    [Parameter] public string Title { private get; set; } = "";
+    [Parameter] public string Title { private get; init; } = "";
 }

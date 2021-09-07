@@ -19,12 +19,14 @@ namespace JiiLib.Collections.DiffList
         New,
 
         /// <summary>
-        ///     The value exists in both and has changed between Old and New entries.
+        ///     The value exists in both and has
+        ///     changed between Old and New entries.
         /// </summary>
         Changed,
 
         /// <summary>
-        ///     The value exists in both and has <em>not</em> changed between Old and New entries.
+        ///     The value exists in both and has <em><b>not</b></em>
+        ///     changed between Old and New entries.
         /// </summary>
         Unchanged,
 

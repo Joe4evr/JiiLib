@@ -17,7 +17,7 @@ namespace JiiLib.Collections.DiffList
     ///     </note>
     /// </remarks>
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    public sealed partial class DiffValue
+    public sealed partial class DiffValue : IEquatable<DiffValue>
     {
         private static readonly IEqualityComparer<string> _comparer = StringComparer.OrdinalIgnoreCase;
 
@@ -282,6 +282,16 @@ namespace JiiLib.Collections.DiffList
             return hash.ToHashCode();
         }
 
+        /// <inheritdoc/>
+        public bool Equals(DiffValue? other)
+        {
+            return other switch
+            {
+                null => false,
+                _ => EqualsCore(this, other)
+            };
+        }
+
         private static bool Equals(DiffValue? left, DiffValue? right)
         {
             return (left, right) switch
@@ -311,7 +321,7 @@ namespace JiiLib.Collections.DiffList
                 _values = builder.ToImmutable();
         }
 
-        private string DebuggerDisplay => IsSingleValue
+        private string DebuggerDisplay() => IsSingleValue
             ? $"Single: ({Value})"
             : $"Multi: [Count = {Values.Length}]";
 
@@ -330,7 +340,6 @@ namespace JiiLib.Collections.DiffList
         ///     otherwise, <see langword="false"/>.
         /// </returns>
         public static bool operator ==(DiffValue? left, DiffValue? right) => Equals(left, right);
-
 
         /// <summary>
         ///     Compares two <see cref="DiffValue"/>s for inequality.
