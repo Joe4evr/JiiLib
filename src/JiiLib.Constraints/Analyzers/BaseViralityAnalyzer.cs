@@ -92,7 +92,9 @@ namespace JiiLib.Constraints.Analyzers
             foreach (var (typeParam, typeArg) in typeParams.ZipT(typeArgs))
             {
                 var attrs = typeParam.GetAttributes();
-                if (attrs.Any(a => a?.AttributeClass?.Name == CheckedAttribute.Name)
+                if (attrs.Any(a =>
+                    a?.AttributeClass?.ContainingNamespace?.Name == "JiiLib.Constraints"
+                    && a?.AttributeClass?.Name == CheckedAttribute.Name)
                     && context.SemanticModel.GetSymbolInfo(typeArg).Symbol is ITypeParameterSymbol typeArgSymbol)
                 {
                     CheckArgToParam(typeArgSymbol, typeArg, calleeId, context);

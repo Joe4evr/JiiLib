@@ -131,7 +131,9 @@ namespace JiiLib.Constraints.Analyzers
         }
 
         private bool HasAttribute(ITypeParameterSymbol typeParamSymbol)
-            => typeParamSymbol.GetAttributes().Any(attr => attr.AttributeClass?.Name == CheckedAttribute.Name);
+            => typeParamSymbol.GetAttributes().Any(attr =>
+                    attr?.AttributeClass?.ContainingNamespace?.Name == "JiiLib.Constraints"
+                    && attr.AttributeClass?.Name == CheckedAttribute.Name);
 
         private protected virtual bool ShouldAnalyze(TypeArgumentListSyntax typeArgumentList) => true;
         private protected virtual bool CompliesWithConstraint(

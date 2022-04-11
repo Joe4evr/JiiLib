@@ -38,7 +38,9 @@ namespace JiiLib.Constraints.Analyzers
                 if (context.SemanticModel.GetDeclaredSymbol(typeParamNode) is not { } typeParamSymbol)
                     continue;
 
-                var attribute = typeParamSymbol.GetAttributes().FirstOrDefault(a => a?.AttributeClass?.Name == CheckedAttribute.Name);
+                var attribute = typeParamSymbol.GetAttributes().FirstOrDefault(a =>
+                    a?.AttributeClass?.ContainingNamespace?.Name == "JiiLib.Constraints"
+                    && a?.AttributeClass?.Name == CheckedAttribute.Name);
                 if (attribute != null)
                 {
                     var choice = GetDiagnosticChoice(typeParamSymbol);
