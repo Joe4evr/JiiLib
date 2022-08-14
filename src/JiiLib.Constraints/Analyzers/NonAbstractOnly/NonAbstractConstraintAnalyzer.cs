@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace JiiLib.Constraints.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class NonAbstractConstraintAnalyzer : BaseConstraintAnalyzer
+    internal sealed class NonAbstractConstraintAnalyzer : BaseConstraintAnalyzer<NonAbstractOnlyAttribute>
     {
         private const string DiagnosticId = "JLC0002";
         private const string Title = "Type argument must be a non-abstract type";
@@ -17,15 +17,9 @@ namespace JiiLib.Constraints.Analyzers
         private const string Category = "API Usage";
 
         private static readonly DiagnosticDescriptor _rule = new(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
-        private static readonly Type _attributeType = typeof(NonAbstractOnlyAttribute);
 
         /// <inheritdoc/>
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
-
-        public NonAbstractConstraintAnalyzer()
-            : base(_attributeType)
-        {
-        }
 
         private protected override bool CompliesWithConstraint(ITypeSymbol typeSymbol)
         {

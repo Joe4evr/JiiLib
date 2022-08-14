@@ -7,7 +7,7 @@ using Xunit;
 
 namespace JiiLib.Constraints.Tests
 {
-    public class SelfTypeAnalyzerTests : DiagnosticVerifier
+    public class SelfTypeAnalyzerTests : DiagnosticVerifier<SelfTypeAttribute>
     {
         //        [Fact]
         //        public void VerifyDiagnosticsOnInterfaceAndAbstractClass()

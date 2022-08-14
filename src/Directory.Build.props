@@ -4,7 +4,7 @@
     <RootNamespace>$(AssemblyName)</RootNamespace>
     <Title>$(AssemblyName)</Title>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <Nullable>Enable</Nullable>
     <Authors>Joe4evr</Authors>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>

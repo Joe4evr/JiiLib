@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace JiiLib.Constraints.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class NoInterfacesConstraintAnalyzer : BaseConstraintAnalyzer
+    internal sealed class NoInterfacesConstraintAnalyzer : BaseConstraintAnalyzer<NoInterfacesAttribute>
     {
         private const string DiagnosticId = "JLC0004";
         private const string Title = "Type argument may not be an interface type";
@@ -15,14 +15,8 @@ namespace JiiLib.Constraints.Analyzers
         private const string Category = "API Usage";
 
         private static readonly DiagnosticDescriptor _rule = new(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
-        private static readonly Type _attributeType = typeof(NoInterfacesAttribute);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
-
-        public NoInterfacesConstraintAnalyzer()
-            : base(_attributeType)
-        {
-        }
 
         private protected override bool CompliesWithConstraint(ITypeSymbol typeSymbol)
             => typeSymbol.TypeKind != TypeKind.Interface;

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace JiiLib.Constraints.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class NonAbstractUsageAnalyzer : BaseUsageAnalyzer<BasicDiagnosticChoice>
+    internal sealed class NonAbstractUsageAnalyzer : BaseUsageAnalyzer<NonAbstractOnlyAttribute, BasicDiagnosticChoice>
     {
         private const string DiagnosticId = "JLC0002U";
         private const string Title = "Use of the NonAbstractOnly attribute is ineffective";
@@ -18,23 +18,20 @@ namespace JiiLib.Constraints.Analyzers
         private static readonly DiagnosticDescriptor _rule = new(
             DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Info, isEnabledByDefault: true, description: Description,
             customTags: WellKnownDiagnosticTags.Unnecessary);
-        private static readonly Type _attributeType = typeof(NonAbstractOnlyAttribute);
 
         /// <inheritdoc/>
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
 
-        public NonAbstractUsageAnalyzer()
-            : base(_attributeType)
-        {
-        }
-
         private protected override BasicDiagnosticChoice GetDiagnosticChoice(ITypeParameterSymbol typeParameterSymbol)
-            => typeParameterSymbol switch
+        {
+            return typeParameterSymbol switch
             {
                 { HasValueTypeConstraint: true } => BasicDiagnosticChoice.No,
                 { HasConstructorConstraint: true } => BasicDiagnosticChoice.No,
                 _ => BasicDiagnosticChoice.Valid
             };
+        }
+
         private protected override DiagnosticDescriptor GetDiagnosticDescriptor(BasicDiagnosticChoice _) => _rule;
     }
 }

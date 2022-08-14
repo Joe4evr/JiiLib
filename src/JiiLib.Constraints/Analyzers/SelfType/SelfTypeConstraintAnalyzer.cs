@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace JiiLib.Constraints.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class SelfTypeConstraintAnalyzer : BaseConstraintAnalyzer
+    internal sealed class SelfTypeConstraintAnalyzer : BaseConstraintAnalyzer<SelfTypeAttribute>
     {
         private const string DiagnosticId = "JLC0003";
         private const string Title = "Type argument must be the implementing type";
@@ -18,15 +18,9 @@ namespace JiiLib.Constraints.Analyzers
         private const string Category = "API Usage";
 
         private static readonly DiagnosticDescriptor _rule = new(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
-        private static readonly Type _attributeType = typeof(SelfTypeAttribute);
 
         /// <inheritdoc/>
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
-
-        public SelfTypeConstraintAnalyzer()
-            : base(_attributeType)
-        {
-        }
 
         private protected override bool ShouldAnalyze(TypeArgumentListSyntax typeArgumentList) 
             => typeArgumentList.Ancestors().Any(n => n.IsKind(SyntaxKind.BaseList));

@@ -7,7 +7,7 @@ using Xunit;
 
 namespace JiiLib.Constraints.Tests
 {
-    public class NonAbstractViralityTests : DiagnosticVerifier
+    public class NonAbstractViralityTests : DiagnosticVerifier<NonAbstractOnlyAttribute>
     {
         [Fact]
         public async Task VerifyDiagnosticOnAbsence()

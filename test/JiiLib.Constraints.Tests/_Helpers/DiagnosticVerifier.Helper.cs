@@ -16,13 +16,13 @@ namespace TestHelper
     /// Class for turning strings into documents and getting the diagnostics on them
     /// All methods are static
     /// </summary>
-    public abstract partial class DiagnosticVerifier
+    public abstract partial class DiagnosticVerifier<TAttr>
     {
-        private static readonly MetadataReference _corlibReference = MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location);
-        private static readonly MetadataReference _systemCoreReference = MetadataReference.CreateFromFile(typeof(Enumerable).GetTypeInfo().Assembly.Location);
-        private static readonly MetadataReference _cSharpSymbolsReference = MetadataReference.CreateFromFile(typeof(CSharpCompilation).GetTypeInfo().Assembly.Location);
-        private static readonly MetadataReference _codeAnalysisReference = MetadataReference.CreateFromFile(typeof(Compilation).GetTypeInfo().Assembly.Location);
-        private static readonly Assembly _constraintsAssembly = typeof(NonAbstractOnlyAttribute).GetTypeInfo().Assembly;
+        private static readonly MetadataReference _corlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
+        private static readonly MetadataReference _systemCoreReference = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
+        private static readonly MetadataReference _cSharpSymbolsReference = MetadataReference.CreateFromFile(typeof(CSharpCompilation).Assembly.Location);
+        private static readonly MetadataReference _codeAnalysisReference = MetadataReference.CreateFromFile(typeof(Compilation).Assembly.Location);
+        private static readonly Assembly _analyzerAssembly = typeof(TAttr).Assembly;
 
         internal static readonly string DefaultFilePathPrefix = "Test";
         internal static readonly string CSharpDefaultFileExt = "cs";
@@ -158,7 +158,7 @@ namespace TestHelper
                 .AddMetadataReference(projectId, _systemCoreReference)
                 .AddMetadataReference(projectId, _cSharpSymbolsReference)
                 .AddMetadataReference(projectId, _codeAnalysisReference)
-                .AddMetadataReferences(projectId, Transitive(_constraintsAssembly));
+                .AddMetadataReferences(projectId, Transitive(_analyzerAssembly));
 
             int count = 0;
             foreach (var source in sources)

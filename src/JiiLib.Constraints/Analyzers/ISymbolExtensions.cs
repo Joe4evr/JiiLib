@@ -13,7 +13,7 @@ namespace JiiLib.Constraints
     {
 
         /// <summary>
-        /// Checks if a given symbol implements an interface member implicitly
+        ///     Checks if a given symbol implements an interface member implicitly
         /// </summary>
         public static bool IsImplementationOfAnyImplicitInterfaceMember<TSymbol>(this ISymbol symbol, [NotNullWhen(returnValue: true)] out TSymbol? implementedMember)
             where TSymbol : ISymbol
@@ -44,7 +44,7 @@ namespace JiiLib.Constraints
         }
 
         /// <summary>
-        /// Checks if a given symbol implements an interface member or overrides an implementation of an interface member.
+        ///     Checks if a given symbol implements an interface member or overrides an implementation of an interface member.
         /// </summary>
         private static bool IsOverrideOrImplementationOfInterfaceMember(this ISymbol symbol, [NotNullWhen(returnValue: true)] ISymbol? interfaceMember)
         {
@@ -63,9 +63,11 @@ namespace JiiLib.Constraints
         }
 
         /// <summary>
-        /// Gets the symbol overridden by the given <paramref name="symbol"/>.
+        ///     Gets the symbol overridden by the given <paramref name="symbol"/>.
         /// </summary>
-        /// <remarks>Requires that <see cref="ISymbol.IsOverride"/> is true for the given <paramref name="symbol"/>.</remarks>
+        /// <remarks>
+        ///     Requires that <see cref="ISymbol.IsOverride"/> is true for the given <paramref name="symbol"/>.
+        /// </remarks>
         private static ISymbol GetOverriddenMember(this ISymbol symbol)
         {
             Debug.Assert(symbol.IsOverride);
@@ -80,6 +82,17 @@ namespace JiiLib.Constraints
 
                 _ => throw new NotImplementedException(),
             };
+        }
+
+        internal static AttributeData? GetAttributeData<TAttribute>(this ISymbol symbol)
+            where TAttribute : Attribute
+            => GetAttributeData(symbol, typeof(TAttribute));
+
+        internal static AttributeData? GetAttributeData(this ISymbol symbol, Type attrType)
+        {
+            return symbol.GetAttributes().FirstOrDefault(attr =>
+                attr?.AttributeClass?.ContainingNamespace?.ToDisplayString() == attrType.Namespace
+                && attr.AttributeClass?.Name == attrType.Name);
         }
     }
 }

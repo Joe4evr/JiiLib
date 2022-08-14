@@ -7,7 +7,7 @@ using Xunit;
 
 namespace JiiLib.Constraints.Tests
 {
-    public class CombinatoricsTests : DiagnosticVerifier
+    public class CombinatoricsTests : DiagnosticVerifier<InterfacesOnlyAttribute>
     {
         [Fact]
         public async Task VerifyDiagnosticOnIOandNI()

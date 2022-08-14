@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace JiiLib.Constraints.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class NoInterfacesUsageAnalyzer : BaseUsageAnalyzer<BasicDiagnosticChoice>
+    internal sealed class NoInterfacesUsageAnalyzer : BaseUsageAnalyzer<NoInterfacesAttribute, BasicDiagnosticChoice>
     {
         private const string DiagnosticId = "JLC0004U";
         private const string Title = "Use of the NoInterfaces attribute is ineffective";
@@ -20,14 +20,7 @@ namespace JiiLib.Constraints.Analyzers
             DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Info, isEnabledByDefault: true, description: Description,
             customTags: WellKnownDiagnosticTags.Unnecessary);
 
-        private static readonly Type _attributeType = typeof(NoInterfacesAttribute);
-
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
-
-        public NoInterfacesUsageAnalyzer()
-            : base(_attributeType)
-        {
-        }
 
         private protected override bool ShouldAnalyze(TypeParameterListSyntax typeArgumentList)
             => typeArgumentList.Parent.IsKind(SyntaxKind.MethodDeclaration);

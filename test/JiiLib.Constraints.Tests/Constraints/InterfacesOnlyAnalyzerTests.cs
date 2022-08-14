@@ -7,7 +7,7 @@ using Xunit;
 
 namespace JiiLib.Constraints.Tests
 {
-    public class InterfacesOnlyAnalyzerTests : DiagnosticVerifier
+    public class InterfacesOnlyAnalyzerTests : DiagnosticVerifier<InterfacesOnlyAttribute>
     {
         [Fact]
         public async Task VerifyDiagnosticsOnClassStructAndDelegate()

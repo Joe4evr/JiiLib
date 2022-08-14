@@ -11,14 +11,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace JiiLib.Constraints.Analyzers
 {
-    internal abstract class BaseViralityAnalyzer : DiagnosticAnalyzer
+    internal abstract class BaseViralityAnalyzer<TAttribute> : DiagnosticAnalyzer
+        where TAttribute : Attribute
     {
-        private Type CheckedAttribute { get; }
+        private static readonly Type _attrType = typeof(TAttribute);
 
-        private protected BaseViralityAnalyzer(Type attribute)
-        {
-            CheckedAttribute = attribute;
-        }
+        private protected BaseViralityAnalyzer() { }
 
         public sealed override void Initialize(AnalysisContext context)
         {
@@ -91,10 +89,7 @@ namespace JiiLib.Constraints.Analyzers
 
             foreach (var (typeParam, typeArg) in typeParams.ZipT(typeArgs))
             {
-                var attrs = typeParam.GetAttributes();
-                if (attrs.Any(a =>
-                    a?.AttributeClass?.ContainingNamespace?.Name == "JiiLib.Constraints"
-                    && a?.AttributeClass?.Name == CheckedAttribute.Name)
+                if (typeParam.GetAttributeData(_attrType) is { }
                     && context.SemanticModel.GetSymbolInfo(typeArg).Symbol is ITypeParameterSymbol typeArgSymbol)
                 {
                     CheckArgToParam(typeArgSymbol, typeArg, calleeId, context);
@@ -131,7 +126,8 @@ namespace JiiLib.Constraints.Analyzers
             SyntaxNode typeArgNode, string calleeId,
             SyntaxNodeAnalysisContext context)
         {
-            if ((typeArgument is ITypeParameterSymbol otherTypeParam) && HasAttribute(otherTypeParam))
+            if ((typeArgument is ITypeParameterSymbol otherTypeParam)
+                && otherTypeParam.GetAttributeData(_attrType) is { })
             {
                 return;
             }
@@ -149,9 +145,6 @@ namespace JiiLib.Constraints.Analyzers
                 context.ReportDiagnostic(diagnostic);
             }
         }
-
-        private bool HasAttribute(ITypeParameterSymbol typeParamSymbol)
-            => typeParamSymbol.GetAttributes().Any(attr => attr.AttributeClass?.Name == CheckedAttribute.Name);
 
         [DebuggerStepThrough]
         private protected virtual bool ShouldAnalyze(TypeArgumentListSyntax typeArgumentList) => true;

@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace JiiLib.Constraints.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class InterfaceUsageAnalyzer : BaseUsageAnalyzer<InterfaceConstraintDiagnosticChoice>
+    internal sealed class InterfaceUsageAnalyzer : BaseUsageAnalyzer<InterfacesOnlyAttribute, InterfaceConstraintDiagnosticChoice>
     {
         private const string DiagnosticId = "JLC0001U";
         private const string Title = "The InterfacesOnly attribute cannot be combined with an incompatible constraint";
@@ -26,14 +25,8 @@ namespace JiiLib.Constraints.Analyzers
             DiagnosticId, Title, MessageFormatBC, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
         private static readonly DiagnosticDescriptor _ruleTParam = new(
             DiagnosticId, Title, MessageFormatTParam, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
-        private static readonly Type _attributeType = typeof(InterfacesOnlyAttribute);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_ruleVT, _ruleCtor, _ruleBC, _ruleTParam);
-
-        public InterfaceUsageAnalyzer()
-            : base(_attributeType)
-        {
-        }
 
         private protected override InterfaceConstraintDiagnosticChoice GetDiagnosticChoice(ITypeParameterSymbol typeParameterSymbol)
         {
@@ -66,13 +59,15 @@ namespace JiiLib.Constraints.Analyzers
         }
 
         private protected override DiagnosticDescriptor GetDiagnosticDescriptor(InterfaceConstraintDiagnosticChoice choice)
-            => choice switch
+        {
+            return choice switch
             {
-                InterfaceConstraintDiagnosticChoice.Struct    => _ruleVT,
-                InterfaceConstraintDiagnosticChoice.New       => _ruleCtor,
+                InterfaceConstraintDiagnosticChoice.Struct => _ruleVT,
+                InterfaceConstraintDiagnosticChoice.New => _ruleCtor,
                 InterfaceConstraintDiagnosticChoice.BaseClass => _ruleBC,
                 InterfaceConstraintDiagnosticChoice.TypeParam => _ruleTParam,
                 _ => throw new InvalidOperationException()
             };
+        }
     }
 }

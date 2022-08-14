@@ -8,14 +8,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace JiiLib.Constraints.Analyzers
 {
-    internal abstract class BaseConstraintAnalyzer : DiagnosticAnalyzer
+    internal abstract class BaseConstraintAnalyzer<TAttribute> : DiagnosticAnalyzer
+        where TAttribute : Attribute
     {
-        private Type CheckedAttribute { get; }
+        private static readonly Type _attrType = typeof(TAttribute);
 
-        private protected BaseConstraintAnalyzer(Type attribute)
-        {
-            CheckedAttribute = attribute;
-        }
+        private protected BaseConstraintAnalyzer() { }
 
         public sealed override void Initialize(AnalysisContext context)
         {
@@ -82,7 +80,7 @@ namespace JiiLib.Constraints.Analyzers
 
             foreach (var (typeParam, typeArg) in typeParams.ZipT(typeArgs))
             {
-                if (HasAttribute(typeParam)
+                if (typeParam.GetAttributeData(_attrType) is { }
                     && context.SemanticModel.GetSymbolInfo(typeArg).Symbol is ITypeSymbol typeArgSymbol)
                 {
                     CheckArgToParam(typeParam, typeArgSymbol, typeArg, context);
@@ -102,7 +100,7 @@ namespace JiiLib.Constraints.Analyzers
 
             foreach (var (typeParam, typeArg) in typeParams.ZipT(typeArgs))
             {
-                if (HasAttribute(typeParam)
+                if (typeParam.GetAttributeData(_attrType) is { }
                     && context.SemanticModel.GetDeclaredSymbol(typeArg) is ITypeSymbol typeArgSymbol)
                 {
                     CheckArgToParam(typeParam, typeArgSymbol, typeArg, context);
@@ -119,7 +117,8 @@ namespace JiiLib.Constraints.Analyzers
             SyntaxNode typeArgNode,
             SyntaxNodeAnalysisContext context)
         {
-            if ((typeArgument is ITypeParameterSymbol otherTypeParam) && HasAttribute(otherTypeParam))
+            if ((typeArgument is ITypeParameterSymbol otherTypeParam)
+                && otherTypeParam.GetAttributeData(_attrType) is { })
             {
                 return;
             }
@@ -129,11 +128,6 @@ namespace JiiLib.Constraints.Analyzers
                 context.ReportDiagnostic(diagnostic);
             }
         }
-
-        private bool HasAttribute(ITypeParameterSymbol typeParamSymbol)
-            => typeParamSymbol.GetAttributes().Any(attr =>
-                    attr?.AttributeClass?.ContainingNamespace?.Name == "JiiLib.Constraints"
-                    && attr.AttributeClass?.Name == CheckedAttribute.Name);
 
         private protected virtual bool ShouldAnalyze(TypeArgumentListSyntax typeArgumentList) => true;
         private protected virtual bool CompliesWithConstraint(

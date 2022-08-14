@@ -13,7 +13,7 @@ namespace TestHelper
     /// <summary>
     /// Superclass of all Unit Tests for DiagnosticAnalyzers
     /// </summary>
-    public abstract partial class DiagnosticVerifier
+    public abstract partial class DiagnosticVerifier<TAttr>
     {
         #region To be implemented by Test classes
         /// <summary>

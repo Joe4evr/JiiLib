@@ -8,15 +8,13 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace JiiLib.Constraints.Analyzers
 {
-    internal abstract class BaseUsageAnalyzer<TChoice> : DiagnosticAnalyzer
+    internal abstract class BaseUsageAnalyzer<TAttribute, TChoice> : DiagnosticAnalyzer
+        where TAttribute : Attribute
         where TChoice : struct, Enum
     {
-        private Type CheckedAttribute { get; }
+        private static readonly Type _attrType = typeof(TAttribute);
 
-        private protected BaseUsageAnalyzer(Type checkedAttribute)
-        {
-            CheckedAttribute = checkedAttribute;
-        }
+        private protected BaseUsageAnalyzer() { }
 
         public sealed override void Initialize(AnalysisContext context)
         {
@@ -38,10 +36,7 @@ namespace JiiLib.Constraints.Analyzers
                 if (context.SemanticModel.GetDeclaredSymbol(typeParamNode) is not { } typeParamSymbol)
                     continue;
 
-                var attribute = typeParamSymbol.GetAttributes().FirstOrDefault(a =>
-                    a?.AttributeClass?.ContainingNamespace?.Name == "JiiLib.Constraints"
-                    && a?.AttributeClass?.Name == CheckedAttribute.Name);
-                if (attribute != null)
+                if (typeParamSymbol.GetAttributeData(_attrType) is { } attribute)
                 {
                     var choice = GetDiagnosticChoice(typeParamSymbol);
                     

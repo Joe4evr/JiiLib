@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace JiiLib.Constraints.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class NoInterfacesViralityAnalyzer : BaseViralityAnalyzer
+    internal sealed class NoInterfacesViralityAnalyzer : BaseViralityAnalyzer<NoInterfacesAttribute>
     {
         private const string DiagnosticId = "JLC0004V";
         private const string Title = "Type parameter must be annotated";
@@ -15,14 +15,8 @@ namespace JiiLib.Constraints.Analyzers
         private const string Category = "API Usage";
 
         private static readonly DiagnosticDescriptor _rule = new(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
-        private static readonly Type _attributeType = typeof(NoInterfacesAttribute);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
-
-        public NoInterfacesViralityAnalyzer()
-            : base(_attributeType)
-        {
-        }
 
         private protected override DiagnosticDescriptor GetDiagnosticDescriptor() => _rule;
     }
