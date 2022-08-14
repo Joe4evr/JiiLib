@@ -83,18 +83,18 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
     {
         return parent switch
         {
-            IFieldSymbol { Type: { IsValueType: true } _, IsReadOnly: false } when callerIsReadonly => true,
-            IFieldSymbol { Type: { IsValueType: true } _, IsReadOnly: true } => true,
+            IFieldSymbol { Type.IsValueType: true, IsReadOnly: false } when callerIsReadonly => true,
+            IFieldSymbol { Type.IsValueType: true, IsReadOnly: true } => true,
 
-            IPropertySymbol { Type: { IsValueType: true } _, GetMethod.IsReadOnly: false } when callerIsReadonly => true,
-            IPropertySymbol { Type: { IsValueType: true } _, GetMethod.IsReadOnly: true } => true,
-            IPropertySymbol { Type: { IsValueType: true } _, RefKind: RefKind.RefReadOnly } => true,
+            IPropertySymbol { Type.IsValueType: true, GetMethod.IsReadOnly: false } when callerIsReadonly => true,
+            IPropertySymbol { Type.IsValueType: true, GetMethod.IsReadOnly: true } => true,
+            IPropertySymbol { Type.IsValueType: true, RefKind: RefKind.RefReadOnly } => true,
 
-            IMethodSymbol { ReturnType: { IsValueType: true } _, IsReadOnly: false } when callerIsReadonly => true,
-            IMethodSymbol { ReturnType: { IsValueType: true } _, RefKind: RefKind.RefReadOnly } => true,
+            IMethodSymbol { ReturnType.IsValueType: true, IsReadOnly: false } when callerIsReadonly => true,
+            IMethodSymbol { ReturnType.IsValueType: true, RefKind: RefKind.RefReadOnly } => true,
 
-            ILocalSymbol     { Type: { IsValueType: true } _, RefKind: RefKind.RefReadOnly } => true,
-            IParameterSymbol { Type: { IsValueType: true } _, RefKind: RefKind.RefReadOnly } => true,
+            ILocalSymbol     { Type.IsValueType: true, RefKind: RefKind.RefReadOnly } => true,
+            IParameterSymbol { Type.IsValueType: true, RefKind: RefKind.RefReadOnly } => true,
             _ => false
         };
     }
