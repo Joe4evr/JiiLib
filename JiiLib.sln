@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29418.71
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{ED86E6F6-871B-450C-B191-FF35A2619754}"
 EndProject
@@ -46,6 +46,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JiiLib.Components.Tests.Manual", "test\JiiLib.Components.Tests.Manual\JiiLib.Components.Tests.Manual.csproj", "{B4D22B3C-284D-496E-9815-8C8475E75685}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JiiLib.CapsLight", "src\JiiLib.CapsLight\JiiLib.CapsLight.csproj", "{40A4657E-A550-47B8-B32C-10B1559E5A82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JiiLib.Analyzers", "src\JiiLib.Analyzers\JiiLib.Analyzers.csproj", "{7A2C74AF-2B73-4BB3-9463-E8C00F5AF7E3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -109,6 +111,10 @@ Global
 		{40A4657E-A550-47B8-B32C-10B1559E5A82}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40A4657E-A550-47B8-B32C-10B1559E5A82}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40A4657E-A550-47B8-B32C-10B1559E5A82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A2C74AF-2B73-4BB3-9463-E8C00F5AF7E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A2C74AF-2B73-4BB3-9463-E8C00F5AF7E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A2C74AF-2B73-4BB3-9463-E8C00F5AF7E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A2C74AF-2B73-4BB3-9463-E8C00F5AF7E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -128,6 +134,7 @@ Global
 		{1E6D4DE6-5D71-4629-B605-86734E4A255B} = {EC91EE0B-4C1F-476F-8452-746E264E50DE}
 		{B4D22B3C-284D-496E-9815-8C8475E75685} = {EC91EE0B-4C1F-476F-8452-746E264E50DE}
 		{40A4657E-A550-47B8-B32C-10B1559E5A82} = {ED86E6F6-871B-450C-B191-FF35A2619754}
+		{7A2C74AF-2B73-4BB3-9463-E8C00F5AF7E3} = {ED86E6F6-871B-450C-B191-FF35A2619754}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {ACD9B62C-5D79-4F2F-98EC-AB359247996E}
