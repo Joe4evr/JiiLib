@@ -61,6 +61,7 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
+            // TODO: find aliases for Contains?
             if (filter.Count == 0 || filter.Contains(parentSymbol.Name))
             {
                 var memberSymbol = context.SemanticModel.GetSymbolInfo(access).Symbol;
@@ -83,15 +84,15 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
     {
         return parent switch
         {
-            IFieldSymbol { Type.IsValueType: true, IsReadOnly: false } when callerIsReadonly => true,
-            IFieldSymbol { Type.IsValueType: true, IsReadOnly: true } => true,
+            IFieldSymbol { Type.IsValueType: true, IsStatic: false, IsReadOnly: false } when callerIsReadonly => true,
+            IFieldSymbol { Type.IsValueType: true, IsStatic: false, IsReadOnly: true } => true,
 
-            IPropertySymbol { Type.IsValueType: true, GetMethod.IsReadOnly: false } when callerIsReadonly => true,
-            IPropertySymbol { Type.IsValueType: true, GetMethod.IsReadOnly: true } => true,
-            IPropertySymbol { Type.IsValueType: true, RefKind: RefKind.RefReadOnly } => true,
+            IPropertySymbol { Type.IsValueType: true, IsStatic: false, GetMethod.IsReadOnly: false } when callerIsReadonly => true,
+            IPropertySymbol { Type.IsValueType: true, IsStatic: false, GetMethod.IsReadOnly: true } => true,
+            IPropertySymbol { Type.IsValueType: true, IsStatic: false, RefKind: RefKind.RefReadOnly } => true,
 
-            IMethodSymbol { ReturnType.IsValueType: true, IsReadOnly: false } when callerIsReadonly => true,
-            IMethodSymbol { ReturnType.IsValueType: true, RefKind: RefKind.RefReadOnly } => true,
+            IMethodSymbol { ReturnType.IsValueType: true, IsStatic: false, IsReadOnly: false } when callerIsReadonly => true,
+            IMethodSymbol { ReturnType.IsValueType: true, IsStatic: false, RefKind: RefKind.RefReadOnly } => true,
 
             ILocalSymbol     { Type.IsValueType: true, RefKind: RefKind.RefReadOnly } => true,
             IParameterSymbol { Type.IsValueType: true, RefKind: RefKind.RefReadOnly } => true,
@@ -103,9 +104,9 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
     {
         return member switch
         {
-            IFieldSymbol              { IsReadOnly: false } => true,
-            IPropertySymbol { GetMethod.IsReadOnly: false } => true,
-            IMethodSymbol             { IsReadOnly: false } => true,
+            IFieldSymbol              { IsReadOnly: false, IsStatic: false } => true,
+            IPropertySymbol { GetMethod.IsReadOnly: false, IsStatic: false } => true,
+            IMethodSymbol             { IsReadOnly: false, IsStatic: false } => true,
             _ => false
         };
     }
