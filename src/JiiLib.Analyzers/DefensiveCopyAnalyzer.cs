@@ -46,10 +46,6 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
 
         var thisMethodIsReadonly = methodSymbol.IsReadOnly;
 
-        var filter = new HashSet<string>(attrData.ConstructorArguments
-            .SelectMany(a => a.Values.Select(c => c.Value))
-            .OfType<string>(), StringComparer.Ordinal);
-
         var aliasTracker = new VariableAliasTracker(attrData.ConstructorArguments
             .SelectMany(a => a.Values.Select(c => c.Value))
             .OfType<string>());
@@ -141,10 +137,16 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
     {
         return member switch
         {
-            IFieldSymbol              { IsReadOnly: false, IsStatic: false } => true,
+            // 'IFieldSymbol' not yet updated to model ref fields?
+            //IFieldSymbol { IsReadOnly: false, IsStatic: false } when isWrite => true,
+            IFieldSymbol { IsReadOnly: false, IsStatic: false } => true,
+
             IPropertySymbol { SetMethod.IsReadOnly: false, IsStatic: false } when isWrite => true,
+            IPropertySymbol { GetMethod: { IsReadOnly: false, ReturnsByRef: true }, IsStatic: false } when isWrite => true,
             IPropertySymbol { GetMethod.IsReadOnly: false, IsStatic: false } => true,
-            IMethodSymbol             { IsReadOnly: false, IsStatic: false } => true,
+
+            IMethodSymbol { IsReadOnly: false, IsStatic: false, ReturnsByRef: true } when isWrite => true,
+            IMethodSymbol { IsReadOnly: false, IsStatic: false } => true,
             _ => false
         };
     }
