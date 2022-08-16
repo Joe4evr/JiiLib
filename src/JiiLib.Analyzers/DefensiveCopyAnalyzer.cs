@@ -16,13 +16,15 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
     private const string DiagnosticId = "JLA0001";
     private const string Title = "Prevent defensive struct copies";
     private const string MessageFormat = "Call to member '{0}' will execute on a defensive copy of '{1}'";
+    private const string AliassedMessageFormat = "Call to member '{0}' will execute on a defensive copy of '{1}' via the alias '{2}'";
     private const string Description = "Prevent defensive struct copies.";
     private const string Category = "Correctness";
 
     private static readonly DiagnosticDescriptor _rule = new(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
+    private static readonly DiagnosticDescriptor _aliassedRule = new(DiagnosticId, Title, AliassedMessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
     private static readonly Type _attributeType = typeof(NoDefensiveCopiesAttribute);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule, _aliassedRule);
 
     public sealed override void Initialize(AnalysisContext context)
     {
@@ -48,26 +50,61 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
             .SelectMany(a => a.Values.Select(c => c.Value))
             .OfType<string>(), StringComparer.Ordinal);
 
-        var accesses = methodDeclaration.DescendantNodes()
-            .OfType<MemberAccessExpressionSyntax>()
+        var aliasTracker = new VariableAliasTracker(attrData.ConstructorArguments
+            .SelectMany(a => a.Values.Select(c => c.Value))
+            .OfType<string>());
+
+        var interests = methodDeclaration.DescendantNodes()
+            .Where(n => n.IsKind(SyntaxKind.LocalDeclarationStatement)
+                || n.IsKind(SyntaxKind.SimpleAssignmentExpression)
+                || n.IsKind(SyntaxKind.SimpleMemberAccessExpression))
             .ToArray();
 
-        foreach (var access in accesses)
+        foreach (var interest in interests)
         {
-            var parentSymbol = context.SemanticModel.GetSymbolInfo(access.Expression).Symbol;
-            if (!IsPotentiallyProblematicParent(parentSymbol, thisMethodIsReadonly))
+            // Aliassing: new ref-local declarations
+            // ref var a = ref b;
+            if (interest is LocalDeclarationStatementSyntax { Declaration: { Type: RefTypeSyntax, Variables: var vars } })
             {
-                // No diagnostic needed
-                return;
-            }
-
-            // TODO: find aliases for Contains?
-            if (filter.Count == 0 || filter.Contains(parentSymbol.Name))
-            {
-                var memberSymbol = context.SemanticModel.GetSymbolInfo(access).Symbol;
-                if (IsProblematicMember(memberSymbol))
+                foreach (var item in vars)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(_rule, access.GetLocation(), memberSymbol.Name, parentSymbol.Name));
+                    if (item.Initializer is { Value: RefExpressionSyntax { Expression: IdentifierNameSyntax { Identifier: var refValue } } })
+                    {
+                        aliasTracker.SetAlias(item.Identifier.ValueText, refValue.ValueText);
+                    }
+                }
+            }
+            // Aliassing: ref-local reassignment
+            // a = ref c;
+            else if (interest is AssignmentExpressionSyntax { Left: IdentifierNameSyntax id, Right: RefExpressionSyntax { Expression: IdentifierNameSyntax { Identifier: var refValue } } })
+            {
+                aliasTracker.SetAlias(id.Identifier.ValueText, refValue.ValueText);
+            }
+            // Member access: anything like 'a.b', 'a.b()', 'a().b', 'a().b()'
+            else if (interest is MemberAccessExpressionSyntax access)
+            {
+                var parentSymbol = context.SemanticModel.GetSymbolInfo(access.Expression).Symbol;
+                if (!IsPotentiallyProblematicParent(parentSymbol, thisMethodIsReadonly))
+                {
+                    // No diagnostic needed
+                    return;
+                }
+
+                var foundName = default(string);
+                if (aliasTracker.FilterCount == 0 || aliasTracker.Contains(parentSymbol.Name, out foundName))
+                {
+                    var memberSymbol = context.SemanticModel.GetSymbolInfo(access).Symbol;
+                    if (IsProblematicMember(memberSymbol))
+                    {
+                        if (foundName is null || parentSymbol.Name == foundName)
+                        {
+                            context.ReportDiagnostic(Diagnostic.Create(_rule, access.GetLocation(), memberSymbol.Name, parentSymbol.Name));
+                        }
+                        else
+                        {
+                            context.ReportDiagnostic(Diagnostic.Create(_aliassedRule, access.GetLocation(), memberSymbol.Name, parentSymbol.Name, foundName));
+                        }
+                    }
                 }
             }
         }
