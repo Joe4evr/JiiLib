@@ -94,7 +94,7 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
                 if (aliasTracker.FilterCount == 0 || aliasTracker.Contains(parentSymbol.Name, out foundName))
                 {
                     var memberSymbol = context.SemanticModel.GetSymbolInfo(access).Symbol;
-                    if (IsProblematicMember(memberSymbol))
+                    if (IsProblematicMember(memberSymbol, isWrite: access.IsWrittenTo(context.SemanticModel, CancellationToken.None)))
                     {
                         if (foundName is null || parentSymbol.Name == foundName)
                         {
@@ -137,11 +137,12 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
         };
     }
 
-    private static bool IsProblematicMember([NotNullWhen(returnValue: true)] ISymbol? member)
+    private static bool IsProblematicMember([NotNullWhen(returnValue: true)] ISymbol? member, bool isWrite)
     {
         return member switch
         {
             IFieldSymbol              { IsReadOnly: false, IsStatic: false } => true,
+            IPropertySymbol { SetMethod.IsReadOnly: false, IsStatic: false } when isWrite => true,
             IPropertySymbol { GetMethod.IsReadOnly: false, IsStatic: false } => true,
             IMethodSymbol             { IsReadOnly: false, IsStatic: false } => true,
             _ => false
