@@ -42,7 +42,7 @@ namespace N
                 {
                     Id = "JLA0001",
                     Message = "Call to member 'M1' will execute on a defensive copy of '_s1'",
-                    Severity = DiagnosticSeverity.Error,
+                    Severity = DiagnosticSeverity.Warning,
                     Locations = new[]
                     {
                         new DiagnosticResultLocation("Test0.cs", line: 20, column: 39)
@@ -87,7 +87,7 @@ namespace N
                 {
                     Id = "JLA0001",
                     Message = "Call to member 'M1' will execute on a defensive copy of '_s1b'",
-                    Severity = DiagnosticSeverity.Error,
+                    Severity = DiagnosticSeverity.Warning,
                     Locations = new[]
                     {
                         new DiagnosticResultLocation("Test0.cs", line: 21, column: 13)

@@ -20,8 +20,8 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
     private const string Description = "Prevent defensive struct copies.";
     private const string Category = "Correctness";
 
-    private static readonly DiagnosticDescriptor _rule = new(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
-    private static readonly DiagnosticDescriptor _aliassedRule = new(DiagnosticId, Title, AliassedMessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
+    private static readonly DiagnosticDescriptor _rule = new(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+    private static readonly DiagnosticDescriptor _aliassedRule = new(DiagnosticId, Title, AliassedMessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
     private static readonly Type _attributeType = typeof(NoDefensiveCopiesAttribute);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule, _aliassedRule);
@@ -79,26 +79,26 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
             // Member access: anything like 'a.b', 'a.b()', 'a().b', 'a().b()'
             else if (interest is MemberAccessExpressionSyntax access)
             {
-                var parentSymbol = context.SemanticModel.GetSymbolInfo(access.Expression).Symbol;
-                if (!IsPotentiallyProblematicParent(parentSymbol, thisMethodIsReadonly))
+                var lhsSymbol = context.SemanticModel.GetSymbolInfo(access.Expression, context.CancellationToken).Symbol;
+                if (!IsPotentiallyProblematicLhs(lhsSymbol, thisMethodIsReadonly))
                 {
                     // No diagnostic needed
                     return;
                 }
 
                 var foundName = default(string);
-                if (aliasTracker.FilterCount == 0 || aliasTracker.Contains(parentSymbol.Name, out foundName))
+                if (aliasTracker.FilterCount == 0 || aliasTracker.Contains(lhsSymbol.Name, out foundName))
                 {
-                    var memberSymbol = context.SemanticModel.GetSymbolInfo(access).Symbol;
-                    if (IsProblematicMember(memberSymbol, isWrite: access.IsWrittenTo(context.SemanticModel, CancellationToken.None)))
+                    var memberSymbol = context.SemanticModel.GetSymbolInfo(access, context.CancellationToken).Symbol;
+                    if (IsProblematicMember(memberSymbol, isWrite: access.IsWrittenTo(memberSymbol)))
                     {
-                        if (foundName is null || parentSymbol.Name == foundName)
+                        if (foundName is null || lhsSymbol.Name == foundName)
                         {
-                            context.ReportDiagnostic(Diagnostic.Create(_rule, access.GetLocation(), memberSymbol.Name, parentSymbol.Name));
+                            context.ReportDiagnostic(Diagnostic.Create(_rule, access.GetLocation(), memberSymbol.Name, lhsSymbol.Name));
                         }
                         else
                         {
-                            context.ReportDiagnostic(Diagnostic.Create(_aliassedRule, access.GetLocation(), memberSymbol.Name, parentSymbol.Name, foundName));
+                            context.ReportDiagnostic(Diagnostic.Create(_aliassedRule, access.GetLocation(), memberSymbol.Name, lhsSymbol.Name, foundName));
                         }
                     }
                 }
@@ -113,7 +113,7 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
             && attr.AttributeClass?.Name == _attributeType.Name);
     }
 
-    private static bool IsPotentiallyProblematicParent([NotNullWhen(returnValue: true)] ISymbol? parent, bool callerIsReadonly)
+    private static bool IsPotentiallyProblematicLhs([NotNullWhen(returnValue: true)] ISymbol? parent, bool callerIsReadonly)
     {
         return parent switch
         {
@@ -133,20 +133,33 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
         };
     }
 
+    // If the lhs of the member access was potentially problematic,
+    // this method checks if the member access *actually* causes a shadow copy.
     private static bool IsProblematicMember([NotNullWhen(returnValue: true)] ISymbol? member, bool isWrite)
     {
         return member switch
         {
-            // 'IFieldSymbol' not yet updated to model ref fields?
-            //IFieldSymbol { IsReadOnly: false, IsStatic: false } when isWrite => true,
-            IFieldSymbol { IsReadOnly: false, IsStatic: false } => true,
+            // A non-readonly field being written to can result in a shadow copy.
+            // (A field read, even non-readonly, does not shadow copy.)
+            IFieldSymbol { IsReadOnly: false, IsStatic: false } when isWrite => true,
 
+            // Looks weird, but it is possible and legal to declare a property with
+            // a 'readonly set' method, and a non-readonly setter can result in a shadow copy if used.
             IPropertySymbol { SetMethod.IsReadOnly: false, IsStatic: false } when isWrite => true,
-            IPropertySymbol { GetMethod: { IsReadOnly: false, ReturnsByRef: true }, IsStatic: false } when isWrite => true,
+            // A non-readonly ref-returning property being written to can result in a shadow copy.
+            IPropertySymbol { GetMethod.IsReadOnly: false, IsStatic: false, ReturnsByRef: true } when isWrite => true,
+            // Any non-readonly property getter can result in a shadow copy.
             IPropertySymbol { GetMethod.IsReadOnly: false, IsStatic: false } => true,
 
+            // A non-readonly method's ref-return being written to can result in a shadow copy.
+            // (Reading from the ref-return should be okay, since it's like a field access.)
             IMethodSymbol { IsReadOnly: false, IsStatic: false, ReturnsByRef: true } when isWrite => true,
+            // Any non-readonly method invoke can result in a shadow copy.
             IMethodSymbol { IsReadOnly: false, IsStatic: false } => true,
+
+            //IEventSymbol { },
+
+            // Everything else won't result in a shadow copy.
             _ => false
         };
     }

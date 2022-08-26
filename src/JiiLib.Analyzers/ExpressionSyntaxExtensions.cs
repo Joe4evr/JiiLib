@@ -11,7 +11,7 @@ namespace JiiLib.Analyzers;
 // because these aren't public for some reason....
 internal static class ExpressionSyntaxExtensions
 {
-    public static bool IsWrittenTo(this ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+    public static bool IsWrittenTo(this ExpressionSyntax expression, ISymbol? symbol)
     {
         if (expression == null)
             return false;
@@ -51,7 +51,6 @@ internal static class ExpressionSyntaxExtensions
         if (expression.Parent is MemberAccessExpressionSyntax memberAccess &&
             expression == memberAccess.Expression)
         {
-            var symbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
             if (symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension, ReducedFrom: IMethodSymbol reducedFrom } &&
                 reducedFrom.Parameters.Length > 0 &&
                 reducedFrom.Parameters.First().RefKind == RefKind.Ref)
@@ -246,5 +245,5 @@ internal static class ExpressionSyntaxExtensions
         return nameEquals.IsParentKind(SyntaxKind.AttributeArgument);
     }
 
-    private static void Deconstruct(this PostfixUnaryExpressionSyntax syntax, out SyntaxKind syntaxKind) => syntaxKind = syntax.Kind();
+    internal static void Deconstruct(this PostfixUnaryExpressionSyntax syntax, out SyntaxKind syntaxKind) => syntaxKind = syntax.Kind();
 }
