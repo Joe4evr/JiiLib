@@ -50,11 +50,12 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
             .SelectMany(a => a.Values.Select(c => c.Value))
             .OfType<string>());
 
-        var interests = methodDeclaration.DescendantNodes()
+        var methodBody = (SyntaxNode?)methodDeclaration.Body ?? methodDeclaration.ExpressionBody;
+        var interests = methodBody?.DescendantNodes()
             .Where(n => n.IsKind(SyntaxKind.LocalDeclarationStatement)
                 || n.IsKind(SyntaxKind.SimpleAssignmentExpression)
                 || n.IsKind(SyntaxKind.SimpleMemberAccessExpression))
-            .ToArray();
+            .ToArray() ?? Array.Empty<SyntaxNode>();
 
         foreach (var interest in interests)
         {
@@ -64,9 +65,16 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
             {
                 foreach (var item in vars)
                 {
-                    if (item.Initializer is { Value: RefExpressionSyntax { Expression: IdentifierNameSyntax { Identifier: var refValue } } })
+                    if (item.Initializer is { Value: RefExpressionSyntax refExpr })
                     {
-                        aliasTracker.SetAlias(item.Identifier.ValueText, refValue.ValueText);
+                        if (refExpr.Expression is IdentifierNameSyntax { Identifier: var refValue })
+                        {
+                            aliasTracker.SetAlias(item.Identifier.ValueText, refValue.ValueText);
+                        }
+                        else if (refExpr.Expression is MemberAccessExpressionSyntax { Expression: IdentifierNameSyntax { Identifier: var memRefValue } })
+                        {
+                            aliasTracker.SetAlias(item.Identifier.ValueText, memRefValue.ValueText);
+                        }
                     }
                 }
             }
@@ -83,7 +91,7 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
                 if (!IsPotentiallyProblematicLhs(lhsSymbol, thisMethodIsReadonly))
                 {
                     // No diagnostic needed
-                    return;
+                    continue;
                 }
 
                 var foundName = default(string);
@@ -117,15 +125,15 @@ internal sealed class DefensiveCopyAnalyzer : DiagnosticAnalyzer
     {
         return parent switch
         {
-            IFieldSymbol { Type.IsValueType: true, IsStatic: false, IsReadOnly: false } when callerIsReadonly => true,
-            IFieldSymbol { Type.IsValueType: true, IsStatic: false, IsReadOnly: true } => true,
+            IFieldSymbol { Type.IsValueType: true, IsReadOnly: false } when callerIsReadonly => true,
+            IFieldSymbol { Type.IsValueType: true, IsReadOnly: true } => true,
 
-            IPropertySymbol { Type.IsValueType: true, IsStatic: false, GetMethod.IsReadOnly: false } when callerIsReadonly => true,
-            IPropertySymbol { Type.IsValueType: true, IsStatic: false, GetMethod.IsReadOnly: true } => true,
-            IPropertySymbol { Type.IsValueType: true, IsStatic: false, RefKind: RefKind.RefReadOnly } => true,
+            IPropertySymbol { Type.IsValueType: true, GetMethod.IsReadOnly: false } when callerIsReadonly => true,
+            IPropertySymbol { Type.IsValueType: true, GetMethod.IsReadOnly: true } => true,
+            IPropertySymbol { Type.IsValueType: true, RefKind: RefKind.RefReadOnly } => true,
 
-            IMethodSymbol { ReturnType.IsValueType: true, IsStatic: false, IsReadOnly: false } when callerIsReadonly => true,
-            IMethodSymbol { ReturnType.IsValueType: true, IsStatic: false, RefKind: RefKind.RefReadOnly } => true,
+            IMethodSymbol { ReturnType.IsValueType: true, IsReadOnly: false } when callerIsReadonly => true,
+            IMethodSymbol { ReturnType.IsValueType: true, RefKind: RefKind.RefReadOnly } => true,
 
             ILocalSymbol     { Type.IsValueType: true, RefKind: RefKind.RefReadOnly } => true,
             IParameterSymbol { Type.IsValueType: true, RefKind: RefKind.RefReadOnly } => true,

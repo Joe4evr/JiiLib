@@ -5,7 +5,7 @@
 ///     some or all struct variables from getting
 ///     defensively copied.
 /// </summary>
-[AttributeUsage(AttributeTargets.Method)]
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
 public sealed class NoDefensiveCopiesAttribute : Attribute
 {
     /// <summary/>
