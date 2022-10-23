@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.10.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.4.0-4.final" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\JiiLib.Analyzers\JiiLib.Analyzers.csproj" />
     <ProjectReference Include="..\..\src\JiiLib.Constraints\JiiLib.Constraints.csproj" />
   </ItemGroup>
 </Project>
